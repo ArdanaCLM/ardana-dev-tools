@@ -174,6 +174,16 @@ def write_systemd(service, cmd, name, install_dir, user, group,
     #
     #  Make string with file contents
     #
+
+    # NOTE(gyee): Restart parameters cannot be an empty string or systemd will
+    # perpetually complain about invalid format. Therefore, we only set
+    # Restart and RestartSec if services set them.
+    restart_params = ""
+    if restart:
+        restart_params += "Restart=%s\n" % (restart)
+    if restart_sec:
+        restart_params += "RestartSec=%s\n" % (restart_sec)
+
     s = ("[Unit]\n"
          "Description={name} Service\n"
          "Wants={wants}\n"
@@ -186,8 +196,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
          "Environment={env}\n"
          "User={user}\n"
          "Group={group}\n"
-         "Restart={restart}\n"
-         "RestartSec={restart_sec}\n"
+         "{restart_params}"
          "PermissionsStartOnly=true\n"
          "\n"
          "RuntimeDirectory={name}\n"
@@ -207,8 +216,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
                                           args=args,
                                           startup_type=startup_type,
                                           env=env_str,
-                                          restart=restart,
-                                          restart_sec=restart_sec,
+                                          restart_params=restart_params,
                                           wants=wants,
                                           wanted_by=wanted_by,
                                           before=before,
