@@ -44,6 +44,7 @@ while true ; do
 done
 
 source $SCRIPT_HOME/libci.sh
+ensure_in_vagrant_dir $SCRIPT_NAME
 
 deployscript="$1"
 shift

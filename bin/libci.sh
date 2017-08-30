@@ -122,9 +122,30 @@ logtimeoutfail() {
     logfail $1 $STATUS
 }
 
+ensure_in_vagrant_dir() {
+    caller="${1:-$(basename $0)}"
+
+    if [ ! -f Vagrantfile ]; then
+        echo "$caller must be run in directory containing Vagrantfile" >&2
+        exit 1
+    fi
+
+    if ! pwd | grep -q '/ardana-vagrant-models/.'; then
+        echo "update-venv.sh must be run from a subdirectory of ardana-dev-tools/ardana-vagrant-models" >&2
+        exit 1
+    fi
+
+    if ! grep -q "/ardana_vagrant_helper.rb" Vagrantfile; then
+        echo "Vagrantfile in this directory doesn't look like the right kind." >&2
+        exit 1
+    fi
+}
+
 # Generate the ssh-config file
 # Requires the environmental variable VAGRANT_LOG_DIR to be set
 generate_ssh_config() {
+    ensure_in_vagrant_dir generate_ssh_config
+
     if [ ! -e ${ARDANA_VAGRANT_SSH_CONFIG} -o -n "${1:-}" ]; then
         vagrant --debug \
             ssh-config 2>>"${VAGRANT_LOG_DIR}/${ARDANA_VAGRANT_SSH_CONFIG}.log" > $ARDANA_VAGRANT_SSH_CONFIG
@@ -132,6 +153,7 @@ generate_ssh_config() {
 }
 
 get_deployer_node() {
+    ensure_in_vagrant_dir get_deployer_node
     awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile
 }
 

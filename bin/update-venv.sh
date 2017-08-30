@@ -69,9 +69,6 @@ TEMP=$(getopt -o h -l help,ci,no-config,no-build,rhel,sles,no-artifacts,no-check
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
-ARDANA_VERSION=$(python -c "import yaml ; print yaml.load(open('../../ansible/roles/product/defaults/main.yml'))['product_name_version']")
-DEPLOYER_PATH=/opt/ardana_packager/$ARDANA_VERSION/hlinux_venv
-
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
@@ -98,6 +95,10 @@ PACKAGE=$1
 PLAYBOOK="${2:-}"
 
 source $SCRIPT_HOME/libci.sh
+ensure_in_vagrant_dir $SCRIPT_NAME
+
+ARDANA_VERSION=$(python -c "import yaml ; print yaml.load(open('../../ansible/roles/product/defaults/main.yml'))['product_name_version']")
+DEPLOYER_PATH=/opt/ardana_packager/$ARDANA_VERSION/hlinux_venv
 
 export ARDANA_HLINUX_ARTIFACTS=
 if [ -z "$RHEL" -a -z "$SLES" ]; then

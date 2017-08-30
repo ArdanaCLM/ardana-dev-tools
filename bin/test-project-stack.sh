@@ -48,6 +48,8 @@ set -x
 
 source $SCRIPT_HOME/libci.sh
 
+ensure_in_vagrant_dir $SCRIPT_NAME
+
 if [ -z "${1:-}" ]; then
     echo "Please specify a project to find the test-plan.yaml from" >&2
     exit 1
