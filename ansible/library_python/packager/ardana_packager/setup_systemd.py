@@ -51,6 +51,7 @@ def main():
             cmd=dict(required=True),
             name=dict(default=None),
             install_dir=dict(default="/opt/stack/service"),
+            install_path=dict(default=None),
             user=dict(default=getpass.getuser()),
             group=dict(default=None),
             args=dict(default=None),
@@ -76,6 +77,9 @@ def main():
     cmd = params['cmd']
     name = params['name'] or service
     install_dir = params['install_dir']
+    install_path = params['install_path']
+    if install_path is None:
+        install_path = "%s/%s/venv/bin" % (install_dir, service)
     user = params['user']
     group = params['group'] or user
     args = params['args']
@@ -97,7 +101,7 @@ def main():
 
     try:
         changed = write_systemd(service, cmd, name,
-                                install_dir, user, group,
+                                install_path, user, group,
                                 args=args, startup_type=startup_type,
                                 env=env, restart=restart,
                                 restart_sec=restart_sec, before=before,
@@ -110,6 +114,7 @@ def main():
                          cmd=cmd,
                          name=name,
                          install_dir=install_dir,
+                         install_path=install_path,
                          user=user,
                          group=group,
                          args=args,
@@ -131,6 +136,7 @@ def main():
                          cmd=cmd,
                          name=name,
                          install_dir=install_dir,
+                         install_path=install_path,
                          user=user,
                          group=group,
                          args=args,
@@ -148,6 +154,7 @@ def main():
                              cmd=cmd,
                              name=name,
                              install_dir=install_dir,
+                             install_path=install_path,
                              user=user,
                              group=group,
                              args=args,
@@ -162,16 +169,16 @@ def main():
                              enable=enable)
 
     module.exit_json(service=service, cmd=cmd, name=name,
-                     install_dir=install_dir, user=user,
-                     group=group, args=args, startup_type=startup_type,
-                     env=env, restart=restart, restart_sec=restart_sec,
-                     enable=enable, before=before, after=after,
-                     wants=wants, wanted_by=wanted_by,
+                     install_dir=install_dir, install_path=install_path,
+                     user=user, group=group, args=args,
+                     startup_type=startup_type, env=env, restart=restart,
+                     restart_sec=restart_sec, enable=enable, before=before,
+                     after=after, wants=wants, wanted_by=wanted_by,
                      limit_open_files=limit_open_files,
                      changed=changed)
 
 
-def write_systemd(service, cmd, name, install_dir, user, group,
+def write_systemd(service, cmd, name, install_path, user, group,
                   args="", startup_type="", env={}, restart="",
                   restart_sec="", before="", after="",
                   wants="", wanted_by="", stdout="journal", stderr="inherit",
@@ -204,7 +211,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
          "\n"
          "[Service]\n"
          "Type={startup_type}\n"
-         "ExecStart={install_dir}/{service}/venv/bin/{cmd} {args}\n"
+         "ExecStart={install_path}/{cmd} {args}\n"
          "Environment={env}\n"
          "User={user}\n"
          "Group={group}\n"
@@ -223,7 +230,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
          "Alias={name}.service\n").format(service=service,
                                           cmd=cmd,
                                           name=name,
-                                          install_dir=install_dir,
+                                          install_path=install_path,
                                           user=user,
                                           group=group,
                                           args=args,
