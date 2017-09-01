@@ -1,0 +1,109 @@
+#!/bin/bash
+
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# This script is supported to be used by developers.
+#
+
+SCRIPT_NAME=$(basename $0)
+SCRIPT_HOME=$(dirname $(readlink -f $0))
+
+PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
+
+usage() {
+    set +x
+    cat <<EOF
+$SCRIPT_NAME [git grep args ...]
+
+Run git grep over all Ardana git repositories which can be found either
+adjacent to the one hosting this script, or in ~/.cache-ardana/sources.
+EOF
+}
+
+parse_opts() {
+    while true; do
+        case "$1" in
+            -h | --help)
+                usage
+                exit 0
+                ;;
+            *) break
+               ;;
+        esac
+    done
+
+    if [ -z "$1" ]; then
+        usage
+        exit 1
+    fi
+}
+
+main() {
+    parse_opts "$@"
+
+    last_output=
+
+    branch=$(
+        awk -F= '/^defaultbranch=/ { print $2 }'  $SCRIPT_HOME/../.gitreview
+    )
+
+    for repo in $SCRIPT_HOME/../../* ~/.cache-ardana/sources/$branch/*; do
+        repo=$(readlink -f "$repo")
+
+        if ! [ -d "$repo" ] || ! [ -e "$repo/.git" ]; then
+            case "$last_output" in
+                dot)
+                    echo
+                    ;;
+            esac
+
+            echo "Skipping $repo" >&2
+            continue
+        fi
+
+        pushd "$repo" >/dev/null
+
+        if out=$(git --no-pager grep --color "$@"); then
+            case "$last_output" in
+                dot)
+                    echo
+                    ;;
+            esac
+
+            echo -e "\e[1;34m$(pwd)\e[0m"
+            echo "$out"
+            last_output=grep
+        else
+            case "$last_output" in
+                grep)
+                    echo
+                    ;;
+            esac
+
+            echo -n .
+            last_output=dot
+        fi
+
+        popd >/dev/null
+    done
+
+    case "$last_output" in
+        dot)
+            echo
+            ;;
+    esac
+}
+
+main "$@"
