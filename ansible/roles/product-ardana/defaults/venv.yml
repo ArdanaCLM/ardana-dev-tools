@@ -120,7 +120,7 @@ _packages_dist_os_suse:
   - beaver
   - freezer_agent
   - sos
-packages_dist_os_suse: "{% if _ardana_venv_packages_dist %}{{ _packages_dist_os_suse | intersect(_ardana_venv_packages_dist) }}{% else %}{{ _packages_dist_os_suse }}{% endif %}"
+packages_dist_os_suse: "{{ packages_dist | difference(['storevirtual-installer']) }}"
 
 # to handle external versus standard
 packages_external_venv:

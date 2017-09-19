@@ -32,6 +32,8 @@ venv_deps:
   - ceph-common
   - python-libguestfs # Used by nova_guestfs
   - libvirt-python
+  - liberasurecode1
+  - liberasurecode-devel
 
 product_ardana_venv_deps:
   db_devel: libmysqlclient-devel
