@@ -20,7 +20,7 @@
 # all the option variables that control astack.sh
 #
 
-OPTIONS=help,ci,no-setup,no-build,build-hlinux-ova,rhel,rhel-compute,sles,sles-compute,guest-images,tarball:,cobble-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:
+OPTIONS=help,ci,no-setup,no-build,build-hlinux-ova,rhel,rhel-compute,sles,sles-control,sles-compute,guest-images,tarball:,cobble-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
@@ -38,6 +38,8 @@ export ARDANA_RHEL_COMPUTE=${ARDANA_RHEL_COMPUTE:-}
 export ARDANA_RHEL_COMPUTE_NODES=${ARDANA_RHEL_COMPUTE_NODES:-}
 export ARDANA_UPGRADE_NO_SLES=${ARDANA_UPGRADE_NO_SLES:-}
 export ARDANA_SLES_ARTIFACTS=${ARDANA_SLES_ARTIFACTS:-}
+export ARDANA_SLES_CONTROL=${ARDANA_SLES_CONTROL:-}
+export ARDANA_SLES_CONTROL_NODES=${ARDANA_SLES_CONTROL_NODES:-}
 export ARDANA_SLES_COMPUTE=${ARDANA_SLES_COMPUTE:-}
 export ARDANA_SLES_COMPUTE_NODES=${ARDANA_SLES_COMPUTE_NODES:-}
 export ARDANA_GUEST_IMAGE_ARTIFACTS=${ARDANA_GUEST_IMAGE_ARTIFACTS:-}
@@ -82,6 +84,10 @@ while true ; do
             export ARDANA_RHEL_ARTIFACTS=1
             shift ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
+        --sles-control)
+            export ARDANA_SLES_CONTROL=1
+            export ARDANA_SLES_ARTIFACTS=1
+            shift ;;
         --sles-compute)
             export ARDANA_SLES_COMPUTE=1
             export ARDANA_SLES_ARTIFACTS=1
