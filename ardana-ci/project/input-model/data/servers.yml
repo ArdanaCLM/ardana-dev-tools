@@ -31,6 +31,6 @@
       server-group: RACK1
       mac-addr: a4:93:0c:4f:7c:73
       nic-mapping: VAGRANT
-      ilo-ip: 192.168.9.3
+      ilo-ip: 192.168.109.3
       ilo-password: password
       ilo-user: admin
