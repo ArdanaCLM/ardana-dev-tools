@@ -49,13 +49,53 @@ vagrant_vm_sles_extras:
   - repo: cloud-openstack-newton
     disable_gpg_check: yes
     pkgs:
+      - apache2-mod_wsgi
       - collectl
       - conntrack-tools
+      - dnsmasq-utils
+      - elasticsearch
+      - erlang
+      - erlang-epmd
+      - erlang-sd_notify
       - haproxy
       - keepalived
-      - python-virtualenv
-      - python-urllib3
-      - python-PyYAML
+      - kibana
       - liberasurecode1
       - liberasurecode-devel
+      - logstash
+      - novnc
+      - python-elasticsearch-curator
+      - python-httplib2
+      - python-passlib
+      - python-pika
+      - python-PyYAML
+      - python-virtualenv
+      - python-urllib3
+      - rabbitmq-server
+      - zookeeper-server
     url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP3/"
+
+  - repo: "SUSE-OpenStack-Cloud-8-devel-staging"
+    disable_gpg_check: yes
+    pkgs:
+      - galera-3-wsrep-provider
+      - mariadb
+      - python-PyMySQL
+      - ruby2.1-rubygem-mysql2
+      - xtrabackup
+    url: "http://clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/suse/"
+
+  - repo: vertica
+    disable_gpg_check: yes
+    pkgs:
+      - vertica
+    url: "http://ardana.suse.provo.cloud/rpm_repositories/vertica/vertica_9_20171004112240/"
+
+  - repo: powerdns
+    disable_gpg_check: yes
+    pkgs:
+      - libsodium23
+      - pdns
+      - pdns-backend-mysql
+      - pdns-common
+    url: "https://download.opensuse.org/repositories/server:/dns:/powerdns/SLE_12/"
