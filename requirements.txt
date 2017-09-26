@@ -1,0 +1,4 @@
+ansible==1.9.4
+jinja2==2.8
+PyYAML
+paramiko

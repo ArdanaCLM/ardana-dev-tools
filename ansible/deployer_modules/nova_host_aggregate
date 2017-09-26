@@ -1,0 +1,301 @@
+#!/usr/bin/python
+#coding: utf-8 -*-
+
+#
+# This module is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this software.  If not, see <http://www.gnu.org/licenses/>.
+
+try:
+    from novaclient import client as nova_client
+    from novaclient import exceptions as exc
+except ImportError:
+    print("failed=True msg='novaclient is required for this module to work'")
+
+DOCUMENTATION = '''
+---
+module: nova_host_aggregate
+version_added: "1.8"
+short_description: Add/Delete nova host aggregates and availability zones
+description:
+   - Add or Remove nova host aggregates and availability zones
+options:
+   login_username:
+     description:
+        - login username to authenticate to keystone
+     required: true
+     default: admin
+   login_password:
+     description:
+        - Password of login user
+     required: true
+     default: 'yes'
+   login_tenant_name:
+     description:
+        - The tenant name of the login user
+     required: true
+     default: 'yes'
+   auth_url:
+     description:
+        - The keystone url for authentication
+     required: false
+     default: 'http://127.0.0.1:35357/v2.0/'
+   region_name:
+     description:
+        - Name of the region
+     required: false
+     default: None
+   state:
+     description:
+        - Indicate desired state of the resource
+     choices: ['present', 'absent']
+     default: present
+   name:
+     description:
+        - Name that has to be given to the host aggregate
+     required: true
+     default: None
+   availability_zone:
+     description:
+        - Name that has to be given to the availability zone
+     required: false
+     default: None
+   host:
+     description:
+        - Name of host to add
+     required: false
+     default: None
+   force:
+     description:
+        - forcibly delete the aggregate
+     required: false
+     default: None
+
+requirements: ["novaclient"]
+author: Scott Wulf
+'''
+EXAMPLES = '''
+# Creates a host aggregate
+- nova_host_aggregate: state=present login_username=admin
+                login_password=admin login_tenant_name=admin name=aggregate1
+
+# Creates a host aggregate and availability zone
+- nova_host_aggregate: state=present login_username=admin
+                login_password=admin login_tenant_name=admin name=aggregate1
+                availability_zone=zone1
+
+# Adds a host to an availability zone
+- nova_host_aggregate: state=present login_username=admin
+                login_password=admin login_tenant_name=admin name=aggregate1
+                host=host1
+
+# Forcibly deletes a host aggregate
+- nova_host_aggregate: state=absent login_username=admin
+                login_password=admin login_tenant_name=admin name=aggregate1
+                force=true
+
+# Removes a host from an availability zone
+- nova_host_aggregate: state=absent login_username=admin
+                login_password=admin login_tenant_name=admin name=aggregate1
+                host=host1
+'''
+
+def get_aggregate(client, name):
+    """ Retrieve an aggregate by id or name """
+    list = [x for x in client.aggregates.list() if x.name == name]
+    count = len(list)
+    if count == 0:
+        raise KeyError('No host aggregate with id or name %s' % name)
+    elif count > 1:
+        raise ValueError('%d host aggregates with id or name %s' % (count, name))
+    else:
+        return list[0]
+
+
+def get_aggregate_id(client, name):
+    return get_aggregate(client, name).id
+
+
+def ensure_aggregate_exists(client, name, zone, check_mode):
+    """ Ensure that an aggregate exists.
+
+        Return (True, id) if a new aggregate was created/updated, (False, id) if it
+        already existed.
+    """
+
+    # Check if aggregate already exists
+    try:
+        aggregate = get_aggregate(client, name)
+    except KeyError:
+        # aggregate does not exist yet
+        pass
+    else:
+        if not zone or aggregate.availability_zone == zone:
+            return (False, aggregate.id)
+        else:
+            # We need to update the aggregate details
+            if check_mode:
+                return (True, aggregate.id)
+            else:
+                #aggregate.update('availability_zone=%s' % zone)
+                aggregate.update({'availability_zone': zone})
+                return (True, aggregate.id)
+
+    # We now know we will have to create a new aggregate
+    if check_mode:
+        return (True, None)
+
+    aggregate = client.aggregates.create(name, zone)
+    return (True, aggregate.id)
+
+
+def ensure_aggregate_absent(client, name, force_delete, check_mode):
+    """ Ensure that an aggregate does not exist
+
+         Return True if it was removed, False if it did not exist
+         in the first place
+    """
+    try:
+        aggregate = get_aggregate(client, name)
+    except KeyError:
+        return False
+
+    # We now know we will have to delete the object
+    if check_mode:
+        return True
+
+    # clean up aggregate for deletion
+    if force_delete:
+        for host in aggregate.hosts:
+            aggregate.remove_host(host)
+
+    aggregate.delete()
+    return True
+
+
+def ensure_aggregate_host_exists(client, name, host, check_mode):
+    """ Ensure that the host exists.
+
+        Return True if the host was added, False otherwise.
+    """
+
+    aggregate = get_aggregate(client, name)
+    if host in aggregate.hosts:
+        return False
+
+    if check_mode:
+        return True
+
+    aggregate.add_host(host)
+    return True
+
+
+def ensure_aggregate_host_absent(client, name, host, check_mode):
+    """ Ensure that the host does not exist
+
+         Return True if it was removed, False otherwise
+    """
+    aggregate = get_aggregate(client, name)
+    if not host in aggregate.hosts:
+        return False
+
+    if check_mode:
+        return True
+
+    aggregate.remove_host(host)
+    return True
+
+
+def dispatch(client, aggregate_name=None, availability_zone=None, host=None, force_delete=False,
+             state='present', check_mode=False):
+    """ Dispatch to the appropriate method.
+
+        Returns a dict that will be passed to exit_json
+    """
+    id = None
+    if aggregate_name and state == 'present':
+        changed0, id = ensure_aggregate_exists(client, aggregate_name,
+                                               availability_zone, check_mode)
+        changed1 = False
+        if host:
+            changed1 = ensure_aggregate_host_exists(client, aggregate_name, host, check_mode)
+        changed = changed0 or changed1
+    elif aggregate_name and state == 'absent':
+        if host:
+            changed = ensure_aggregate_host_absent(client, aggregate_name, host, check_mode)
+        else:
+            changed = ensure_aggregate_absent(client, aggregate_name, force_delete, check_mode)
+    else:
+        # Should never reach here
+        raise ValueError('Code should never reach here')
+
+    return dict(changed=changed, id=id)
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            auth_url=dict(required=False,
+                          default='http://127.0.0.1:35357/v2.0'),
+            login_tenant_name=dict(required=False),
+            login_username=dict(required=False, default='admin'),
+            login_password=dict(required=False, default='password'),
+            region_name=dict(required=False, default='RegionOne'),
+
+            name                 = dict(required=True),
+            availability_zone    = dict(default=None),
+            host                 = dict(default=None),
+            force                = dict(default=False),
+            state                = dict(default='present', choices=['absent', 'present'])
+        ),
+        supports_check_mode=True
+    )
+
+    aggregate_name = module.params['name']
+    availability_zone = module.params['availability_zone']
+    hostname = module.params['host']
+    force_delete = module.params['force']
+    if force_delete:
+        force_delete = force_delete.lower() in ['true', '1']
+
+    state = module.params['state']
+    check_mode = module.check_mode
+
+    client = nova_client.Client('2',
+                                module.params['login_username'],
+                                module.params['login_password'],
+                                module.params['login_tenant_name'],
+                                module.params['auth_url'],
+                                region_name=module.params['region_name'],
+                                service_type='compute',
+                                endpoint_type='internalURL')
+    try:
+        client.authenticate()
+    except exc.Unauthorized, e:
+        module.fail_json(msg = "Invalid OpenStack Nova credentials.: %s" % e.message)
+    except exc.AuthorizationFailure, e:
+        module.fail_json(msg = "Unable to authorize user: %s" % e.message)
+
+    try:
+        d = dispatch(client, aggregate_name, availability_zone, hostname, force_delete, state, check_mode)
+    except Exception, e:
+        if check_mode:
+            module.exit_json(changed=True,
+                             msg='Exception: %s' % e)
+        else:
+            module.fail_json(msg='Exception: %s' % e)
+    else:
+        module.exit_json(**d)
+
+
+# import module snippets
+from ansible.module_utils.basic import *
+main()

@@ -1,0 +1,131 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called by CI infrastructure to run the cobber CI
+#
+
+set -eux
+set -o pipefail
+
+SCRIPT_NAME=$(basename $0)
+SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
+
+export ARDANAUSER=${ARDANAUSER:-stack}
+
+usage() {
+    set +x
+    echo "$(basename $0) [cloud]"
+    echo
+    echo "cloud defaults to deployerincloud"
+    echo
+    echo "--ci           -- Set options for running in the cdl"
+    echo "--no-setup     -- Don't run dev-env-install.yml"
+    echo "--no-build     -- Don't build venv, reuse existing packages"
+    echo "--opt-hlinux   -- Don't require hlinux compute re-imaging."
+    echo "--enable-rhel  -- Enable RHEL compute re-imaging."
+    echo "--enable-sles  -- Enable SLES compute re-imaging."
+}
+
+TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,opt-hlinux,enable-rhel,enable-sles -n $SCRIPT_NAME -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+args=
+CI=
+RHEL=
+SLES=
+OPT_HLINUX=
+
+while true ; do
+    case "$1" in
+        -h | --help) usage ; exit 0 ;;
+        --ci)
+            # Needed for verify-bm-install
+            export ARDANAUSER=ardanauser
+            CI=1
+            args="$args $1"
+            shift ;;
+        --enable-rhel)
+            RHEL=1
+            shift ;;
+        --enable-sles)
+            SLES=1
+            shift ;;
+        --opt-hlinux)
+            OPT_HLINUX=1
+            shift ;;
+        --no-setup|--no-build)
+            args="$args $1"
+            shift ;;
+        --) shift ; break;;
+        *) break ;;
+    esac
+done
+
+if [[ -z "${RHEL}" ]] && [[ -z "${SLES}" ]]
+then
+    RHEL=1
+fi
+
+set -x
+
+CLOUDNAME=${1:-deployerincloud}
+
+export ARDANA_PACKAGES_DIST='["packager", "ansible", "config_processor", "dayzero"]'
+export ARDANA_PACKAGES_NONDIST='[]'
+
+source $SCRIPT_HOME/libci.sh
+
+pushd $DEVTOOLS/ardana-vagrant-models/${CLOUDNAME}-vagrant
+
+# Bring up the system
+$SCRIPT_HOME/astack.sh \
+    --no-config \
+    --no-site \
+    $args \
+    ${CI:+--ci} \
+    ${RHEL:+--rhel} \
+    ${SLES:+--sles} \
+    --skip-extra-playbooks \
+    $CLOUDNAME
+
+# Edit the servers.yml file to configure specified distros
+$SCRIPT_HOME/run-in-deployer.sh \
+    $SCRIPT_HOME/deployer/add-compute-distros.py \
+    	-- \
+        ${OPT_HLINUX:+--no-hlinux} \
+        ${RHEL:+--rhel} \
+        ${SLES:+--sles} \
+        $CLOUDNAME
+
+# Re-run astack.sh but wihout setup / build and this time cobble all nodes.
+# This will run astack.sh
+$SCRIPT_HOME/astack.sh \
+    --no-setup \
+    --no-build \
+    --no-config \
+    --no-site \
+    $args \
+    ${CI:+--ci} \
+    ${RHEL:+--rhel} \
+    ${SLES:+--sles} \
+    --skip-extra-playbooks \
+    --cobble-all-nodes \
+    $CLOUDNAME
+
+$SCRIPT_HOME/verify-bm-install $CLOUDNAME

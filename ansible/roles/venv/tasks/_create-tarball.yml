@@ -1,0 +1,54 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Given a built venv, construct a tarball from it.
+# Input:
+#   service='nova'
+#   version='2015-02-01-10-11-12' or something like that
+---
+
+# Remove the old tarballs for this service. We assume here that the tarballs
+# have the format service-TIMESTAMP.tgz so the following regexp will match
+# glance-TIMESTAMP.tgz but not the venv glance-check-TIMESTAMP.tgz
+- name: venv | _create-tarball | Remove old tarball file for service
+  shell: rm -f {{ service }}-[0-9TZ]*.tgz
+  args:
+   chdir: "{{ VENV.TAR_DIR }}"
+
+- name: venv | _create-tarball | Force symlink python components for service
+  file:
+    src: "{{ item.0 }}2"
+    dest: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/bin/{{ item.0 }}{{ item.1 }}"
+    state: link
+    force: yes
+  with_nested:
+    - [ 'python', 'pip' ]
+    - [ '2.7', '' ]
+
+- name: venv | _create-tarball | Create the remote service venv tarball
+  command: >
+    tar acf {{ VENV.TAR_DIR }}/{{ service }}-{{ version }}.tgz .
+        --owner='root' --group='root'
+        --exclude='*.pyc'
+        --exclude='./local'
+        --exclude='./lib/python-wheels'
+  args:
+    chdir: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
+
+- name: venv | _create-tarball | Tidy up the service venv
+  file:
+    path: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
+    state: absent

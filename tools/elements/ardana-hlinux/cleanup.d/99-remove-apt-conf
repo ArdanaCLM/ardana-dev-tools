@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eux
+
+sudo rm -f ${TARGET_ROOT}/etc/apt/apt.conf
+sudo touch ${TARGET_ROOT}/etc/apt/apt.conf
+

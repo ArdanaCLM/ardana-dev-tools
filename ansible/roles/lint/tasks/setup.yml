@@ -1,0 +1,89 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Playbook for setting up for a lint run
+---
+
+- name: lint | setup | Create scratch repo
+  file:
+    path: "{{ lint_hierarchy_dir }}"
+    state: directory
+
+- name: lint | setup | Sync existing code repos
+  synchronize:
+    src: "{{ dev_env_sources_dir }}/{{ item.key }}"
+    dest: "{{ lint_hierarchy_dir }}"
+    copy_links: yes
+    recursive: yes
+    delete: yes
+  when: item.key | isdir(dev_env_sources_dir)
+  with_dict: deployer_git_repositories | update(deployer_qa_git_repositories)
+
+- name: lint | setup | Clone extra code repos
+  git:
+    repo: "{{ item.value.url }}"
+    dest: "{{ lint_hierarchy_dir }}/{{ item.key }}"
+    version: "{{ item.value.branch }}"
+    update: "{{ deployer_git_update }}"
+  when: not item.key | isdir(dev_env_sources_dir)
+  with_dict: deployer_git_repositories | update(deployer_qa_git_repositories)
+
+- name: lint | setup | Set rsync exclusions
+  copy:
+   src: flatten-rsync-filter
+   dest: "{{ lint_hierarchy_dir }}/.rsync-filter"
+
+# I tried to achieve this using "synchronize archive:yes delete:yes"
+# or even a loop over that, but correct delete behavior depends on
+# processing the whole tree at once, and the flattening of the tree
+# is achieved by the shell interpretation of "*/" which I could not
+# figure a way to achieve using "synchronize".
+- name: lint | setup | Flatten hierarchy
+  shell: rsync -iac --delete */ "{{ lint_flat_dir }}"
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  register: rsync_result
+  changed_when: rsync_result.stdout
+
+- name: lint | setup | Install ansible to virtual env
+  pip:
+    virtualenv: "{{ lint_venv }}"
+    name: ansible
+    version: "1.9.4"
+    state: present
+
+# todo: this should come from pypi mirror
+- name: lint | setup | Install ansible-lint to virtual env
+  pip:
+    virtualenv: "{{ lint_venv }}"
+    name: ansible-lint
+    version: "2.1.3"
+    state: present
+
+- name: lint | setup | Ready ansible tree
+  shell: >
+    . "{{ lint_venv }}/bin/activate";
+    ansible-playbook
+    -i hosts/localhost ready-deployment.yml
+    -t ardana-hooks-configure
+    -e "deployer_setup_deploy_dir={{ lint_flat_dir }}"
+  register: ready_deployment_result
+  args:
+    chdir: "{{ lint_flat_dir }}"
+
+- name: lint | setup | Ready ansible tree result
+  debug:
+    msg: "{{ ready_deployment_result.stdout_lines }}"

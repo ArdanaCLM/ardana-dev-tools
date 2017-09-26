@@ -1,0 +1,172 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- hosts: localhost
+  connection: local
+  max_fail_percentage: 0
+  roles:
+    - dev-env
+    - product
+    - deployer
+  tasks:
+    - name: Ensure async and cache directories exist
+      file:
+        path: "{{ item }}"
+        state: directory
+      with_items:
+        - "{{ lookup('env', 'HOME') }}/.ansible_async"
+        - "{{ 'test' | bare_cache_path | dirname }}"
+        - "{{ {'url': 'test', 'branch': product_branch} |
+              branched_cache_path |
+              dirname }}"
+
+    - name: setup parallel clone workers
+      add_host:
+        name: clone-{{ item.key }}
+        hostname: localhost
+        ansible_connection: local
+        groups: repo_parallel
+        repo: "{{ item.key }}"
+        repo_info: "{{ item.value }}"
+        # repo_development_source - local developers copy of repo. Based
+        # on url and if missing, based on dest value.
+        repo_development_source: "{{ dev_env_sources_dir ~ '/' ~ item.value.url |
+                                     default('') |
+                                     basename }}"
+      always_run: yes
+      with_dict: "{{ sources }}"
+      # Need to skip this task here, as this doesn't work on the include
+      when: "{{ ( lookup('env', 'ARDANA_SKIP_REPO_CHECKOUT')|default('') == '' )
+                     and ( when_cond is not defined or when_cond|bool ) }}"
+
+
+- hosts: repo_parallel
+  max_fail_percentage: 0
+  gather_facts: no
+  serial: 10
+  roles:
+    - dev-env
+    - product
+  tasks:
+    - set_fact:
+        _source_cache_dir: "{{ repo_info | bare_cache_path }}"
+      when: repo_info.url is defined
+
+    - name: Checkout the source repo
+      git:
+        repo: "{{ repo_info.url }}"
+        dest: "{{ _source_cache_dir }}"
+        version: "{{ repo_info.branch }}"
+        update: "{{ dev_env_global_git_update }}"
+        bare: yes
+        force: yes
+      environment:
+        GIT_HTTP_LOW_SPEED_LIMIT: 4096
+        GIT_HTTP_LOW_SPEED_TIME: 600
+      async: "{{ dev_env_git_timeout }}"
+      poll: 1
+      when: repo_info.url is defined and not ( repo_development_source | isdir )
+      register: _git_module_part1_result
+      ignore_errors: true
+
+    - name: Add in retry to the async git module task above if it fails - part 2
+      pause:
+        seconds: 1
+      when: _git_module_part1_result|failed
+
+    - name: Add in retry to the async git module task above if it fails - part 2
+      git:
+        repo: "{{ repo_info.url }}"
+        dest: "{{ _source_cache_dir }}"
+        version: "{{ repo_info.branch }}"
+        update: "{{ dev_env_global_git_update }}"
+        depth: "{{ source_depth|default(0) }}"
+        bare: yes
+        force: yes
+      environment:
+        GIT_HTTP_LOW_SPEED_LIMIT: 4096
+        GIT_HTTP_LOW_SPEED_TIME: 60
+      async: "{{ dev_env_git_timeout }}"
+      poll: 1
+      when: _git_module_part1_result|failed
+      register: _git_module_part2_result
+      ignore_errors: true
+
+    - name: Add in retry to the async git module task above if it fails - part 3
+      pause:
+        seconds: 1
+      when: _git_module_part2_result|failed
+
+    - name: Add in retry to the async git module task above if it fails - part 3
+      git:
+        repo: "{{ repo_info.url }}"
+        dest: "{{ _source_cache_dir }}"
+        version: "{{ repo_info.branch }}"
+        update: "{{ dev_env_global_git_update }}"
+        depth: "{{ source_depth|default(0) }}"
+        bare: yes
+        force: yes
+      environment:
+        GIT_HTTP_LOW_SPEED_LIMIT: 4096
+        GIT_HTTP_LOW_SPEED_TIME: 60
+      async: "{{ dev_env_git_timeout }}"
+      poll: 1
+      when: _git_module_part2_result|failed
+      register: _git_module_part3_result
+      ignore_errors: true
+
+    - name: Fail if we really, really, really can not checkout the repo
+      fail: msg="We tried, and tried and failed to fetch the repo {{ repo_info.url }}"
+      when: _git_module_part3_result|failed
+
+# Run the following tasks without serial set.
+- hosts: repo_parallel
+  max_fail_percentage: 0
+  gather_facts: no
+  roles:
+    - dev-env
+    - product
+  tasks:
+    - set_fact:
+        _source_cache_dir: "{{ repo_info | bare_cache_path }}"
+      when: repo_info.url is defined
+
+    - name: Get the requested branched repo
+      git:
+        repo: "{{ _source_cache_dir }}"
+        dest: "{{ repo_info | branched_cache_path }}"
+        version: "{{ repo_info.branch }}"
+        update: yes
+        force: yes
+      when: repo_info.url is defined and not ( repo_development_source | isdir )
+
+    - name: Validate we are on the correct cached branch
+      shell: |
+        test "$(awk -F= '/^defaultbranch/ { print $2 }' {{ repo_info | branched_cache_path }}/.gitreview)" = "{{ repo_info.branch }}"
+#      when: repo_info.url is defined and not ( repo_development_source | isdir )
+      when: repo_info.url is defined and not ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(True) )
+# validation tests don't change the system, either we succeed or fail
+      changed_when: False
+
+    - name: Validate we are on the correct development branch
+      shell: |
+        test "$(awk -F= '/^defaultbranch/ { print $2 }' {{ repo_development_source }}/.gitreview)" = "{{ repo_info.branch }}"
+#      when: repo_info.url is defined and ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(False) )
+      when: repo_info.url is defined and ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(True) )
+      # validation tests don't change the system, either we succeed or fail
+      changed_when: False

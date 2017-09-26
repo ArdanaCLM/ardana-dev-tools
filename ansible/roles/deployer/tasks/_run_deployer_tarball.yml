@@ -1,0 +1,47 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- include: _upload_to_deployer.yml
+  vars:
+    upload_local_file: "{{ local_tarball_location }}"
+  when: local_tarball_location is defined
+
+- name: deployer | _run_deployer_tarball | Unarchive the tarball
+  unarchive:
+    src: "{{ deployer_tarball_location }}"
+    dest: "/home/{{ image_build_user }}/"
+    owner: "{{ image_build_user }}"
+    group: "{{ image_build_user }}"
+    copy: no
+
+- name: deployer | _run_deployer_tarball | Execute the ardana-init script
+  shell: "{{ deployer_tarball_location | parse_tarball_version() }}/{{ deployer_init_script | basename }}"
+  args:
+   executable: /bin/bash
+   chdir: "/home/{{ image_build_user }}"
+  register: pre_init_output_var
+
+- name: deployer | _run_deployer_tarball | Print the ardana-init script output
+  debug:
+    msg: "{{ pre_init_output_var.stdout_lines }}"
+
+- name: deployer | _run_deployer_tarball | Synchronize CI models to deployer
+  synchronize:
+    src: "{{ input_model_dir }}"
+    dest: "/home/{{ image_build_user }}"
+    recursive: yes

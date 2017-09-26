@@ -1,0 +1,32 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Build product specific guest image
+---
+
+- include: image-build-setup.yml
+
+# TODO: Ansible 2.0 will allow us to `include.. with_items: guest_images`
+
+- hosts: localhost
+  connection: local
+  roles:
+      - dev-env
+      - image-build
+  tasks:
+      - include: roles/image-build/tasks/build-hlinux-guest.yml
+        image: octavia-amphora-haproxy
+        when: "'octavia-amphora-haproxy' in guest_images"

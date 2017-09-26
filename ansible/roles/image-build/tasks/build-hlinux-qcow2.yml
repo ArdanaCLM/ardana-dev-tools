@@ -1,0 +1,113 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Create a hlinux qcow2
+---
+
+- include_vars: ../defaults/git-repos.yml
+
+- name: image-build | build-hlinux-qcow2 | Set default value for image name if required
+  set_fact:
+    image: hlinux
+  when: image is not defined
+
+- name: image-build | build-hlinux-qcow2 | Create local directories if necessary
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ image_build_output_dir }}"
+    - "{{ image_build_dib_env.DIB_IMAGE_CACHE }}"
+
+# Apt sources
+- name: image-build | build-hlinux-qcow2 | Create apt configuration for image
+  template:
+    dest: "{{ image_build_apt_sources }}"
+    src: "sources.list.j2"
+
+# Add checks to validate our cached image. First create snapshot of our
+# environment and git dependencies
+- name: image-build | build-hlinux-qcow2 | Snapshot the environment
+  shell: |
+    envfile="{{ image_build_output_dir }}/{{ image_build_names[image] }}.env"
+
+    > $envfile
+    {% for key in ["DIB_DISTRIBUTION_MIRROR", "DIB_DEBIAN_DISTRO_NAME", "DIB_RELEASE", "ARDANAUSER"] %}
+    echo "{{ key }} = {{ image_build_dib_env.get(key) }}" >> $envfile
+    {% endfor %}
+
+    echo "__ARDANA_IMAGE_ELEMENTS = {{ image_build_elements.hlinux | union(image_elements_ova | default([])) | join( " " ) }}" >> $envfile
+
+- name: image-build | build-hlinux-qcow2 | Snapshot git dependencies
+  shell: |
+    gitfile="{{ image_build_output_dir }}/{{ image_build_names[image] }}.gitdependencies"
+
+    > $gitfile
+    {% for repo in image_build_git_repositories %}
+    ( cd ../tools/{{ repo }}
+      echo {{ repo }} $(git rev-parse HEAD) >> $gitfile )
+    {% endfor %}
+
+- name: image-build | build-hlinux-qcow2 | Check hlinux image inputs
+  shell: |
+    set -eux
+
+    # In order to ensure we rebuild when elements within this repo change, we tar them
+    # up to produce a single file for use with MD5. With plain tar, this results in a
+    # bit consistent file we can use.
+    tar --mtime='1970-01-01' -cf {{ image_build_output_dir }}/elements.tar {{ dev_env_working_dir }}/tools/elements
+
+    md5sum --strict --check "{{ image_build_output_dir }}/{{ image_build_names[image] }}.md5sum"
+  register: image_hlinux_inputs_check_result
+  failed_when: false
+  changed_when: image_hlinux_inputs_check_result | failed
+  ignore_errors: true
+
+- include: _install_pip_packages.yml
+  when: image_hlinux_inputs_check_result | failed
+
+# Build qcow2 image in output dir if we fail the md5sum check. Generate
+# the md5sum if we need to build the image.
+# Build the image with 2G so that we can update the repo later now.
+# This includes checking that we are uptodate against:
+# - image_build_dib_env
+# - image_build_apt_sources
+# - bunch of git dependencies defined in image_build_git_repositories
+# - this file
+# - ../defaults/main.yml file - contains image_build_apt_sources & image_build_elements
+- name: image-build | build-hlinux-qcow2 | Run diskimage-builder
+  shell: |
+    set -eu
+
+    image="{{ image_build_output_dir }}/{{ image_build_names[image] }}"
+    image_options="{{ image_build_options[image] | default() }}"
+    image_elements="{{ image_build_elements[image] | union(image_elements_ova | default([])) | join( " " ) }}"
+    size="{{ image_size | default(2) }}"
+
+    disk-image-create --image-size=$size $image_options -o $image $image_elements
+
+    md5sum \
+        "{{ image_build_apt_sources }}" \
+        "${image}.env" \
+        "${image}.gitdependencies" \
+        "${image}.qcow2" \
+        roles/image-build/tasks/build-hlinux-qcow2.yml \
+        "{{ image_build_output_dir }}/elements.tar" \
+            > "${image}.md5sum.tmp"
+    mv "${image}.md5sum.tmp" "${image}.md5sum"
+  environment: "{{ image_build_dib_env | update(image_user_ova | default({})) }}"
+  when: image_hlinux_inputs_check_result | failed

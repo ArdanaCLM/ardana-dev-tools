@@ -1,0 +1,15 @@
+product: {{ product_name_version_release }}
+pip_mirror: {{ pip_mirror }}
+{% for key,value in services[service]|dictsort %}
+{% if key != "version" %}
+{{ key }}: {{ value }}
+{% endif %}
+{% endfor %}
+version: {{ services[service].version |
+            regex_replace('^[0-9]{8}T[0-9]{6}Z$','') |
+            default('TIMESTAMP', True) }}
+{% if not(services[service].ignore_constraints | default(False)) %}
+constraints:
+  - repo: {{ _venv_global_constraints_sources.requirements.url }}
+    tag: {{ _venv_git_repo_constraint_tag_result.stdout | default('No tag', true) }}
+{% endif %}

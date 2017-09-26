@@ -1,0 +1,62 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Run tempest
+  tempest:
+    - "+tempest.api.identity.v2"
+
+- name: Run region1 specific tempest tests
+  region1:
+    - "+tempest.api.identity.v2"
+
+- name: Test update-ansible.sh script
+  local:
+    - test-get-repo.bash ardana/keystone-ansible
+    - cmd: update-ansible.sh keystone-ansible
+      chdir: ../../ardana-vagrant-models/project-vagrant
+    - cmd: update-ansible.sh --no-config keystone-ansible keystone-upgrade.yml
+      chdir: ../../ardana-vagrant-models/project-vagrant
+
+- name: Test update-venv.sh script
+  local:
+    - test-get-repo.bash openstack/keystone
+    - cmd: update-venv.sh --no-artifacts --no-checkout keystone keystone-upgrade.yml
+      chdir: ../../ardana-vagrant-models/project-vagrant
+
+- name: Test creating ISO
+  local:
+    # Need to get the previous ISO before we build the ISO. This happens
+    # in the run-canary-build script
+    - cmd: >
+        ../tools/venvs/ansible/bin/ansible-playbook
+        -i hosts/localhost
+        get-previous-iso.yml
+      chdir: ../../ansible
+    # Test creating the ISO kit
+    - cmd: ansible-playbook -i hosts/localhost iso-package.yml
+      chdir: ../../ansible
+      env:
+        GOZER_BUILD_ID: 01-345
+
+- name: Test archiving script
+  local:
+    - mkdir -p ../../../ws
+    - cmd: ../../bin/canary_archive.bash
+      env:
+        WORKSPACE: ../../../ws
+        GOZER_BUILD_ID: 01-345

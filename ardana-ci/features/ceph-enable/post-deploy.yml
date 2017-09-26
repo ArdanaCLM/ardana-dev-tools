@@ -1,0 +1,341 @@
+#
+# (c) Copyright 2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+- hosts: all
+  tasks:
+    - name: Retrieve ceph user_model.yml
+      fetch:
+        src: "~/openstack/my_cloud/config/ceph/user_model.yml"
+        dest: "/tmp/.ceph-{{ inventory_hostname }}"
+        flat: yes
+
+    - name: Include ceph user_model.yml
+      include_vars: "/tmp/.ceph-{{ inventory_hostname }}"
+
+    - name: Determine ceph_cinder_secret_id
+      set_fact:
+        _ceph: >
+          {%- set _c = [["conf", "/etc/ceph/ceph.conf"]] -%}
+          {%- for _m in ceph_user_models -%}
+          {%-   for _p in _m.pools -%}
+          {%-     if _p.usage is defined and _p.usage.consumer is defined -%}
+          {%-       if _p.usage.consumer == "cinder-backup" -%}
+          {%-         set _ = _c.append(["backup_section", "DEFAULT"]) -%}
+          {%-         set _ = _c.append(["backup_user", _m.user.name]) -%}
+          {%-         set _ = _c.append(["backup_pool", _p.name]) -%}
+          {%-       elif _p.usage.consumer == "cinder-volume" -%}
+          {%-         set _ = _c.append(["volume_section", "ceph1"]) -%}
+          {%-         set _ = _c.append(["volume_backend", "ceph1"]) -%}
+          {%-         set _ = _c.append(["volume_user", _m.user.name]) -%}
+          {%-         set _ = _c.append(["volume_secret_id", _m.user.secret_id]) -%}
+          {%-         set _ = _c.append(["volume_pool", _p.name]) -%}
+          {%-       elif _p.usage.consumer == "glance-datastore" -%}
+          {%-         set _ = _c.append(["glance_user", _m.user.name]) -%}
+          {%-         set _ = _c.append(["glance_pool", _p.name]) -%}
+          {%-       endif -%}
+          {%-     endif -%}
+          {%-   endfor -%}
+          {%- endfor -%}
+          {{ dict(_c) }}
+
+    # Configure rbd as glance backend
+    - name: Disable default datastore in glance-api.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/glance/glance-api.conf.j2"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+        state: present
+      with_items:
+        - { regexp: "^(\\s*)(stores\\s+=\\s+[{]+\\s+glance_stores\\s+[}]+)$",
+            line: "\\1#\\2" }
+        - { regexp: "^(\\s*)(default_store\\s+=\\s+[{]+\\s+glance_default_store\\s+[}]+)$",
+            line: "\\1#\\2" }
+      register: glance_disable_default_datastore_result
+
+    - name: Enable rbd datastore in glance-api.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/glance/glance-api.conf.j2"
+        insertbefore: "^\\s*#stores\\s+=\\s+[{]+\\s+glance_stores\\s+[}]+$"
+        line: "{{ item }}"
+        state: present
+      with_items:
+        - "stores = rbd"
+        - "default_store = rbd"
+        - "rbd_store_pool = {{ _ceph.glance_pool }}"
+        - "rbd_store_user = {{ _ceph.glance_user }}"
+        - "rbd_store_ceph_conf = /etc/ceph/ceph.conf"
+        - "rbd_store_chunk_size = 8"
+      register: glance_enable_rbd_datastore_result
+
+    - set_fact:
+        glance_changed: "{{ ((glance_disable_default_datastore_result | changed) or
+                         (glance_enable_rbd_datastore_result | changed)) }}"
+
+    - name: Commit glance-api.conf.j2
+      shell: |
+        set -eux
+        git add -A
+        git commit --allow-empty -m "Configure rbd as glance backend"
+      args:
+        chdir: openstack/ardana/ansible
+      when: glance_changed
+
+    # Configure rbd as cinder volume backend
+    - name: Add ceph1 to enabled_backends in cinder.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/cinder/cinder.conf.j2"
+        regexp: "{{ item.regexp }}"
+        line: "{{ item.line }}"
+        backrefs: yes
+        state: present
+      with_items:
+        - { regexp: "^(enabled_backends=)$",
+            line: "\\1ceph1" }
+      register: cinder_enable_ceph1_backend_result
+
+    - name: Add ceph1 backend section to cinder.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/cinder/cinder.conf.j2"
+        insertbefore: "^# End of section for ceph$"
+        line: "{{ item }}"
+        state: present
+      with_items:
+      - "[{{ _ceph.volume_section }}]"
+      - "rbd_secret_uuid = {{ _ceph.volume_secret_id }}"
+      - "rbd_user = {{ _ceph.volume_user }}"
+      - "rbd_pool = {{ _ceph.volume_pool }}"
+      - "rbd_ceph_conf = {{ _ceph.conf }}"
+      - "volume_driver = cinder.volume.drivers.rbd.RBDDriver"
+      - "volume_backend_name = {{ _ceph.volume_backend }}"
+      register: cinder_configure_ceph1_backend_result
+
+    - name: Add Ceph backup section to cinder.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/cinder/cinder.conf.j2"
+        insertbefore: "^# End of section for ceph backup$"
+        line: "{{ item }}"
+        state: present
+      with_items:
+      - "[{{ _ceph.backup_section }}] "  # Trailing space needed
+      - "backup_driver = cinder.backup.drivers.ceph"
+      - "backup_ceph_conf = {{ _ceph.conf }}"
+      - "backup_user = {{ _ceph.backup_user }}"
+      - "backup_pool = {{ _ceph.backup_pool }}"
+      register: cinder_configure_ceph_backup_result
+
+    - set_fact:
+        cinder_changed: "{{ ((cinder_enable_ceph1_backend_result | changed) or
+                         (cinder_configure_ceph1_backend_result | changed) or
+                         (cinder_configure_ceph_backup_result | changed)) }}"
+
+    - name: Commit cinder.conf.j2
+      shell: |
+        set -eux
+        git add -A
+        git commit --allow-empty -m "Configure Ceph backends for cinder volume & backup"
+      args:
+        chdir: openstack/ardana/ansible
+      when: cinder_changed
+
+    # Configure rbd as cinder volume backend in Nova
+    - name: Enable libvirt rbd support in kvm-hypervisor.conf.j2
+      lineinfile:
+        dest: "~/openstack/my_cloud/config/nova/kvm-hypervisor.conf.j2"
+        insertafter: "^[[]libvirt[]]$"
+        line: "{{ item }}"
+        state: present
+      with_items:
+      - "rbd_secret_uuid = {{ _ceph.volume_secret_id }}"
+      - "rbd_user = {{ _ceph.volume_user }}"
+      register: nova_enable_rbd_backend_result
+
+    - set_fact:
+        nova_changed: "{{ (nova_enable_rbd_backend_result | changed) }}"
+
+    - name: Commit kvm-hypervisor.conf.j2
+      shell: |
+        set -eux
+        git add -A
+        git commit --allow-empty -m "Configure libvirt rbd support"
+      args:
+        chdir: openstack/ardana/ansible
+      when: nova_changed
+
+    - name: Run configuration processor
+      command: >
+        ansible-playbook
+            -i hosts/localhost
+            config-processor-run.yml
+            -e encrypt=""
+            -e rekey=""
+      args:
+        chdir: openstack/ardana/ansible
+      when: ((glance_changed | bool) or
+             (cinder_changed | bool) or
+             (nova_changed | bool))
+
+    - name: Update deployment directory
+      command: >
+        ansible-playbook
+            -i hosts/localhost
+            ready-deployment.yml
+      args:
+        chdir: openstack/ardana/ansible
+      when: ((glance_changed | bool) or
+             (cinder_changed | bool) or
+             (nova_changed | bool))
+
+    # Delete existing openstack images as we are disabling
+    # the backing store that contains them.
+    - name: Delete exist images before deactivating backing store
+      shell: |
+        set -eux
+
+        . ~/service.osrc
+
+        images() {
+          openstack image list -f value | \
+              awk '{print $1, $2}'
+        }
+
+        images | while read image_id image_name
+        do
+          # delete image ignoring errors
+          openstack image delete $image_id || true
+        done
+      args:
+        executable: /bin/bash
+      when: glance_changed
+
+    - name: Reconfigure glance
+      command: >
+        ansible-playbook
+            -i hosts/verb_hosts
+            glance-reconfigure.yml
+      args:
+        chdir: scratch/ansible/next/ardana/ansible
+      when: glance_changed
+
+    - name: Reconfigure cinder
+      command: >
+        ansible-playbook
+            -i hosts/verb_hosts
+            cinder-reconfigure.yml
+      args:
+        chdir: scratch/ansible/next/ardana/ansible
+      when: cinder_changed
+
+    - name: Reconfigure nova
+      command: >
+        ansible-playbook
+            -i hosts/verb_hosts
+            nova-reconfigure.yml
+      args:
+        chdir: scratch/ansible/next/ardana/ansible
+      when: nova_changed
+
+    - name: Add images to cloud
+      command: >
+        ansible-playbook
+            -i hosts/verb_hosts
+            glance-cloud-configure.yml
+      args:
+        chdir: scratch/ansible/next/ardana/ansible
+      when: glance_changed
+
+    # Install qemu-utils which provides qemu-img
+    - name: Install qemu-utils on hlinux
+      become: yes
+      apt:
+        state: latest
+        name: qemu-utils
+      when: ansible_os_family | lower == "debian"
+
+    - name: Install qemu-utils on hlinux
+      become: yes
+      yum:
+        state: latest
+        name: qemu-utils
+      when: ansible_os_family | lower == "redhat"
+
+    - name: Install qemu-utils on hlinux
+      become: yes
+      zypper:
+        state: latest
+        name: qemu-utils
+      when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+
+    # Upload raw versions of qcow2 images needed for Ceph
+    - name: Upload raw versions of qcow2 images
+      shell: |
+        set -eux
+
+        . ~/service.osrc
+
+        qcow2_images() {
+            openstack image list -f value \
+                --property disk_format=qcow2 | \
+                while read image_id image_name image_status
+            do
+                eval "$(openstack image show -f shell $image_id)"
+                if [ "$visibility" = "public" ] && \
+                   [ "$container_format" = "bare" ]
+                then
+                    echo $image_id $image_name
+                fi
+            done
+        }
+
+        qcow2_images | while read image_id image_name
+        do
+            # skip if target image name already exists
+            openstack image show ${image_name}-raw > /dev/null && continue
+
+            # also skip images for which download fails
+            openstack image save $image_id \
+                --file /tmp/$image_name || continue
+
+            # convert downloaded image to raw and upload
+            if qemu-img convert \
+                -f qcow2 \
+                -O raw \
+                /tmp/$image_name \
+                /tmp/${image_name}-raw
+            then
+                openstack image create \
+                    --container-format bare \
+                    --disk-format raw \
+                    --public \
+                    --file /tmp/${image_name}-raw \
+                    ${image_name}-raw
+            fi
+            rm -f /tmp/$image_name /tmp/${image_name}-raw
+        done
+      args:
+        executable: /bin/bash
+      when: glance_changed
+
+    - name: Reconfigure tempest test resources image data
+      command: >
+        ansible-playbook
+            -i hosts/verb_hosts
+            tempest-cloud-configure.yml
+      args:
+        chdir: scratch/ansible/next/ardana/ansible
+      when: glance_changed

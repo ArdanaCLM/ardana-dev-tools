@@ -1,0 +1,63 @@
+#!/usr/bin/python
+#
+# (c) Copyright 2017 Hewlett Packard Enterprise Development LP
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+DOCUMENTATION = '''
+---
+module: sort_plugins_dict
+author: Scott Wulf
+short_description: Sorts the plugins dictionary and returns a sorted list
+options:
+    plugins:
+        required: true
+        description:
+            - the plugins dictionary
+    sort_attribute:
+        required: true
+        description:
+            - the attribute to sort by
+'''
+
+EXAMPLES = '''
+- sort_plugins_dict:
+    plugins="{{ plugins_dict }}"
+    sort_attribute="order"
+'''
+
+import json
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            plugins=dict(required=True, type='dict'),
+            sort_attribute=dict(required=True, type='str'),
+        )
+    )
+
+    plugins = module.params['plugins']
+    sort_attribute = module.params['sort_attribute']
+
+    plugins_list = []
+    for k,v in plugins.iteritems():
+        v.update({'name': k})
+        plugins_list.append(v)
+    sorted_list = sorted(plugins_list, key=lambda k: k[sort_attribute])
+
+    result = dict(plugins=sorted_list)
+    module.exit_json(**result)
+
+from ansible.module_utils.basic import *
+main()

@@ -1,0 +1,29 @@
+#!/bin/bash
+set -eux
+
+install-packages gcc python-dev libffi-dev libssl-dev libxml2-dev libxslt-dev
+install-packages upstart
+install-packages cloud-init cloud-utils cloud-initramfs-growroot
+
+cd /opt/amphora-agent/
+pip install -r requirements.txt
+python setup.py install
+if [ -e etc/init/amphora-agent.conf ]; then
+    cp etc/init/amphora-agent.conf /etc/init/
+elif [ -e elements/amphora-agent/init-scripts/upstart/amphora-agent.conf ]; then
+    cp elements/amphora-agent/init-scripts/upstart/amphora-agent.conf /etc/init/
+else
+    echo "ERROR: Failed to find amphora-agent.conf"
+    echo 1>&2 "ERROR: Failed to find amphora-agent.conf"
+    exit 1
+fi
+mkdir /etc/octavia
+# we assume certs, etc will come in through the config drive
+mkdir /etc/octavia/certs
+mkdir /var/lib/octavia
+
+cat > /etc/cloud/cloud.cfg.d/91-dib-cloud-init-datasources.cfg <<EOF
+datasource_list: [  ConfigDrive, None ]
+EOF
+
+write-pip-manifest amphora-agent

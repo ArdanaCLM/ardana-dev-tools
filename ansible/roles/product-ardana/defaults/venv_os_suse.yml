@@ -1,0 +1,61 @@
+#
+# (c) Copyright 2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# defaults for venv on Suse based distributions
+---
+
+# List of yum dependencies for building venv. Until we have a
+# usecase for a package for just one service we will keep this here
+# (The use case is, "don't let these dependencies rot because
+# we don't know where they come from" :-( )
+venv_deps:
+  - libxml2-devel
+  - libxslt-devel
+  - openssl-devel
+  - libffi-devel
+  - libvirt-devel
+  - pkgconfig
+
+  - ceph-common
+  - python-libguestfs # Used by nova_guestfs
+
+product_ardana_venv_deps:
+  db_devel: libmysqlclient-devel
+  ldap_devel: openldap2-devel
+  sasl_devel: cyrus-sasl-devel
+  libvirt_devel: libvirt-devel
+  pkgconfig: pkgconfig
+  libpcre_devel: pcre
+
+_venv_ardana_sources_os:
+  ceph_common:
+    package: ceph-common
+    copy_files:
+      rados.so: /usr/lib64/python2.7/site-packages/rados.so
+      rbd.so: /usr/lib64/python2.7/site-packages/rbd.so
+    build_type: copy
+
+  nova_guestfs:
+    package: python-libguestfs
+    copy_files:
+      guestfs.py: /usr/lib64/python2.7/site-packages/guestfs.py
+      libguestfsmod.so: /usr/lib64/python2.7/site-packages/libguestfsmod.so
+    build_type: copy
+
+#connection_type_os: paramiko
+
+# On SUSE, we want only these:
+packages_dist_os: "{{ packages_dist_os_suse }}"

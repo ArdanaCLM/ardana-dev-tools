@@ -1,0 +1,61 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Setup the virtual env and install pip package into it.
+---
+
+- include_vars: ../defaults/pip-packages.yml
+
+- name: image-build | _install_pip_packages | Create virtual environment
+  pip:
+    virtualenv: "{{ image_build_venv }}"
+    name: pip
+    state: present
+    version: 7.1.2
+
+- name: image-build | _install_pip_packages | Set fact _image_build_trusted_host
+  set_fact:
+    _image_build_trusted_host: "--trusted-host {{ pip['host'] }}"
+  when: (lookup('pipe', image_build_venv ~ '/bin/pip show pip') |
+            from_multi_yaml | list | last)['Version'] |
+        version_compare('6.0.0', '>=')
+
+# Upgrade pip to a newer version then that embedded in virtualenv package.
+- name: image-build | _install_pip_packages | Upgrade pip in virtual environment if required
+  pip:
+    virtualenv: "{{ image_build_venv }}"
+    name: pip
+    extra_args: >
+      --upgrade
+      --index-url {{ pip['base_url'] }}/simple
+      {{ _image_build_trusted_host | default }}
+  retries: 20
+  delay: 3
+
+# Install additonal pip packages.
+- name: image-build | _install_pip_packages | Install image-build pip packages
+  pip:
+    virtualenv: "{{ image_build_venv }}"
+    name: "{{ item.key }}"
+    version: "{{ item.value.version }}"
+    extra_args: >
+      --index-url {{ pip['base_url'] }}/simple
+      --trusted-host {{ pip['host'] }}
+      --timeout 30
+  with_dict: image_build_pips | default({})
+  register: _image_build_install_pip_packages_result
+  until: _image_build_install_pip_packages_result | success
+  retries: 20

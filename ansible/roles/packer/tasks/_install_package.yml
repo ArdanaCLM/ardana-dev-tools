@@ -1,0 +1,69 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Install packer from zip
+---
+
+- name: packer | _install_package.yml | Get installed packer version
+  shell: "{{ packer_path }}/packer --version"
+  register: _packer_install_needed
+  failed_when: false
+  changed_when: _packer_install_needed.stdout != "{{ packer_version }}"
+
+- name: packer | _install_package.yml | Install for dependencies
+  sudo: yes
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packer_packages }}"
+  when: ansible_os_family | lower == "debian"
+
+- name: packer | _install_package.yml | Install for dependencies
+  sudo: yes
+  zypper:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packer_packages }}"
+  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+
+- name: packer | _install_package | Download packer package
+  get_url:
+    url: "{{ {'path': '/packer/' + packer_archive} | external_artifact_url(dev_env_site_config) }}"
+    dest: "/tmp/{{ packer_archive }}"
+    force: yes
+  when: _packer_install_needed | changed
+
+- name: packer | _install_package | Create target directory
+  sudo: yes
+  file:
+    path: "{{ packer_path }}"
+    state: directory
+    recurse: yes
+  when: _packer_install_needed | changed
+
+- name: packer | _install_package | Install packer
+  sudo: yes
+  unarchive:
+    copy: no
+    src: "/tmp/{{ packer_archive }}"
+    dest: "{{ packer_path }}"
+  when: _packer_install_needed | changed
+
+- name: packer | _install_package | Remove packer download package
+  file:
+    path: "/tmp/{{ packer_archive }}"
+    state: absent
+  when: _packer_install_needed | changed

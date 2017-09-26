@@ -1,0 +1,64 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Package up a single service
+# Input:
+#    service='nova'
+# Uses:
+#    cache: ../scratch
+#    services:
+#        nova:
+#            src: ../../nova
+#            version: ...
+---
+
+# venv | _build | Clear venv wheel and complete flags
+- include: _clear-venv.yml
+  when: service not in packages_external_venv
+
+- include: _clear.yml
+
+- name: venv | _build | Install the service using pip
+  include: _make_target.yml version={{ services[service].version }}
+  when: service not in packages_external_venv and
+        not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _build | Install share configuration from the source
+  include: _install-share.yml version={{ services[service].version }}
+  when: service not in packages_external_venv and
+        not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _build | Trigger a external package build
+  include: _create_external_venv.yml version={{ services[service].version }}
+  when: service in packages_external_venv
+
+- name: venv | _build | Pull back a manifest file
+  include: _to-manifest.yml version={{ services[service].version }}
+  when: ( service in packages_external_venv or manifest_required ) and
+        not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _build | Pull back the venv tarball
+  include: _create-tarball.yml version={{ services[service].version }}
+  when: ( service in packages_external_venv or package_required ) and
+        not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _build | Complete the build
+  include: _complete_build.yml version={{ services[service].version }}
+
+- name: venv | _build | Save generated artifact from service
+  include: _save-venv-artifact.yml
+  when: package_required and
+        not _venv_service_complete_stat_result.stat.exists

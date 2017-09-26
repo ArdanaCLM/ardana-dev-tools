@@ -1,0 +1,49 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# The apt-repos role will convert this information into apt_distribution_mirros and apt_sources
+# where we can re-use else where.
+---
+
+apt_repos:
+  baseline:
+    archive: "hLinuxArchive/2017/hos4.0.3_ga-2/"
+    codename: cattleprod
+    dists:
+      - main
+      - contrib
+      - non-free
+    mirror: "http://{{ dev_env_site_config['apt']['host'] }}{%- if dev_env_site_config['apt']['port'] is not none -%}:{% endif %}{{ dev_env_site_config['apt']['port'] }}/{{ dev_env_site_config['apt']['repo_path'] }}"
+#    mirror: "http://hlinux-deejay.us.rdlabs.hpecorp.net/"
+
+_hlinux_iso: "{{ dev_env_site_config.hlinux_iso | default({'path': 'hLinux-iso/archive/blaster', 'host': 'hlinux-deejay.us.rdlabs.hpecorp.net'}) }}"
+hlinux_iso_url_base: "http://{{ _hlinux_iso.host }}/{{ _hlinux_iso.path }}"
+
+hlinux_iso_url_use_proxy: "{{ dev_env_site_config['artefact']['use_proxy'] | default('no') }}"
+
+hlinux_iso_archive: "hLinux-cattleprod-amd64-blaster-netinst-20170309-4.0.3_ga_2-hlm.iso"
+
+hlinux_ova_archive:
+  path: "/ova/hLinux-template-20160919T121725.ova"
+  sha256: "70315cbe3f7f91a62bdefdd08448a9c66083452866137f8ea0442e2f52fe4aab"
+
+yum_extras_archive:
+  path: "/yum-extras/yum-extras-20160509-1400.tgz"
+  sha256: "33fa93e54f423ef6c75ab6e982c44cfb1beccd23d9cd1c8267a29905e39b510b"
+
+sles_extras_archive:
+  path: "/sles-extras/sles12sp2-extras-20170501-182157.tgz"
+  sha256: "7f4d3a6e4ca12d9fde0021e78371e311c0fc70be3f1aa5db8fd13214e43ae316"

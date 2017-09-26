@@ -1,0 +1,6 @@
+FCOE=`debconf-get partman-fcoe/interfaces`
+PERSISTENT=`debconf-get netcfg/persistent_interfaces`
+if [ "$FCOE" != "" ] && [ "$PERSISTENT" == "" ]
+then
+    /target/usr/bin/python /sbin/update_fcoe_udev.py
+fi

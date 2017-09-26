@@ -1,0 +1,67 @@
+{
+  "variables": {
+    "image_name": "rhel-7.qcow2",
+    "iso_url": "file://{{ env `HOME` }}/rhel/rhel7.iso",
+    "disk_size": "4120",
+    "output_directory": "{{ env `PWD` }}/output",
+    "base_dir": "{{ env `PWD` }}/",
+    "username": "stack",
+    "password": "stack",
+    "http_proxy": "{{ env `http_proxy` }}",
+    "https_proxy": "{{ env `https_proxy` }}",
+    "no_proxy": "{{ env `no_proxy` }}",
+    "HTTP_PROXY": "{{ env `HTTP_PROXY` }}",
+    "HTTPS_PROXY": "{{ env `HTTPS_PROXY` }}",
+    "NO_PROXY": "{{ env `NO_PROXY` }}"
+  },
+
+  "builders": [
+    {
+      "name": "{{ user `image_name` }}",
+      "output_directory": "{{ user `output_directory` }}",
+      "type": "qemu",
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum": "51e013512f489203a923a716b408fbdf",
+      "iso_checksum_type": "md5",
+      "disk_size": "{{ user `disk_size` }}",
+      "disk_cache": "unsafe",
+      "format": "qcow2",
+      "headless": true,
+      "accelerator": "kvm",
+      "http_directory": "{{ user `base_dir` }}/http",
+      "ssh_username": "{{ user `username` }}",
+      "ssh_password": "{{ user `password` }}",
+      "ssh_wait_timeout": "600s",
+      "shutdown_command": "echo '/sbin/halt -h -p' > shutdown.sh; echo '{{ user `password` }}'|sudo -S sh 'shutdown.sh'",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "qemuargs": [
+        [ "-m", "1024M" ]
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "VAGRANT_USER={{ user `username` }}",
+        "http_proxy={{ user `http_proxy` }}",
+        "https_proxy={{ user `https_proxy` }}",
+        "no_proxy={{ user `no_proxy` }}",
+        "HTTP_PROXY={{ user `HTTP_PROXY` }}",
+        "HTTPS_PROXY={{ user `HTTPS_PROXY` }}",
+        "NO_PROXY={{ user `NO_PROXY` }}"
+      ],
+      "execute_command": "echo '{{ user `password` }}'|{{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "scripts": [
+        "{{ user `base_dir` }}/scripts/base.sh",
+        "{{ user `base_dir` }}/scripts/vagrant.sh",
+        "{{ user `base_dir` }}/scripts/ardana.sh",
+        "{{ user `base_dir` }}/scripts/cleanup.sh",
+        "{{ user `base_dir` }}/scripts/zerodisk.sh"
+      ]
+    }
+  ]
+}

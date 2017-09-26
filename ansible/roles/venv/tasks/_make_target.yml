@@ -1,0 +1,91 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Install a service into its virtual environment
+# Input:
+#   service='nova'
+# Env:
+#   ccache.env  ; from ccache role
+---
+- name: venv | _make_target | Construct the constraints for the final venv
+  shell: |
+    set -eux
+    sed -n \
+        {% for item in services[service].sources | default([]) | makelist -%}
+            {% if _venv_ardana_sources[item].build_type | default("python") == "python" %}
+            -e '/^{{ _venv_ardana_sources[item] | venv_source_build_name | venv_packagify }}[<>=!]/d' \
+            {% endif %}
+        {% endfor %}
+        {% for item in services[service].pips | default([]) | makelist -%}
+            {% if item | search('[<>=!]') %}
+            -e '/^{{ item | regex_replace('[<>=!].*$', '') | venv_packagify }}[<>=!]/d' \
+            {% endif %}
+        {% endfor %}
+        -e 'p' \
+        < "{{ VENV.SRC_DIR }}/{{ _venv_global_constraints_sources.requirements | venv_source_build_name }}/{{ _venv_global_constraints_sources.requirements.constraint }}" \
+        > "{{ VENV.STATE_DIR }}/{{ service }}.constraint"
+  when: not(services[service].ignore_constraints | default(False))
+
+# Upgrade pip to a newer version then that embedded in virtualenv package.
+- name: venv | _make_target | Upgrade pip in virtualenv for service
+  pip:
+    virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
+    virtualenv_command: "{{ _venv_virtualenv_command }}"
+    name: pip "setuptools<34.0.0"
+    extra_args: >
+      --upgrade
+      --timeout 30
+  environment: "{{ ccache.env }}"
+  register: _upgrade_pip_virtualenv_result
+  until: _upgrade_pip_virtualenv_result|success
+  retries: 3
+
+- name: venv | _make_target | Install any prerequisite pips for service
+  pip:
+    virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
+    virtualenv_command: "{{ _venv_virtualenv_command }}"
+    name: "{{ services[service].pips | default([]) | join (' ') }}"
+    extra_args: >
+      --upgrade
+      --timeout 30
+      {% if not(services[service].ignore_constraints | default(False)) %}
+      --constraint "{{ VENV.STATE_DIR }}/{{ service }}.constraint"
+      {% endif %}
+  environment: "{{ ccache.env }}"
+  register: _install_prerequisite_pips_result
+  until: _install_prerequisite_pips_result|success
+  retries: 3
+
+- name: venv | _make_target | Install service from source
+  pip:
+    virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
+    virtualenv_command: "{{ _venv_virtualenv_command }}"
+    name: >
+          {% if _venv_ardana_sources[item].build_type | default("python") == "python" -%}
+          "{{ VENV.SRC_DIR }}/{{
+              _venv_ardana_sources[item] | venv_source_build_dest
+              }}/{{ _venv_ardana_sources[item].build_dir | default }}"
+          {%- else -%}
+          "{{ item }}"
+          {%- endif %}
+    extra_args: >
+      --no-index
+      --find-links {{ VENV.WHEEL_DIR }}/{{ item }}_wheelhouse
+      {% if not(services[service].ignore_constraints | default(False)) %}
+        --constraint "{{ VENV.STATE_DIR }}/{{ service }}.constraint"
+      {% endif %}
+  environment: "{{ ccache.env }}"
+  with_items: services[service].sources | default([]) | makelist

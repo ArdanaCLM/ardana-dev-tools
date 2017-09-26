@@ -1,0 +1,43 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# If a venv completion file is outdated, or the pip server or pip set are
+# changed, then clear down the completion flags to cause a rebuild.
+#
+# Input:
+#   service='nova'
+---
+
+# We always need fresh stats for cross-dependent packages with shared sources.
+# as another source may have rebuilt the wheel
+- name: venv | _clear-venv | Stat wheelhouses
+  stat:
+    path: "{{ VENV.WHEEL_DIR }}/{{ item.name }}_wheelhouse"
+  with_items: venv_ardana_sources | default([])
+  register: _venv_wheelhouse_stats_result
+
+- name: venv | _clear-venv | Stat complete markers
+  stat:
+    path: "{{ VENV.STATE_DIR }}/{{ service }}.complete"
+  register: _venv_service_complete_stat_result
+
+- name: venv | _clear-venv | Mark incomplete if the wheelhouse has changed
+  file:
+    dest: "{{ VENV.STATE_DIR }}/{{ service }}.complete"
+    state: absent
+  when: not ( _venv_service_complete_stat_result.stat.exists and
+              item.stat.mtime <= _venv_service_complete_stat_result.stat.mtime )
+  with_items: _venv_wheelhouse_stats_result.results | default([])

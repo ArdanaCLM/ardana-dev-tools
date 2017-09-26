@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Install internal code for QA. This code will not be going to customers.
+---
+- name: deployer | setup-qa-tests | Push local source repos onto deployer
+  synchronize:
+    src: "{{ item.value | find_local_repo }}/"
+    dest: "/home/{{ image_build_user }}/{{ item.value.url | basename }}"
+    copy_links: yes
+    recursive: yes
+    delete: yes
+  with_dict: deployer_qa_git_repositories
+
+# Install deployer_nondist_venvs directly into /opt/ardana_packager
+- name: deployer | setup-qa-tests | Copy nondist venv packages into the deployer
+  become: yes
+  copy:
+    src: "{{ venv_cache_dir }}/{{ item.value.1 }}"
+    dest: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux }}"
+  when: item.key in packages_nondist
+  with_dict: venv_cache_dir | find_latest_packages(deployer_version)
+
+# This is a duplication of ardana-ansible/roles/package-repo/tasks/configure.yml
+- name: deployer | setup-qa-tests | Update venv index
+  become: yes
+  command: >
+    ./create_index
+    --dir={{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux }}
+  args:
+    chdir: "{{ PACKAGE_CONSTANTS.SERVICE_DIR }}/packager/venv/bin"

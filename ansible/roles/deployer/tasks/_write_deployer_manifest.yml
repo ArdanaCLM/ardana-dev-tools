@@ -1,0 +1,52 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Track all of the versions in the deployer package generated
+---
+- name: deployer | _write_deployer_manifest | Include other sources info
+  include_vars: "{{ item }}"
+  with_items:
+    - ../../image-build/defaults/git-repos.yml
+
+- name: deployer | _write_deployer_manifest | Register git details
+  command: git rev-parse --verify HEAD
+  args:
+    chdir: "{{ item.value | find_local_repo }}"
+  with_dict: deployer_git_repositories | default({}) |
+      update(deployer_input_model_repositories | default({})) |
+      update(image_build_git_repositories | default({})) |
+      update(deployer_ardana_extensions_repositories | default({}))
+  register: _deployer_ansible_sha1_result
+
+- name: deployer | _write_deployer_manifest | Register ardana-dev-env details
+  connection: local
+  command: git rev-parse --verify HEAD
+  args:
+    chdir: "{{ dev_env_working_dir }}"
+  register: _deployer_git_dev_env_sha1_result
+
+- name: deployer | _write_deployer_manifest | Write out manifest file
+  template:
+    src: manifest.j2
+    dest: "{{ deployer_manifest }}"
+
+- name: deployer | _write_deployer_manifest | Register deployer manifest on localhost
+  include: ../../artifact-publisher/tasks/save-artifact.yml
+  vars:
+    type: "deployer"
+    branch: "{{ dev_env_artifact_branch }}"
+    version: "{{ deployer_version }}"
+    filename: "{{ deployer_manifest }}"

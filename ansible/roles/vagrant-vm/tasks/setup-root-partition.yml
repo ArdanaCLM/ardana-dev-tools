@@ -1,0 +1,184 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Expand the root partition to fill the vagrant VM disk
+---
+
+- name: vagrant-vm | setup-root-partition | Is parted present
+  become: yes
+  command: "{{ vagrant_vm_check_package_installed_command }} parted"
+  register: _parted_present_result
+  changed_when: False
+  failed_when: _parted_present_result.rc > 1
+
+- name: vargrant-vm | setup-root-partition | Fail if parted is not present
+  fail:
+    msg: >
+      parted not installed in vagrant image. Please run
+      'ansible-playbook -i hosts/localhost image-build-vagrant-box.yml'
+  when: _parted_present_result | failed or
+    ( vagrant_vm_check_package_stdout is defined and
+      _parted_present_result.stdout.find(vagrant_vm_check_package_stdout) < 0)
+
+- name: vagrant-vm | setup-root-partition | Print starting partition size
+  become: yes
+  command: parted --script {{ vagrant_vm_root_device }} print
+  register: vagrant_vm_partitions
+
+- debug:
+    var: vagrant_vm_partitions
+
+- name: vagrant-vm | setup-root-partition | Print starting filesystem size
+  command: df -h /
+  register: vagrant_vm_filesystems
+  changed_when: False
+
+- debug:
+    var: vagrant_vm_filesystems
+
+- name: vagrant-vm | setup-root-partition | Get root partition number
+  become: yes
+  shell: |
+    lsblk --raw --output NAME,MOUNTPOINT | \
+        awk '/^(s|v)da/ { device=$1 }; $2=="/" { print substr(device, 4); exit; }'
+  register: vagrant_vm_root_partition
+  changed_when: False
+
+- name: vagrant-vm | setup-root-partition | Change fdisk start field number for single partition layout
+  set_fact:
+    vagrant_vm_fdisk_start_field: 3
+  when: vagrant_vm_root_partition.stdout | int == 1
+
+- name: vagrant-vm | setup-root-partition | Check if disk is much larger than root partition
+  become: yes
+  shell: fdisk -l {{ vagrant_vm_root_device }} | awk -v DEV={{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }}
+    '$1 == "Disk" && $NF == "sectors" { total = $(NF-1) }
+     $1 == DEV { used = $({{ vagrant_vm_fdisk_start_field | int }}+1) }
+     END { print int(total/used) }'
+  register: vagrant_vm_disk_size
+  changed_when: False
+
+- name: vagrant-vm | setup-root-partition | Get the start sector of the root partition
+  become: yes
+  shell: fdisk -l {{ vagrant_vm_root_device }} | awk -v DEV={{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }}
+      '$1 == DEV { print ${{ vagrant_vm_fdisk_start_field | int }}; }'
+  register: vagrant_vm_partition_start
+  when: vagrant_vm_disk_size.stdout != "inf" and (vagrant_vm_disk_size.stdout | int) > 1
+  failed_when: (vagrant_vm_partition_start.stdout | int) == 0
+
+# MBR and LVM based image
+- name: vagrant-vm | setup-root-partition | Set resize command for MBR with LVM
+  set_fact:
+    vagrant_vm_resize_cmd: "\nd\n\nd\n\nn\ne\n\n\n\nn\nl\n{{ vagrant_vm_partition_start.stdout | int }}\n\nt\n5\n8e\nw\n"
+  when: vagrant_vm_partition_start.changed and
+        vagrant_vm_partitions.stdout.find("gpt") < 0 and
+        vagrant_vm_root_partition.stdout | int > 4 and
+        (vagrant_vm_disk_size.stdout | int) > 1
+
+# MBR and non LVM based image
+- name: vagrant-vm | setup-root-partition | Set resize command for MBR with non-LVM
+  set_fact:
+    vagrant_vm_resize_cmd: "\nd\nn\n\n\n{{ vagrant_vm_partition_start.stdout | int }}\n\na\nw\nq\n"
+  when: vagrant_vm_partition_start.changed and
+        vagrant_vm_partitions.stdout.find("gpt") < 0 and
+        vagrant_vm_root_partition.stdout | int <= 4 and
+        (vagrant_vm_disk_size.stdout | int) > 1
+
+# GPT and LVM based image
+- name: vagrant-vm | setup-root-partition | Set resize command for GPT with LVM
+  set_fact:
+    vagrant_vm_resize_cmd: "\nd\n\nn\n\n{{ vagrant_vm_partition_start.stdout | int }}\n\nw\n"
+  when: vagrant_vm_partition_start.changed and
+        vagrant_vm_partitions.stdout.find("gpt") >= 0
+
+# Need to rewrite GPT partition table after a virtual disk resize
+- name: vagrant-vm | setup-root-partition | Rewrite GPT partition
+  become: yes
+  shell: echo -e "\nw\nY\nY\n" | gdisk {{ vagrant_vm_root_device }}
+  register: vagrant_vm_refresh_gpt_table
+  when: vagrant_vm_partition_start.changed and
+        vagrant_vm_partitions.stdout.find("gpt") >= 0
+
+- name: vagrant-vm | setup-root-partition | Resize the partition
+  become: yes
+  shell: echo -e "{{ vagrant_vm_resize_cmd }}" | fdisk {{ vagrant_vm_root_device }}
+  register: vagrant_vm_resize_partition
+  when: vagrant_vm_partition_start.changed and
+        (vagrant_vm_disk_size.stdout | int) > 1
+  failed_when: vagrant_vm_resize_partition.stdout.find("The partition table has been altered") < 1
+
+- name: vagrant-vm | setup-root-partition | Read the modified partition
+  become: yes
+  shell: |
+    set -e
+    resizepart {{ vagrant_vm_root_device }} {{ vagrant_vm_root_partition.stdout | int }} \
+        $( fdisk -l {{ vagrant_vm_root_device }} | \
+            awk -v DEV={{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }} \
+            '$1 == DEV && $NF ~ /Linux|LVM|filesystem/ { print $({{ vagrant_vm_fdisk_start_field | int }}+1)-$({{ vagrant_vm_fdisk_start_field | int }}); }')
+  when: not vagrant_vm_resize_partition | skipped
+
+- name: vagrant-vm | setup-root-partition | Check if lvm used
+  become: yes
+  command: vgs {{ vagrant_vm_vg }}
+  register: vagrant_lvm_based
+  failed_when: False
+  changed_when: False
+
+- name: vagrant-vm | setup-root-partition | check root vol size
+  become: yes
+  shell: lvdisplay /dev/ardana-vg/root | grep "Current LE" | awk '{print $3}'
+  register: vagrant_lvm_root_size
+  when: vagrant_lvm_based | success
+  changed_when: False
+
+- name: vagrant-vm | setup-root-partition | resize pv if necessary
+  become: yes
+  command: pvresize {{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }}
+  when: ( vagrant_lvm_based | success ) and (vagrant_lvm_root_size.stdout | int) < 2000
+
+# Resize to 24G which is 20% of 120G for swobj1
+- name: vagrant-vm | setup-root-partition | Resize lv if necessary
+  become: yes
+  command: lvresize -L 24G /dev/{{ vagrant_vm_vg }}/root
+  register: _lvresize_output
+  failed_when: ( _lvresize_output.rc != 0 ) and ( "matches existing size" not in _lvresize_output.stderr )
+  when: ( vagrant_lvm_based | success ) and (vagrant_lvm_root_size.stdout | int) < 2000
+
+- name: vagrant-vm | setup-root-partition | Resize the filesystem
+  become: yes
+  command: resize2fs {{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }}
+  register: vagrant_vm_resize_filesystem
+  when: (not vagrant_vm_resize_partition | skipped) and vagrant_lvm_based.rc != 0
+
+- name: vagrant-vm | setup-root-partition | Resize the filesystem
+  become: yes
+  command: resize2fs /dev/{{ vagrant_vm_vg }}/root
+  when: (not vagrant_vm_resize_partition | skipped) and vagrant_lvm_based.rc == 0
+
+- name: vagrant-vm | setup-root-partition | Print finishing partition size
+  become: yes
+  command: parted {{ vagrant_vm_root_device }} print
+  register: vagrant_vm_partitions
+  when: not vagrant_vm_resize_partition | skipped
+
+- debug: var=vagrant_vm_partitions
+
+- name: vagrant-vm | setup-root-partition | Print finishing filesystem size
+  command: df -h /
+  register: vagrant_vm_filesystems
+  when: not vagrant_vm_resize_filesystem | skipped
+
+- debug: var=vagrant_vm_filesystems

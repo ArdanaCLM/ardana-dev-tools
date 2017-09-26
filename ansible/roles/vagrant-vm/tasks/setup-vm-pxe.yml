@@ -1,0 +1,31 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Reset virtual machines to set pxe boot
+# The  environment variables need to be set externally
+#  export CLOUDNAME=standard
+# This command needs to be run from the "vagrant directory"
+---
+
+- include: _get_requested_vms.yml
+
+- name: vagrant-vm | setup-vm-pxe | Toggle pxe_set on the vm
+  local_action:
+    module: virsh_set_pxe_boot
+    name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
+    set_pxe: "{{ vagrant_vm_pxe_setting }}"
+  when: item != "deployer"
+  with_items: _vagrant_cobbler_requested_vms

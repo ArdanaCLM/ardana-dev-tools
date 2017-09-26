@@ -1,0 +1,52 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Main playbook for setting up the deployer
+# hosts changed to 'deployer' since the deployer-build is now adding
+# pseudo-hosts.
+---
+- hosts: all:!repo_parallel
+  roles:
+    - deployer
+    - vagrant-vm
+  tasks:
+    - include: roles/vagrant-vm/tasks/setup-iso.yml
+      var:
+        vagrant_vm_cdrom_dev: /dev/sr0
+    - include: roles/vagrant-vm/tasks/setup-apt.yml
+    - include: roles/deployer/tasks/setup-isos.yml
+    - include: roles/deployer/tasks/check-release-iso.yml
+    - include: roles/vagrant-vm/tasks/setup-persistent-filesystem.yml
+      vars:
+        device: "{{ persistent_apt_device }}"
+        persistent_cache_qcow2: "{{ persistent_apt_cache_volume }}"
+        persistent_dir: "{{ vagrant_vm_existing_apt_repo }}"
+        persistent_min_size: False
+        persistent_cleanup_min_size: False
+
+
+- include: deployer-build.yml
+
+- hosts: all:!repo_parallel
+  roles:
+    - deployer
+  tasks:
+    - include: roles/deployer/tasks/pre-init-deployer.yml
+    # We don't want to do this for upgrade, as on a fresh node
+    # we have not yet checked out the qa repos
+    - debug: msg="{{ lookup('env', 'ARDANA_NO_SETUP_QA') }}"
+    - include: roles/deployer/tasks/setup-qa-tests.yml
+      when: "{{ lookup('env', 'ARDANA_NO_SETUP_QA')|default('') == '' }}"

@@ -1,0 +1,71 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+set -eux
+
+# We have a fake wheel to build
+
+exec 2>"{{ VENV.WHEEL_DIR }}/{{ source.name }}.log"
+TEMP=$( mktemp -d )
+cd "$TEMP"
+
+WHEEL_VERSION=$( {{ venv_wheel_package_query_version }} {{ source.package | quote }} | sed 's,deb8u1+,,g'| tr ':-' '..' )
+WHEEL_NAME="{{ source.name }}-${WHEEL_VERSION}-py27-none-any"
+DISTINFO="$TEMP/{{ source.name }}-${WHEEL_VERSION}.dist-info"
+
+mkdir "$DISTINFO"
+
+cat > "$DISTINFO/WHEEL" <<EOF
+Wheel-Version: 1.0
+Generator: venv_build 1.0
+Root-Is-Purelib: true
+Tag: py2-none-any
+Tag: py3-none-any
+EOF
+
+cat > "$DISTINFO/METADATA" <<EOF
+Metadata-Version: 2.0
+Name: {{ source.name }}
+Version: $WHEEL_VERSION
+Summary: Faked wheel
+License: UNKNOWN
+Platform: UNKNOWN
+EOF
+
+hash() {
+    local fn="$1"
+    python -c 'import hashlib; import base64; import sys;
+with open(sys.argv[-1]) as f: print base64.urlsafe_b64encode(hashlib.sha256(f.read()).digest()).rstrip("=")' "$fn"
+}
+
+size() {
+    local fn="$1"
+    wc -c "$fn" | awk '{print $1}'
+}
+
+{% for t, f in source.copy_files.items() %}
+    cp {{f | quote}} "$TEMP/"{{ t | quote }}
+    echo "{{ t }},sha256=$( hash {{ f | quote }} ),$( size {{ f | quote }} )" >> "$DISTINFO/RECORD"
+{% endfor %}
+
+mkdir "{{ VENV.WHEEL_DIR }}/{{ source.name }}_wheelhouse"
+zip -r "{{ VENV.WHEEL_DIR }}/{{ source.name }}_wheelhouse/${WHEEL_NAME}.whl" .
+rm -rf "$TEMP"
+touch "{{ VENV.WHEEL_DIR }}/{{ source.name }}.built"
+
+exit 0

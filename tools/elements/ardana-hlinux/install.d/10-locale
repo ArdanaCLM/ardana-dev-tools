@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -eu
+
+# Set/generate locale
+echo 'en_US.UTF-8 UTF-8' > /etc/locale.gen
+echo 'set locales/default_environment_locale en_US.UTF-8' | debconf-communicate
+echo 'set locales/locales_to_be_generated en_US.UTF-8 UTF-8' | debconf-communicate
+dpkg-reconfigure -f noninteractive locales
+

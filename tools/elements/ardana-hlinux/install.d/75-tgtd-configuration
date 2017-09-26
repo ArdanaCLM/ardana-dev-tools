@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -d /etc/tgt ]; then
+    cat > /etc/tgt/targets.conf <<-EOF
+	include /etc/tgt/conf.d/*.conf
+	EOF
+fi

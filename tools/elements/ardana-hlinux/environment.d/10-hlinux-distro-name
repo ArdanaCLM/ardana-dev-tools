@@ -1,0 +1,2 @@
+export DISTRO_NAME=debian
+export DISTRO_RELEASE=testing

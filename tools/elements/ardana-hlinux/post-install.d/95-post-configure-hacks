@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -eux
+
+# Any catch-all fixups with no current permanent home should
+# live in here.
+
+# That /etc/hostname is stopping heat assigning a hostname
+
+rm -f /etc/hostname /etc/cloud/cloud.cfg.d/01_hostname.cfg
+
+# sysctl --system is invoked by procps' SysV script.
+# It doesn't use /etc/sysctl.conf.
+
+ln -s ../sysctl.conf /etc/sysctl.d

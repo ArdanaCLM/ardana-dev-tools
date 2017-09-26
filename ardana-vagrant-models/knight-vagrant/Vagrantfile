@@ -1,0 +1,29 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby ts=2 :
+
+require File.expand_path(File.dirname(__FILE__)) + "/../../lib/ardana_vagrant_helper.rb"
+
+Vagrant.configure("2") do |config|
+
+  ardana = Ardana::Config.new config
+  ardana.set_ssh_config
+
+  # Provider-specific settings
+  ardana.set_provider_config
+
+  ardana.set_vm_config
+
+  # Server Definitions
+  # Control plane 1 nodes
+  ardana.add_server_group(name: "ccn1", count: 3, modifier: 2, type: 'ccn')
+
+  # Control plane 2 nodes
+  ardana.add_server_group(name: "ccn2", count: 3, modifier: 5, type: 'ccn')
+
+  # Resource pool for Compute nodes
+  ardana.add_server_group(name: "cpn", count: 3, modifier: 8, type: 'cpn')
+
+  # Create a host from which to run the deployment
+  ardana.add_deployer
+
+end

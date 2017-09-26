@@ -1,0 +1,1 @@
+../../rhel-7/scripts/zerodisk.sh

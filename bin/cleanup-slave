@@ -1,0 +1,197 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+set -eux
+set -o pipefail
+
+export ARDANA_CLEANUP_CI=1
+
+SCRIPT_NAME=$(basename $0)
+SCRIPT_DIR=$(dirname $(readlink -e $0))
+TOOLS_DIR=$(readlink -e $SCRIPT_DIR/..)
+
+usage() {
+  set +x
+  echo
+  echo "$SCRIPT_NAME [--ci]"
+  echo
+  echo "--ci              -- Sets the same options for running in the CI"
+  echo "                     CDL lab."
+}
+
+OPTIONS=help,ci
+TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+eval set -- "$TEMP"
+
+CI=
+
+while true ; do
+    case "$1" in
+        -h | --help) usage ; exit 0 ;;
+        --ci) CI=1 ; shift ;;
+        --) shift ; break ;;
+        *) break ;;
+    esac
+done
+
+# LBAAS-2300 - undo Octavia diskimage-builder networking sideeffects
+sudo sysctl -w \
+	net.ipv4.tcp_timestamps=1 \
+	net.ipv4.tcp_sack=1
+
+# Cleanup old vagrant instances. We have to do this after the run as we will
+# be reusing the same slave. We created them using vagrant, so try to destroy
+# them with vagrant. If that didn't work, don't worry about it. We'll sweep
+# up any stragglers later using virsh directly.
+if which vagrant ; then
+    vagrant --version
+    # prune stale state
+    vagrant global-status --prune || true
+    # vagrant allows you to destroy instances from any path provided you
+    # use the ID from the global-status command
+    ids=$(vagrant global-status | awk '$3 == "libvirt" { print $1; }')
+    for id in ${ids}; do
+        vagrant destroy -f ${id} || true
+    done
+    # Remove old vagrant boxes. Output lines are like:
+    # "hlinuxbox (libvirt, 1.0.20150611T111714Z)"
+    vagrant -q box list | awk '/^hlinux|(rhel7|sles12)box/ { sub(")$","",$3) ; print $1,$3 }' | while read box version; do
+        sudo vagrant box remove -f "$box" --box-version $version || true
+    done
+fi
+
+# Nuke any running virsh instances. This can include a tripleo
+# instance that is running on the node already.
+for NAME in $(sudo virsh list --name --all) ; do
+    # Run when "-vagrant_" is found in the file name or when --ci is specified
+    if [ ! -z "$CI" ] || [[ $NAME =~ -vagrant_ ]] ; then
+        sudo virsh destroy $NAME || true
+        sudo virsh undefine --managed-save $NAME
+    fi
+done
+
+# Refresh the default pool, to remove any volumes whos backing files are
+# missing. Without this, the vol-delete command will fail.
+sudo virsh pool-refresh default || :
+
+for VOL in $(sudo virsh vol-list default | awk '/\/var/ && $1 !~ /persistent-/ { print $1 }') ; do
+    if [ ! -z "$CI" ] || [[ $VOL =~ -vagrant_ ]] || \
+       [[ $VOL =~ ^(hlinux|rhel|sles).*_vagrant_box_image_ ]]; then
+        sudo virsh vol-delete --pool default $VOL
+    fi
+done
+
+for NET in $(sudo virsh net-list --all | awk '/vagrant/ { print $1 }') ; do
+    sudo virsh net-destroy $NET || true
+    sudo virsh net-undefine $NET
+done
+
+# BUG-2347 Un-mount file systems from previous DIB runs
+#
+#  umount mounts within the image path to allow lvm deactivation
+#  and loop device to be removed
+for path in $(awk '$2 ~ /^\/tmp\/(dib_)?(build|image)\..*\/.*/ {print $2}' /proc/mounts | sort -r);
+do
+    sudo umount -d ${path}
+done
+
+# BUG-1332 Clean up any stray ardana-vg volume groups
+# ardana-vg might not exists if things went well previously.
+if which vgremove ; then
+    # BUG-2553 check if ardana-vg exists before removal so that we can error
+    # on a failed removal instead of continuing.
+    if sudo vgs --noheadings ardana-vg >/dev/null 2>&1 ; then
+        sudo vgchange -a n ardana-vg
+        # sometimes deactivating is sufficent for the cleanup to complete
+        # so scan again before attempting removal
+        if sudo vgs --noheadings ardana-vg >/dev/null 2>&1 ; then
+            sudo vgremove -f ardana-vg
+        fi
+    fi
+fi
+
+# BUG-2553 check if the device mapping still exists, and remove it
+if sudo dmsetup --noheadings info -c -o name ardana--vg-root >/dev/null 2>&1; then
+    sudo dmsetup remove ardana--vg-root
+fi
+
+# clean out any remaining state mtab entries for images, ignore errors here
+for path in $(mount | awk '$3 ~ /^\/tmp\/(dib_)?(build|image)\..*\/.*/ {print $3}' | sort -r);
+do
+    sudo umount ${path} || true
+done
+
+# since losetup is part of mount, can be reasonable sure it must be present
+# remove stale loop devices under the image path loop device (nested), which
+# would result in a device busy when attempting to remove the mount
+for lodev in $(sudo losetup -a | \
+        awk '$3 ~ /^\(\/tmp\/(dib_)?(build|image)\..*\/.*\)/ {gsub(/:$/,"",$1); print $1}')
+do
+    # also need to prune any stray device mapper references
+    for dm in $(sudo dmsetup info | \
+                awk '/^Name:/ && $2 ~ "'${lodev#/dev/}'.*" { print $2; }')
+    do
+        sudo dmsetup remove -f ${dm}
+    done
+    sudo losetup --detach ${lodev}
+    sudo rm -f ${lodev}p*
+done
+
+lodevsused="$(sudo losetup -a | \
+        awk '$3 !~ /^\/tmp\/(dib_)?(build|image)\..*/ {gsub(/:$/,"",$1); print $1}')"
+for lodev in $(ls -1 /dev/loop*p*)
+do
+    if ! grep -q "${lodev%p*}" <(echo "${lodevsused}")
+    then
+        sudo rm -f ${lodev}
+    fi
+done
+
+
+# finally umount the image tmp dir itself
+for path in $(awk '$2 ~ /^\/tmp\/(dib_)?(build|image)\..*/ {print $2}' /proc/mounts | sort -r);
+do
+    sudo umount -d ${path}
+done
+
+# clean out remaming possible stale image mounts here as well
+for path in $(mount | awk '$3 ~ /^\/tmp\/(dib_)?(build|image)\..*/ {print $3}' | sort -r);
+do
+    sudo umount ${path} || true
+done
+
+
+# BUG-2346 Interrupting git operations (which run in parallel during upgrade testing)
+# can leave lock files behind.
+# Rather than simply remove these lock files, however, let's rename them (keeping the
+# timestamp of the latest) should it transpire that an interrupted git operation has
+# left a checkout in an unrecoverable state.
+# (This leaves us with a breadcrumb trail should we see off git failures further down
+# the line: but this approach takes the optimistic view that the git checkout will be
+# recoverable - in which case we save a bit of time compared to nuking the whole
+# directory so that it can be checked out again by the build process.)
+
+if [ -e ~/.cache-ardana/sources/ ] ; then
+    for indexlock in $(find ~/.cache-ardana/sources/ -type f -wholename */.git/index.lock) ; do
+        mv $indexlock $(dirname $indexlock)/ardana-2346-index_lock
+    done
+fi
+
+# Remove stale astack-ssh-config files
+find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf

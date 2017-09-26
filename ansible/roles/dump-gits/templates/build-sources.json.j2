@@ -1,0 +1,16 @@
+{
+"__doc__": "List of built packages and branches as of {{ '%Y-%m-%d %H:%M:%S' | time_format }}",
+
+"venvs": {{ _venv_ardana_sources | venv_copy_dict('branch', 'url') | to_nice_json }},
+
+"constraints": {{ _venv_global_constraints_sources | venv_copy_dict('branch', 'url') | to_nice_json }},
+
+"ansible": {{ deployer_git_repositories | venv_copy_dict('branch', 'url') | to_nice_json }},
+
+"input-model": {{ deployer_input_model_repositories | venv_copy_dict('branch', 'url') | to_nice_json }},
+
+"image": {{ image_build_git_repositories_default | venv_copy_dict('branch', 'url') | to_nice_json }},
+
+"qa": {{ deployer_qa_git_repositories | venv_copy_dict('branch', 'url') | to_nice_json }}
+}
+

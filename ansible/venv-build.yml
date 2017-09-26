@@ -1,0 +1,146 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Ansible playbook for building a venv
+---
+
+- hosts: localhost
+  connection: local
+  max_fail_percentage: 0
+  roles:
+    - dev-env
+  tasks:
+    - include: roles/dev-env/tasks/check-ansible-version.yml
+
+# Conditionally get all the venv repos now. This is here to work
+- include: get-venv-sources.yml
+
+- hosts: build-*
+  any_errors_fatal: true
+  roles:
+    - venv
+    - ccache
+  tasks:
+    - name: venv | - | Construct and evaluate package list
+      set_fact:
+        # Map packages we want to build to the build VM. We have to do this here
+        # so that we can control who gets built where.
+        # If a user specifies the packages to build via -e '{"packages": [...]}'
+        # then this will limit the packages structure if the packages are available
+        # for the OS. Currently we don't need cinder venv package for RHEL so
+        # if the user specifies -e '{"packages":["cinder"]}' then we only build
+        # cinder on hlinux.
+        # See the venv_os_FOO.yml file for the per-os-flavour definition of
+        # packages_dist_os.
+        _venv_packages: "{{ packages_dist_os |
+                            intersect( packages | default(packages_dist_os) ) }}"
+
+    - name: venv | - | Construct and evaluate source list
+      set_fact:
+        venv_sources_to_build: "{{ _venv_ardana_sources |
+                       venv_restrict(_venv_packages, services) }}"
+
+    - set_fact:
+        _venv_sources: "{{ _venv_ardana_sources |
+                           venv_sources_by_packages(_venv_packages,
+                                                    services) }}"
+
+    - include: roles/venv/tasks/check-sources.yml
+
+    # These tasks only need to be executed once for build host
+    - include: roles/ccache/tasks/install.yml
+
+    # Setup and configure the build node to use pip.
+    - include: roles/venv/tasks/create_directories.yml
+
+    # We must call prerequisites after create_directories because
+    # we need the src directorys etc.
+
+    - include: roles/venv/tasks/setup_ardana_build_config.yml
+      when: pip_mirror is not defined
+
+    - include: roles/venv/tasks/prerequisites.yml
+
+    - include: roles/venv/tasks/record_constraint_git_details.yml
+
+    - include: roles/venv/tasks/setup-virtualenv.yml
+
+    - include: roles/venv/tasks/setup_pip_mirror.yml
+      when: pip_mirror is not defined
+
+# As set-up uses add_host and this bypasses the play host group and hence will
+# only run on the first node in any group we have to split split out the host
+# per play here to correctly register all the hosts.
+- hosts: build-hlinux
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - venv
+  tasks:
+    # setup parallel workers
+    - include: roles/venv/tasks/setup.yml
+
+- hosts: build-rhel7
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - venv
+  tasks:
+    # setup parallel workers
+    - include: roles/venv/tasks/setup.yml
+
+- hosts: build-sles12
+  gather_facts: no
+  any_errors_fatal: true
+  roles:
+    - venv
+  tasks:
+    # setup parallel workers
+    - include: roles/venv/tasks/setup.yml
+
+- hosts: venv_parallel_sources
+  any_errors_fatal: true
+  # Difficult to set this on the parallel setup. We need to set the sources
+  # to requested test as per the build vm as specified by the venv_host
+  # variable.
+  vars:
+    venv_ardana_sources: "{{ hostvars[venv_host]['_venv_sources'][service] }}"
+  roles:
+    - venv
+    - ccache
+  tasks:
+    # Build wheels from sources
+    - include: roles/venv/tasks/build_wheels.yml
+
+- hosts: venv_parallel_venv
+  any_errors_fatal: true
+  # Difficult to set this on the parallel setup. We need to set the sources
+  # to requested test as per the build vm as specified by the venv_host
+  # variable.
+  vars:
+    venv_ardana_sources: "{{ hostvars[venv_host]['_venv_sources'][service] }}"
+  roles:
+    - venv
+    - ccache
+  tasks:
+    # Build venvs from sources
+    - include: roles/venv/tasks/build.yml
+
+- hosts: build-hlinux
+  roles:
+    - venv
+  tasks:
+    - include: roles/venv/tasks/build-manifest.yml

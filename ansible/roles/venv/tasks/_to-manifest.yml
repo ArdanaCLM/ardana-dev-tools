@@ -1,0 +1,106 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Given a built venv, construct a pip manifest for it.
+# Input:
+#   service='nova'
+#   version='2015-02-01-10-11-12' or something like that
+---
+
+- name: venv | _to-manifest | Remove old manifest file for service
+  shell: rm -f {{ service }}.manifest-*
+  args:
+    chdir: "{{ VENV.TAR_DIR }}"
+
+- name: venv | _to-manifest | Register git details for service
+  command: git rev-parse --verify HEAD
+  args:
+    chdir: "{{ VENV.SRC_DIR }}/{{ _venv_ardana_sources[ item ] | venv_source_build_dest }}"
+  when: _venv_ardana_sources[ item ].url is defined
+  with_items: services[service].sources | default([]) | makelist
+  register: _venv_git_sha1_result
+
+- name: venv | _to-manifest | lsb_release details for venv build os
+  command: lsb_release -idrc
+  register: _venv_lsb_release_result
+
+- name: venv | _to-manifest | Register ardana-dev-env details
+  delegate_to: localhost
+  command: git rev-parse --verify HEAD
+  args:
+    chdir: "{{ dev_env_working_dir }}"
+  register: _venv_git_dev_env_sha1_result
+
+# Only applicable to Python based venv
+- name: venv | _to-manifest | Register pip freeze details for service
+  command: ./pip freeze
+  args:
+    chdir: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/bin"
+  register: _venv_pip_freeze_result
+  when: services[service].sources | default([])
+
+# Only applicable to Python based venv
+- name: venv | _to-manifest | Register pip version details for service
+  command: ./pip --version
+  args:
+    chdir: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/bin"
+  register: _venv_pip_version_result
+  when: services[service].sources | default([])
+
+# Only applicable to Python based venv
+- name: venv | _to-manifest | Register setuptools version details for service
+  command: ./pip show setuptools | grep ^Version
+  args:
+    chdir: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/bin"
+  register: _venv_setuptools_version_result
+  when: services[service].sources | default([])
+
+# Only applicable to external based URLs
+- name: venv | _to-manifest | Get md5 external manifest for service
+  stat:
+    path: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}"
+  with_items: services[service].external | default([])
+  register: _venv_external_file_md5sum
+
+- name: venv | _to-manifest | Register external for service
+  shell: |
+    echo "{{ item.0.stat.md5 }} {{ item.1 | external_artifact_url(dev_env_site_config) }}"
+  with_together:
+    - _venv_external_file_md5sum.results
+    - services[service].external | default([])
+  register: _venv_external_manifest
+  when: services[service].external | default([])
+
+- name: venv | _to-manifest | Create manifest directory in venv for service
+  file:
+    path: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/META-INF"
+    state: directory
+
+- name: venv | _to-manifest | Write out manifest file for service
+  template:
+    src: manifest.j2
+    dest: "{{ VENV.TAR_DIR }}/{{ service }}.manifest-{{ version }}"
+
+- name: venv | _to-manifest | Write out the redacted manifest
+  shell: >
+    sed -r -e '/^---/,$s|https?://[^ ]*|"redacted"|g'
+    < "{{ VENV.TAR_DIR }}/{{ service }}.manifest-{{ version }}"
+    > "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/META-INF/manifest.yml"
+
+- name: venv | _to-manifest | Write out version file for service
+  template:
+    src: version.yml.j2
+    dest: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/META-INF/version.yml"

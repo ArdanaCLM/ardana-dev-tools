@@ -1,0 +1,49 @@
+#!/bin/bash
+
+set -eu
+
+top=$(dirname "$0"/../..)
+prefix="build-vagrant"
+
+cat <<-EOF
+	{
+	EOF
+
+comma=
+
+virsh list --name | while read name; do
+
+    [[ "$name" =~ ^${prefix}_ ]] || continue
+
+    eval $(
+        virsh dumpxml "$name" |
+        xmllint --xpath '/domain/devices/interface[@type="network"]/mac/@address' -
+        )
+
+    if [ -z "$address" ]; then
+        echo "Warning: no MAC address found for $name" 1>&2
+        continue
+    fi
+
+    ip=$(
+        arp -n |
+        awk '$3 == "'"$address"'" {print $1}'
+        )
+
+    suffix="${name##${prefix}_}"
+
+    cat <<-EOF
+	    $comma
+	    "$suffix": {
+	        "hosts": [ "$ip" ],
+                "vars": {
+                }
+	    }
+	EOF
+    comma=,
+
+done
+
+cat <<-EOF
+	}
+	EOF

@@ -1,0 +1,87 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: artifacts | get-artifacts | Validate the artifact_info['url']
+  fail: msg="artifact_info['url'] variable most not end in a '/'"
+  when: artifact_info.url | last == '/'
+
+- name: artifacts | get-artifacts | Create cache directory
+  file:
+    path: "{{ artifact_cache_dir }}"
+    state: directory
+  ignore_errors: true
+  register: _create_cache_result
+  until: _create_cache_result|success
+  retries: 5
+  delay: 1
+
+- name: artifacts | get-artifacts | Get SHA256SUMS
+  get_url:
+    url: "{{ artifact_info['url'] }}/SHA256SUMS"
+    dest: "{{ artifact_cache_dir }}/SHA256SUMS"
+    use_proxy: "{{ artifact_url_use_proxy }}"
+    force: yes
+    timeout: 20
+
+- name: artifacts | get-artifacts | Get artifact name
+  shell: |
+    awk '/ {{ artifact_info.re }}/ { print $2 ; print $1 }' "{{ artifact_cache_dir }}/SHA256SUMS"
+  args:
+    executable: "/bin/bash"
+  register: _iso_filename_result
+
+- name: artifacts | get-artifacts | Fail when we can not find the specified artifact
+  fail: msg="Failed to find the artifact in {{ artifact_info['url'] }} that matched / {{ artifact_info.re }}/"
+  when: _iso_filename_result.stdout_lines|length != 2
+
+- name: artifacts | get-artifacts | Artifact release source
+  shell: |
+    echo "{{ artifact_info['url'] }}/{{ _iso_filename_result.stdout_lines[0] }}" > "{{ artifact_cache_dir }}/{{ artifact_key }}.source"
+
+- name: artifacts | get-artifacts | Check artifact manifest
+  shell: |
+    sha256sum --strict --check "{{ artifact_cache_dir }}/{{ artifact_key }}.sha256sum" &&
+    test -e {{ artifact_cache_dir }}/{{ artifact_key }}
+  args:
+    chdir: "{{ artifact_cache_dir }}"
+  register: _artifact_sha256sum_check_result
+  ignore_errors: true
+
+- name: artifacts | get-artifacts | Download artifact
+  get_url:
+    url: "{{ artifact_info['url'] }}/{{ _iso_filename_result.stdout_lines[0] }}"
+    dest: "{{ artifact_cache_dir }}/{{ artifact_key }}.tmp"
+    sha256sum: "{{ _iso_filename_result.stdout_lines[1] }}"
+    use_proxy: "{{ artifact_url_use_proxy }}"
+    force: yes
+    timeout: 20
+  when: _artifact_sha256sum_check_result | failed
+
+- name: artifacts | get-artifacts | Move tmp file to get around ISO permissions
+  become: yes
+  shell: |
+    set -eu
+    mv {{ artifact_cache_dir }}/{{ artifact_key }}.tmp {{ artifact_cache_dir }}/{{ artifact_key }}
+  when: _artifact_sha256sum_check_result | failed
+
+- name: artifacts | get-artifacts | Create sha256sum
+  shell: |
+    set -eu
+    sha256sum {{ artifact_key }}.source > "{{ artifact_cache_dir }}/{{ artifact_key }}.sha256sum"
+    sha256sum SHA256SUMS >> "{{ artifact_cache_dir }}/{{ artifact_key }}.sha256sum"
+  args:
+    chdir: "{{ artifact_cache_dir }}"

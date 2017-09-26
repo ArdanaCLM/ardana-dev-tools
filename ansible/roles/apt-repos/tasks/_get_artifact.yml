@@ -1,0 +1,78 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Pass in the following variables:
+#    artifact_base_url
+#    artifact_url_use_proxy
+#    artifact
+#    filename
+---
+
+- name: apt-repos | _get_artifacts | Create artefacts directory
+  file:
+    path: "{{ hlinux_artefacts_dir }}"
+    state: directory
+
+- name: artifacts | _get_artifacts | Get SHA256
+  get_url:
+    url: "{{ artifact_base_url }}/{{ artifact }}.sha256"
+    dest: "{{ hlinux_artefacts_dir }}/{{ filename }}.sha256"
+    use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
+    force: yes
+    timeout: 20
+
+- name: artifacts | _get_artifacts | Get artifact SHA256
+  shell: |
+    awk '/ {{ artifact_alias }}/ { print $1 }' {{ hlinux_artefacts_dir }}/{{ filename }}.sha256
+  register: _artifact_sha256_result
+  failed_when: _artifact_sha256_result.stdout == ""
+
+- name: artifacts | _get_artifacts | Artifact manifest
+  shell: |
+    echo "{{ artifact_base_url }}/{{ artifact }}" > {{ hlinux_artefacts_dir }}/{{ filename }}.manifest
+
+- name: artifacts | _get_artifacts | Check artifact manifest
+  shell: |
+    set -eu
+
+    sha256sum -c --strict "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
+        test -e "{{ hlinux_artefacts_dir }}/{{ filename }}"
+  args:
+    chdir: "{{ hlinux_artefacts_dir }}"
+  register: _manifest_check_result
+  ignore_errors: true
+
+- name: artifacts | _get_artifacts | Download artifact
+  get_url:
+    url: "{{ artifact_base_url }}/{{ artifact }}"
+    dest: "{{ hlinux_artefacts_dir }}/{{ filename }}.tmp"
+    sha256sum: "{{ _artifact_sha256_result.stdout }}"
+    force: yes
+    use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
+    timeout: 20
+  when: _manifest_check_result | failed
+
+- name: artifacts | _get_artifacts | Move tmp file to get around filename permissions
+  become: yes
+  shell: |
+    mv {{ hlinux_artefacts_dir }}/{{ filename }}.tmp {{ hlinux_artefacts_dir }}/{{ filename }}
+  when: _manifest_check_result | failed
+
+- name: artifacts | _get_artifacts | Create manifest
+  shell: |
+    sha256sum "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest" > "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
+        sha256sum "{{ hlinux_artefacts_dir }}/{{ filename }}.sha256" >> "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
+        echo "{{ _artifact_sha256_result.stdout }}  {{ filename }}" >> "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256"

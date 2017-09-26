@@ -1,0 +1,11 @@
+# This is temporary until we have a pip package
+#
+# Ardana - These are overriden in ansible/roles/image-build/defaults/main.yml
+# DIB_REPOLOCATION_amphora_agent:
+#     "{{ dev_env_default_git_server }}/openstack/octavia.git"
+# DIB_REPOREF_amphora_agent: "{{ dev_env_artifact_branch }}"
+#
+# Marked disabled to make sure they stay overriden and report an error
+# if they are used.
+#
+amphora-agent git /opt/amphora-agent https://disabled-git.suse.provo.cloud/openstack/octavia disabled-master

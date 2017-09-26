@@ -1,0 +1,56 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: myservice-server - Demonstrate use of CP-generated vars
+  hosts: MYS-SVR
+  roles:
+    - myservice-server
+  tasks:
+  - name: Demonstrate use of CP-generated vars - Database IP and Port
+    debug:
+       msg: >
+         "Database IP: {{ MYS_SVR.consumes_FND_MDB.vips.private[0].ip_address }}"
+         "Database Port: {{ MYS_SVR.consumes_FND_MDB.vips.private[0].port }}"
+
+  - name: Demonstrate use of CP-generated vars - Database username and password
+    debug:
+       msg: >
+         "Database username: {{ MYS_SVR.consumes_FND_MDB.vars.accounts.myservice-server.username }}"
+         "Database password: {{ MYS_SVR.consumes_FND_MDB.vars.accounts.myservice-server.password }}"
+
+- hosts: MYS-SVR
+  roles:
+    - myservice-server
+  tasks:
+  - include: roles/myservice-server/tasks/install.yml
+  - include: roles/myservice-server/tasks/configure.yml
+
+- hosts: MYS-PLG
+  roles:
+    - myservice-plugin
+  tasks:
+  - include: roles/myservice-plugin/tasks/install.yml
+  - include: roles/myservice-plugin/tasks/configure.yml
+
+- hosts: MYS-CLI
+  roles:
+    - myservice-client
+  tasks:
+  - include: roles/myservice-client/tasks/install.yml
+  - include: roles/myservice-client/tasks/configure.yml
+
+- include: myservice-start.yml

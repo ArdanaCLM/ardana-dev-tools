@@ -1,0 +1,6 @@
+#!/bin/bash
+
+set -eux
+
+# These are _so_ useful operationally that it seems a pity to leave them out.
+install-packages tcpdump ethtool dnsutils

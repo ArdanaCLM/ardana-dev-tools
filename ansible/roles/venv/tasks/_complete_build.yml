@@ -1,0 +1,48 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Fetch the build artifacts and mark the build as complete
+# Input:
+#   service='nova'
+#   version='2015-02-01-10-11-12' or something like that
+#   cache_dir='/path/on/local/machine'
+---
+- name: venv | _complete_build | Fetch all artifacts
+  synchronize:
+    src: "{{ VENV.TAR_DIR }}/"
+    dest: "{{ venv_cache_dir }}/"
+    compress: no
+    mode: pull
+  when: inventory_hostname == groups[venv_group][0]
+  register: _result
+
+- name: venv | _complete_build | Create new version reference file for service
+  template:
+    src: version.j2
+    dest: "{{ VENV.STATE_DIR }}/{{ service }}.version"
+  when: not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _complete_build | Checksum the package
+  shell: |
+    md5sum "{{ VENV.TAR_DIR }}/{{ service }}-{{ version }}.tgz" \
+        "{{ VENV.TAR_DIR }}/{{ service }}.manifest-{{ version }}" > \
+            "{{ VENV.STATE_DIR }}/{{ service }}.md5sum"
+  when: not _venv_service_complete_stat_result.stat.exists
+
+- name: venv | _complete_build | Mark build completed for service
+  file:
+    dest: "{{ VENV.STATE_DIR }}/{{ service }}.complete"
+    state: touch

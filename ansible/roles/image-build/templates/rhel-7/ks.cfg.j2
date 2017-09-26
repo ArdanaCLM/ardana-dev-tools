@@ -1,0 +1,111 @@
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+#version=DEVEL
+# System authorization information
+auth --enableshadow --passalgo=sha512
+repo --name="Server-HighAvailability" --baseurl=file:///run/install/repo/addons/HighAvailability
+repo --name="Server-ResilientStorage" --baseurl=file:///run/install/repo/addons/ResilientStorage
+
+#url --url=$tree
+# Enable CDROM installation
+cdrom
+
+# Use graphical install
+text
+# Run the Setup Agent on first boot
+firstboot --disable
+
+# Keyboard layouts
+keyboard --vckeymap=us --xlayouts='us'
+# System language
+lang en_US.UTF-8
+# System timezone
+timezone Etc/UTC --isUtc --nontp
+
+# Misc
+firewall --disabled
+skipx
+
+#poweroff
+# don't eject as we need the iso available for further package installation.
+reboot
+
+# Network information
+
+# Root password
+rootpw --iscrypted $6$cSbUSBAiKsFyTWQc$iewNlmfcQkMpew2DWp/9efCtk75M4tmv9WiDL0kNiSw3v0Kj6u3y.Ot9OdfFTvQhrW5IojGBYhpiKFXFUBF0H0
+user --groups=wheel --name={{ image_build_user }} {% if image_build_uid %}--uid={{ image_build_uid }}{% endif %} --password={{ image_build_password }} {% if image_build_password_encrypted is defined %}--iscrypted{% endif %} --gecos="{{ image_build_user }}"
+
+# System bootloader configuration
+bootloader --location=mbr --boot-drive={{ image_build_root_device }}
+zerombr
+
+# TODO: Target only image_build_root_device not all disks.
+# ignoredisk --only-use={{ image_build_root_device }}
+# For VM use only the attached device
+ignoredisk --only-use={{ image_build_root_device }}
+
+# Blow away without prejudice what was there previously - same as we do on hLinux
+clearpart --all --initlabel
+
+# Disk partitioning information
+part biosboot --fstype="biosboot" --size=1
+part /boot --fstype="ext3" --ondisk={{ image_build_root_device }} --size=512
+part /boot/efi --fstype="efi" --ondisk={{ image_build_root_device }} --size=512
+part pv.275 --fstype="lvmpv" --ondisk={{ image_build_root_device }} --size=1 --grow
+volgroup ardana-vg --pesize=4096 pv.275
+logvol / --fstype="ext4" --name=root --vgname=ardana-vg --size=3000
+
+# accept the eula
+eula --agree
+
+%packages
+@^minimal
+@core
+kexec-tools
+dbus
+eject
+openssh-server
+rsync
+python
+gdisk
+
+%end
+
+%post --log=/var/log/anaconda-post.log
+# All ssh from deployer
+mkdir --mode=700 {{ image_build_user }}/.ssh
+chown {{ image_build_user }}:{{ image_build_group }} {{ image_build_user }}/.ssh
+
+# Configure sudo to not require tty
+sed -r -i "s,^(Defaults\s+requiretty),# \0," /etc/sudoers
+sed -r -i "s,^(Defaults\s+\!visiblepw),# \0," /etc/sudoers
+
+# Enable DHCP on eth0, ensure it uses DEVICE, and disable the default route on eth2
+sed -r -i -e "s,ONBOOT=no,ONBOOT=yes," -e "s,NAME=,DEVICE=," /etc/sysconfig/network-scripts/ifcfg-eth0
+# don't set any additional device entries for VM's
+#echo "DEFROUTE=no" >> /etc/sysconfig/network-scripts/ifcfg-eth2
+
+# Enable passwordless sudo access for ardanauser
+echo "{{ image_build_user }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/{{ image_build_user }}
+chmod 0440 /etc/sudoers.d/{{ image_build_user }}
+
+$yum_config_stanza
+%end
+
+%addon com_redhat_kdump --enable --reserve-mb='auto'
+
+%end

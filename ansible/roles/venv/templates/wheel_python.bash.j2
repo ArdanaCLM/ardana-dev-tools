@@ -1,0 +1,75 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+set -eux
+
+{% for key, value in ccache.env.iteritems() %}
+export {{ key }}="{{ value }}"
+{% endfor %}
+
+build_{{ source.name }}_wheelhouse() {
+    rm -f "{{ VENV.WHEEL_DIR }}/{{ source.name }}.log"
+
+    # Construct the constraint file - remove venv_source_build_name
+    sed -e '/^{{ source | venv_source_build_name | venv_packagify }}[<>=!]/d' \
+      < "{{ VENV.SRC_DIR }}/{{ _venv_global_constraints_sources.requirements.url | basename }}/{{ _venv_global_constraints_sources.requirements.constraint }}" \
+      > "{{ VENV.WHEEL_DIR }}/{{ source.name }}.constraint"
+
+    "{{ _venv_pip_command }}" wheel \
+        --wheel-dir "{{ VENV.WHEEL_DIR }}/{{ source.name }}_wheelhouse" \
+        --log-file "{{ VENV.WHEEL_DIR }}/{{ source.name }}.log" \
+        --timeout 30 --retries 20 \
+        {% if not(source.ignore_constraints | default(False)) %}
+          --constraint "{{ VENV.WHEEL_DIR }}/{{ source.name }}.constraint" \
+        {% endif %}
+        "{{ VENV.SRC_DIR }}/{{ source | venv_source_build_dest }}/{{ source.build_dir | default }}" >/dev/null &&
+
+      # Remove wheels that we build from source.
+      # This has to remove ironic-VERSION but not ironic-lib-VERSION
+      rm -f "{{ VENV.WHEEL_DIR }}/{{ source.name }}_wheelhouse"/{{ '{' }}
+      {%- for item2 in _venv_ardana_sources -%}
+          {%- if source.name != item2 and 'url' in _venv_ardana_sources[item2] -%}
+          {%- if 'only_for' not in _venv_ardana_sources[item2] or source.name in _venv_ardana_sources[item2].only_for -%}
+              {{ _venv_ardana_sources[item2].url | basename | venv_packagify }},
+          {%- endif -%}
+          {%- endif -%}
+      {%- endfor %}{{ '}' }}-\d*.{whl,tar.gz} >/dev/null &&
+      touch "{{ VENV.WHEEL_DIR }}/{{ source.name }}.built"
+}
+
+for i in {0..5}; do
+    build_{{ source.name }}_wheelhouse || true
+
+    file="{{ VENV.WHEEL_DIR }}/{{ source.name }}.built"
+    if [[ ! -f "${file}" ]]
+    then
+        logfile="${file%%.built}.log"
+        cat $logfile
+
+        if egrep "(IOError: CRC check failed|BadZipfile: File is not a zip file|Bad md5 hash for package|THESE PACKAGES DO NOT MATCH THE HASHES FROM THE REQUIREMENTS FILE.|distutils.errors.DistutilsError: md5 validation failed)" "$logfile" ; then
+            echo "Known build failure - retry building {{ source.name }}"
+        else
+            echo "Build Failure with {{ source.name }}"
+            exit 1
+        fi
+    else
+        exit 0
+    fi
+done
+
+exit 2

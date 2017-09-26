@@ -1,0 +1,10 @@
+[global]
+index-url = {{ pip_mirror }}
+{% if pip.host %}
+trusted-host = {{ pip.host }}
+{% endif %}
+{% if 'extra_repo' in pip %}
+extra-index-url = {{ pip.extra_repo | default() }}
+{% endif %}
+
+log=pip.log

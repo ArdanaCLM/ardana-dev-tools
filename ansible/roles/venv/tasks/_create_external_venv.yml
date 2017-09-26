@@ -1,0 +1,86 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Set up a external based venv
+# Input:
+#   service='monasca'
+---
+
+- name: venv | _create_external_venv | Create the external virtual environment for service
+  file:
+    dest: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - bin
+    - lib
+    - etc
+
+- name: venv | _create_external_venv | Download SHA256
+  get_url:
+    dest: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}.sha256"
+    url: "{{ item | external_artifact_url(dev_env_site_config) }}.sha256"
+    force: "{{ rebuild }}"
+    timeout: 20
+  with_items: services[service].external | default([])
+  when: services[service].external is defined and services[service].external
+  register: _venv_external_files_sha256_download_result
+
+- name: venv | _create_external_venv | Download any external files for service
+  get_url:
+    dest: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}"
+    url: "{{ item | external_artifact_url(dev_env_site_config) }}"
+    sha256sum: "{{ item.sha256 }}"
+    # Use locally downloaded version if present
+    force: no
+    timeout: "{{ ext_dl_timeout }}"
+  register: _download_external_result
+  until: _download_external_result|success
+  retries: 2  # hopefully the 2nd retry will go through a different proxy. Depends on DNS entry TTL.
+  with_items: services[service].external | default([])
+  when: services[service].external is defined and services[service].external
+
+- name: venv | _create_external_venv | Check SHA256
+  shell: |
+    set -eux
+    set -o pipefail
+
+    # Check that the supplied sha256 equals the source
+    cat {{ item.dest }} | grep "^{{ item.item.sha256 }} .*{{ item.item | external_artifact_url(dev_env_site_config) | basename }}$"
+
+    # Check that the sha256 of the downloaded file matches the supplied sha256
+    sha256sum {{ item.item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) | basename }} \
+        | grep "^{{ item.item.sha256 }} *{{ item.item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) | basename }}"
+  args:
+    executable: "/bin/bash"
+    chdir: "{{ VENV.EXTERNAL_DIR }}"
+  with_items: _venv_external_files_sha256_download_result.results
+
+- name: venv | _create_external_venv | Copy external files for service
+  delegate_to: "{{ inventory_hostname }}"
+  synchronize:
+    src: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}"
+    dest: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/lib/{{ item | external_artifact_url(dev_env_site_config) | basename }}"
+    archive: no
+  with_items: services[service].external | default([])
+
+- name: venv | _create_external_venv | Link in optional destination in the lib directory
+  file:
+    src: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/lib/{{ item | external_artifact_url(dev_env_site_config) | basename }}"
+    path: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/lib/{{ item.dest }}"
+    state: link
+  when: item.dest is defined
+  with_items: services[service].external | default([])

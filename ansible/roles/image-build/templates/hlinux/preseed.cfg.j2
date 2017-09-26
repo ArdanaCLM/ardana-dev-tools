@@ -1,0 +1,202 @@
+{#
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+#}
+#Necessary to access the remote hlinux repo
+# Will need to be change to point to local
+d-i mirror/suite string {{ hlinux_distro | default("cattleprod") }}
+d-i mirror/udeb/suite string {{ hlinux_distro | default("cattleprod") }}
+
+# Scan another CD or DVD?
+apt-cdrom-setup apt-setup/cdrom/set-first boolean false
+
+# Package mirror
+{% if network_install is defined %}
+d-i mirror/protocol string http
+d-i mirror/country string manual
+d-i mirror/http/hostname string {{ hlinux_server }}
+d-i mirror/http/hostname seen true
+d-i mirror/http/directory string /{{ hlinux_path }}
+d-i mirror/http/directory seen true
+{% endif %}
+d-i apt-setup/use_mirror boolean false
+
+# Configure language and keyboard
+d-i debian-installer/locale string en_US.UTF-8
+d-i keymap select us
+d-i console-keymaps-at/keymap select us
+
+# setup console
+d-i debian-installer/splash boolean false
+d-i console-setup/ask_detect        boolean false
+d-i console-setup/layoutcode        string us
+d-i console-setup/variantcode       string
+
+# network config
+#May need to modify this for static assignment
+d-i netcfg/get_nameservers  string
+d-i netcfg/get_ipaddress    string
+d-i netcfg/get_netmask      string {{ network_install_netmask | default() }}
+d-i netcfg/get_gateway      string
+d-i netcfg/dhcp_timeout     string 240
+d-i netcfg/confirm_static   boolean true
+d-i netcfg/hostname string ardana
+#Do not attempt remote ntp config
+d-i clock-setup/ntp boolean false
+d-i time/zone string UTC
+d-i clock-setup/utc boolean true
+
+# Early disk config
+# The vgremove should be conditional - as should the rest of
+# directives to blow away existing config
+{% if network_install is defined %}
+d-i partman/early_command string \
+vgremove -f ardana-vg; \
+wget `cat /proc/cmdline | sed 's@.* preseed/url=\([^ ]\+\)/preseed.cfg.*@\1@'`/preseed/configure_partitioning; \
+sh ./configure_partitioning `cat /proc/cmdline | sed 's@.* preseed/url=\([^ ]\+\)/preseed.cfg.*@\1@'`
+{% endif %}
+
+# Disk Configuration
+d-i partman-auto/disk string /dev/{{ image_build_root_device }}
+d-i partman-auto/method string lvm
+# Blow away without prejudice what was there previously
+# May need to be a bit more conservative here for BM
+# Also need to add more intelligence to the disk partitioning
+{% if network_install is defined %}
+d-i partman-auto/purge_lvm_from_device boolean true
+d-i partman-lvm/device_remove_lvm boolean true
+d-i partman-md/device_remove_md boolean true
+d-i partman-lvm/device_remove_lvm_span boolean true
+{% endif %}
+d-i partman-lvm/confirm boolean true
+d-i partman-lvm/confirm_nooverwrite boolean true
+d-i partman-basicmethods/method_only boolean false
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
+d-i partman-auto/choose_recipe select ardana-config
+{% if network_install is defined %}
+d-i partman-auto/expert_recipe_file string /partition_scheme
+{% else %}
+d-i partman-auto/expert_recipe string   \
+      ardana-config ::                     \
+          1 1 1 free                    \
+            $gptonly{ }                 \
+            $primary{ }                 \
+            $bios_boot{ }               \
+            method{ biosgrub }          \
+      .                                 \
+          512 38000 512 ext3            \
+            $gptonly{ }                 \
+            $primary{ }                 \
+            $bootable{ }                \
+            method{ format }            \
+            format{ }                   \
+            use_filesystem{ }           \
+            filesystem{ ext3 }          \
+            mountpoint{ /boot }         \
+      .                                 \
+          3000 32000 32000 ext4         \
+            $lvmok{ }                   \
+            lv_name{ root }             \
+            method{ format }            \
+            format{ }                   \
+            use_filesystem{ }           \
+            filesystem{ ext4 }          \
+            mountpoint{ / }             \
+      .
+{% endif %}
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman-md/confirm boolean true
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i partman-basicfilesystems/no_swap boolean false
+{% if network_install is defined %}
+d-i partman-basicfilesystems partman-basicfilesystems/no_mount_point boolean false
+{% endif %}
+d-i partman-efi/non_efi_system  true
+
+# Do not set up additional apt repos for now
+d-i apt-setup/services-select multiselect
+d-i apt-setup/security_host string
+d-i base-installer/kernel/image     string linux-server
+# Do not install any extra packages
+tasksel    tasksel/first    multiselect    none
+# Other than these specific ones
+d-i pkgsel/include string dbus eject openssh-server rsync python python-apt hpssacli gdisk parted open-vm-tools vlan
+d-i passwd/root-login       boolean false
+d-i passwd/make-user        boolean true
+d-i passwd/user-fullname    string {{ image_build_user }}
+d-i passwd/username string {{ image_build_user }}
+# Need to generate this on the fly
+d-i passwd/user-password-crypted    password {{ image_build_password | password_hash('sha512') }}
+d-i passwd/user-uid string 1001
+d-i user-setup/allow-password-weak  boolean false
+d-i user-setup/encrypt-home boolean false
+d-i debian-installer/allow_unauthenticated  string false
+
+# The ssh key populate may need more review - ok for now
+# The wget at the end is so that the net boot is turned off once installed
+# as per cobbler pxe_just_once settings
+d-i preseed/late_command string \
+{% if network_install is defined %}
+wget http://$http_server/preseed/timestamp;\
+in-target touch /etc/cobbler_ardana_installed;\
+cp ./timestamp /target/etc/cobbler_ardana_installed;\
+in-target mkdir -p {{ image_build_user_home }}/.ssh;\
+in-target chown {{ image_build_user }}:{{ image_build_user }} {{ image_build_user_home }}/.ssh;\
+in-target chmod 700 {{ image_build_user_home }}/.ssh;\
+echo "{{ deployer_ssh_pub_key | default() }}" > /target/{{ image_build_user_home }}/.ssh/authorized_keys;\
+in-target chown {{ image_build_user }}:{{ image_build_user }} {{ image_build_user_home }}/.ssh/authorized_keys;\
+in-target sed -i "s,sudo[\t]ALL=(ALL:ALL) ALL,sudo ALL = (ALL) NOPASSWD: ALL,g" /etc/sudoers;\
+umount /target/unused; \
+lvremove -f /dev/ardana-vg/unused;\
+in-target sed -i '/unused/d' /etc/fstab;\
+wget http://$http_server/preseed/configure_network.sh; \
+cp ./configure_network.sh /target/tmp;\
+in-target bash /tmp/configure_network.sh ;\
+in-target rm /tmp/configure_network.sh;\
+wget http://$http_server/preseed/configure_kdump; \
+cp ./configure_kdump /target/tmp;\
+in-target bash /tmp/configure_kdump ;\
+in-target rm /tmp/configure_kdump;\
+echo "deb [arch=i386] http://$http_server/ardana/cmc32 cattleprod main" >> /target/etc/apt/sources.list;\
+in-target dpkg --add-architecture i386;\
+in-target apt-get update;\
+in-target rm /etc/resolv.conf;\
+wget http://$http_server/preseed/bnx2x.conf;\
+touch /target/etc/modprobe.d/bnx2x.conf;\
+cp ./bnx2x.conf /target/etc/modprobe.d/bnx2x.conf;\
+chmod 644 /target/etc/modprobe.d/bnx2x.conf;\
+wget http://$http_server/cblr/svc/op/nopxe/system/$name
+{% else %}
+echo "{{ image_build_user }} ALL=(ALL) NOPASSWD:ALL" > /target/etc/sudoers.d/{{ image_build_user }};\
+sed -i "s,deb cdrom,deb [arch=amd64] http,g" /target/etc/apt/sources.list
+{% endif %}
+
+# package selections
+d-i pkgsel/update-policy    select none
+
+# boot loader
+d-i grub-installer/bootdev string /dev/{{ image_build_root_device }}
+d-i grub-installer/skip     boolean false
+d-i lilo-installer/skip     boolean false
+d-i grub-installer/only_debian      boolean true
+d-i grub-installer/with_other_os    boolean true
+d-i debian-installer/add-kernel-opts string crashkernel=384M-2G:64M,2G-:256M console=tty0 console=ttyS0
+
+# finish and halt/reboot
+d-i finish-install/keep-consoles    boolean false
+d-i finish-install/reboot_in_progress       note
+d-i cdrom-detect/eject      boolean true
+#d-i debian-installer/exit/halt  boolean true
+# Power off machine at the end
+{% if network_install is defined %}
+d-i debian-installer/exit/poweroff  boolean true
+{% endif %}

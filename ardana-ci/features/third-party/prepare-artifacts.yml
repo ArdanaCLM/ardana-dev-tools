@@ -1,0 +1,52 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Doesn't need to be run repeatedly - this will ready src *.tgz
+# files for use by the third-party plugin directory structure.
+# It's entirely possible that those tarballs could be regenerated
+# occasionally as needed and the results checked into the
+# third-party/myservice tree.
+#
+---
+
+- hosts: localhost
+  connection: local
+  tasks:
+    - name: Create the pip source tarball for injection
+      command: >
+        tar zcvf
+            {{ playbook_dir }}/files/third-party/myservice/venvs/{{ item }}/src/my_library.tgz
+            -C {{ playbook_dir }}/files/src/my_library .
+      with_items:
+        - pluginA
+        - serviceA
+        - serviceB
+    - name: Create the debian packages
+      shell: |
+        set -ex
+        tar zcvf {{ item.name }}_{{ item.version }}.orig.tar.gz -C src {{ item.dir }}-{{ item.version }}
+        tar xvf {{ item.name }}_{{ item.version }}.orig.tar.gz
+        cp -a debian {{ item.name }}-{{ item.version }}
+        (
+            cd {{ item.name }}-{{ item.version }}
+            debuild -us -uc
+        )
+        cp {{ item.name }}_{{ item.version }}_amd64.deb \
+            {{ playbook_dir }}/files/third-party/myservice/pkgs/debian
+      args:
+        chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}"
+      with_items:
+        - { dir: myservice-client, name: myservice-client, version: 1.0.0 }

@@ -1,0 +1,45 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+# WARNING: product_name_version must be a basic string and not contain any
+# ansible variables as constructs.
+product_name_version: "ardana-0.9.0"
+product_name: "{{ product_name_version.split('-') | first }}"
+
+# hack to 0 pad version out to three places so can specify just the
+# <major>.<minor> part of the version in ARDANA_PRODUCT
+_product_version: "{{ product_name_version.split('-') | last }}"
+product_version_major: "{{ _product_version.split('.')[0] }}"
+product_version_minor: "{{ _product_version.split('.')[1] }}"
+product_version_patch: "{{ _product_version.split('.')[2] | default('0') }}"
+product_version_hotfix: "{{ _product_version.split('.')[3] | default('') }}"
+product_version_hotfix_string: "{% if product_version_hotfix != '' %}{{'.' ~ product_version_hotfix}}{% else %}{{ '' }}{% endif %}"
+product_version: "{{
+    product_version_major ~ '.' ~ product_version_minor ~ '.' ~ product_version_patch ~ product_version_hotfix_string
+}}"
+
+product_stream: "{{ product_version_major ~ '.' ~ product_version_minor }}"
+
+# product_release should be defined in the version specific defaults.yml
+product_release_string: "{% if product_release != 'final' %}-{{ product_release }}{% endif %}"
+product_version_release: "{{ product_version }}{{ product_release_string }}"
+product_name_version_release: "{{ product_name }}-{{ product_version_release }}"
+
+# Default directory under which to find cached content
+product_cache_directory_basename: "{{ product_branch | replace('/', '_') }}"
+product_cache_directory: "{{ lookup('env', 'HOME') }}/.cache-ardana/{{ product_cache_directory_basename }}"

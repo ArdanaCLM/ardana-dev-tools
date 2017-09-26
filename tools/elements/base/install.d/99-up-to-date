@@ -1,0 +1,8 @@
+#!/bin/bash
+# Fully upgrade everything on the system (if the package manager knows how to
+# do it).
+
+set -eu
+set -o pipefail
+
+install-packages -u

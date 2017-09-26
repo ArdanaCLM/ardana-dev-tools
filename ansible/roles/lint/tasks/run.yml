@@ -1,0 +1,121 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Playbook for running lint-style tests
+---
+
+- name: lint | run | Check for duplicate playbook names
+  shell:
+    python '{{ lint_no_duplicates }}' '*/*yml'
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+- name: lint | run | Check for duplicate role names
+  shell:
+    python '{{ lint_no_duplicates }}' '*/roles/*'
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+- name: lint | run | Check for duplicate modules
+  shell:
+    python '{{ lint_no_duplicates }}' '*/library/*'
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+- name: lint | run | Check for duplicate sosreport plugins
+  shell:
+    python '{{ lint_no_duplicates }}' '*/sos.d/*'
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+- name: lint | run | Yaml syntax check
+  command: "{{ lint_parse_yaml }} ."
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+- name: lint | run | Yaml syntax check for host_vars
+  shell: "{{ lint_parse_yaml }} */host_vars/*"
+  args:
+    chdir: "{{ lint_hierarchy_dir }}"
+  changed_when: false
+
+# Just record the output for now. We can't make this voting
+# until we fix the code that is producing the lint warnings,
+# or fix the ansible-lint bugs that are causing the messages
+# to appear, if we believe them to be spurious.
+- name: lint | run | Run ansible-lint non-voting
+  shell: >
+    {{ lint_venv }}/bin/ansible-lint -p -x templating,resources
+    {{ lint_rulesdir }} *.yml > {{ dev_env_scratch_dir }}/lint-p.log 2>&1
+  args:
+    chdir: "{{ lint_flat_dir }}"
+  failed_when: false
+
+- name: lint | run | Summarize lint output
+  shell: >
+    awk '/^\// {gsub(".*lint-flat.","",$1); print}' lint-p.log |
+    sort | uniq -c | sort -nr | tee lint-summary.log;
+    wc -l "${PWD}/lint-summary.log" | tee -a lint-summary.log
+  args:
+    chdir: "{{ dev_env_scratch_dir }}"
+  register: ansible_lint_result
+
+- name: lint | run | Display lint summary
+  debug:
+    var: ansible_lint_result.stdout_lines
+
+- name: lint | run | Search for tracebacks
+  command: grep -A100 'Traceback' lint-p.log
+  args:
+    chdir: "{{ dev_env_scratch_dir }}"
+  register: ansible_grep_result
+  failed_when: false
+
+- name: lint | run | Report ansible-lint playbook parsing errors
+  debug:
+    var: ansible_grep_result.stdout_lines
+  when: (ansible_grep_result | success)
+
+- name: lint | run | Exit on ansible-lint playbook parsing errors
+  fail: "Unable to parse ansible-lint - see above"
+  when: (ansible_grep_result | success)
+
+- name: lint | run | Run ansible-lint voting
+  shell: >
+    {{ lint_venv }}/bin/ansible-lint -p -x templating,resources
+    {{ lint_rulesdir }}
+    client*.yml
+    *ceilometer*.yml
+    *FND-AP2*.yml
+    *FND-CLU*.yml
+    *glance*.yml
+    _ardana-base-pre-upgrade.yml
+    _ardana-base-post-upgrade.yml
+    *heat*.yml
+    *magnum*.yml
+    *monasca-transform*.yml
+    *nova*.yml
+    *percona*.yml
+    [_r]*abbitmq*.yml
+    *spark*.yml
+    *tls*.yml
+  args:
+    chdir: "{{ lint_flat_dir }}"

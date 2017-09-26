@@ -1,0 +1,13 @@
+*.gem
+*.json
+isogen/__init__.py
+doc/source/.*.rst
+.keep
+ardana-ci/project/astack-options
+requirements.txt
+ardana-ci/features/third-party/files/src/myservice-client/debian/*
+ardana-ci/features/third-party/files/src/myservice-client/src/myservice-client-1.0.0/man/myservice-client.1
+*.tgz
+.gitignore
+tools/elements/amphora-agent/install.d/75-run_setup_install
+tools/elements/haproxy-octavia/post-install.d/20-haproxy-tune-kernel

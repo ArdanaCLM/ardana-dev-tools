@@ -1,0 +1,176 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Specify defaults for the deployer package build
+---
+deployer_build_dir: "{{ dev_env_scratch_dir }}/deployer_build"
+deployer_output_dir: "{{ dev_env_scratch_dir }}/deployer_output"
+
+deployer_ansible_dir: "{{ deployer_build_dir }}/ansible"
+deployer_apt_dir: "{{ deployer_build_dir }}/apt"
+deployer_config_dir: "{{ deployer_build_dir }}/config"
+deployer_input_model_dir: "{{ dev_env_scratch_dir }}/input-model"
+deployer_hlinux_venv_dir: "{{ deployer_build_dir }}/venvs"
+deployer_ardana_extensions_dir: "{{ deployer_build_dir }}/ardana-extensions"
+
+_deployer_timestamp: "-{{ '%Y%m%dT%H%M%SZ' | time_format }}"
+_ardana_build_number: "{{ lookup('env', 'GOZER_BUILD_ID') | default( 'UNKNOWN' + _deployer_timestamp, true) }}"
+
+deployer_node: "{{ lookup('env', 'DEPLOYERNODE') | default('deployer', true) }}"
+deployer_build_package: "{{ lookup('env', 'ARDANA_BUILD_PACKAGE') }}"
+
+# The various tarballs we create
+deployer_manifest: "{{ deployer_output_dir }}/{{ deployer_version }}/{{ deployer_version }}.manifest{{ _deployer_timestamp }}"
+build_manifest: "{{ deployer_output_dir }}/{{ deployer_version }}/{{ deployer_version }}-build.manifest{{ _deployer_timestamp }}"
+# The tarball is on the build host
+tarball_location: "{{ deployer_output_dir }}/{{ deployer_version }}{{ _deployer_timestamp }}.tar"
+
+# User specific tarball
+user_specified_tarball: "{{ lookup('env', 'DEPLOYER_TARBALL') }}"
+
+deployer_filter_plugins:
+  - update_dict.py
+  - version_compare_smart.py
+
+deployer_ansible_tarball: "{{ deployer_version }}/ansible.tgz"
+deployer_config_tarball: "{{ deployer_version }}/config.tgz"
+deployer_input_model_tarball: "{{ deployer_version }}/ardana-input-model.xz"
+deployer_hlinux_venv_tarball: "{{ deployer_version }}/hlinux_venv.tar"
+deployer_ardana_extensions_tarball: "{{ deployer_version }}/ardana-extensions.tgz"
+deployer_init_script: "{{ deployer_version }}/ardana-init.bash"
+
+# Optional RHEL files
+deployer_rhel7_venv_dir: "{{ deployer_build_dir }}/rhel7-venvs"
+# Location on the deployer node where to find the RHEL artifacts.
+deployer_rhel7_venv_tarball: "{{ deployer_version }}/rhel7-venv.tar"
+deployer_rhel7_yum_extras_tarball: "{{ deployer_version }}/{{ rhel7_yum_extras_tarball | basename }}"
+deployer_rhel7_iso: "{{ rhel7_iso | basename }}"
+
+# Optional SLES files
+deployer_sles12_venv_dir: "{{ deployer_build_dir }}/sles12-venvs"
+# Location on the deployer node where to find the SLES artifacts.
+deployer_sles12_venv_tarball: "{{ deployer_version }}/sles12-venv.tar"
+deployer_sles_zypper_extras_tarball: "{{ deployer_version }}/{{ sles12_zypper_extras_tarball | basename }}"
+deployer_sles12_iso: "{{ sles12_iso | basename }}"
+# Location on the deployer node where to find SLES repo
+zypper_loc: ardana/sles12/zypper
+zypper_dir: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ zypper_loc }}"
+
+# Scripts.
+deployer_merge_symlinks_yaml: "{{ playbook_dir }}/roles/deployer/bin/merge-symlink-files.py"
+
+# The basis for relative path calculations
+deployer_symlink_target_path: /openstack/ardana/ansible
+deployer_symlink_source_path: /openstack/my_cloud/config
+
+# Location of the tarball on the deployer
+deployer_release_media: "/media/cdrom/ardana"
+
+# Variable to specify when we can safely skip building the deployer tarball.
+_deployer_build_tarball: "{{ user_specified_tarball|default('') == ''
+    and deployer_build_package|default('') == ''
+    and ( deployer_node not in hostvars
+          or not hostvars[deployer_node].deployer_tarball_stat_result.stat.exists
+    ) }}"
+
+# Virtual configuration optins we want to set. These usually are related
+# to managing memory consumption on virtual machines, and only get set
+# on virtual setup with vagrant.
+_deployer_virtual_configuration:
+  # BUG-2532 & BUG-2859 nova worker configuration
+  - dest: "~/openstack/ardana/ansible/roles/nova-common/defaults/main.yml"
+    regexp: "^metadata_workers: \\d+"
+    line: "metadata_workers: 1"
+  - dest: "~/openstack/ardana/ansible/roles/nova-common/defaults/main.yml"
+    regexp: "^osapi_compute_workers: \\d+"
+    line: "osapi_compute_workers: 1"
+  # BUG-2859 nova-conductor workers, only present in post 2.0 so need to test
+  # this file exists.
+  - dest: "~/openstack/ardana/ansible/roles/NOV-CND/templates/conductor.conf.j2"
+    regexp: "^#?\\s*workers\\s+="
+    line: "workers = 1"
+  # BUG-2532 & BUG-2859 neutron workers
+  - dest: "~/openstack/my_cloud/config/neutron/neutron.conf.j2"
+    regexp: "api_workers\\s+=\\s+\\d+"
+    line: "api_workers = 1"
+  - dest: "~/openstack/my_cloud/config/neutron/neutron.conf.j2"
+    regexp: "rpc_workers\\s+=\\s+\\d+"
+    line: "rpc_workers = 1"
+  # BUG-2859 neutron metadata-agent workers
+  - dest: "~/openstack/my_cloud/config/neutron/metadata_agent.ini.j2"
+    regexp: "metadata_workers\\s+=\\s+\\d+"
+    line: "metadata_workers = 1"
+  # BUG-2859 glance
+  - dest: "~/openstack/my_cloud/config/glance/glance-api.conf.j2"
+    regexp: "^#?\\s*workers ="
+    line: "workers = 1"
+  - dest: "~/openstack/my_cloud/config/glance/glance-registry.conf.j2"
+    regexp: "^#?\\s*workers ="
+    line: "workers = 1"
+  # SWIF-3006 - workders
+  - dest: "~/openstack/my_cloud/config/swift/proxy-server.conf.j2"
+    regexp: "^#?\\s*workers\\s+="
+    insertafter: "\\[DEFAULT\\]"
+    line: "workers = 1"
+  - dest: "~/openstack/my_cloud/config/swift/account-server.conf.j2"
+    regexp: "^#?\\s*workers\\s+="
+    insertafter: "\\[DEFAULT\\]"
+    line: "workers = 1"
+  - dest: "~/openstack/my_cloud/config/swift/container-server.conf.j2"
+    regexp: "^#?\\s*workers\\s+="
+    insertafter: "\\[DEFAULT\\]"
+    line: "workers = 1"
+  - dest: "~/openstack/my_cloud/config/swift/object-server.conf.j2"
+    regexp: "^#?\\s*workers\\s+="
+    insertafter: "\\[DEFAULT\\]"
+    line: "workers = 1"
+  # SWIF-3006 - interval
+  - dest: "~/openstack/my_cloud/config/swift/account-server.conf.j2"
+    regexp: "^#?\\s*interval\\s+="
+    insertafter: "\\[account-replicator\\]"
+    line: "interval = 3600"
+  - dest: "~/openstack/my_cloud/config/swift/container-server.conf.j2"
+    regexp: "^#?\\s*interval\\s+="
+    insertafter: "\\[container-replicator\\]"
+    line: "interval = 3600"
+  - dest: "~/openstack/my_cloud/config/swift/object-server.conf.j2"
+    regexp: "^#?\\s*interval\\s+="
+    insertafter: "\\[object-replicator\\]"
+    line: "interval = 3600"
+  - dest: "~/openstack/my_cloud/config/swift/object-server.conf.j2"
+    regexp: "^#?\\s*interval\\s+="
+    insertafter: "\\[object-reconstructor\\]"
+    line: "interval = 3600"
+  # SWIF-3006 - object auditor
+  - dest: "~/openstack/my_cloud/config/swift/object-server.conf.j2"
+    regexp: "^#?\\s*files_per_second\\s+="
+    insertafter: "\\[object-auditor\\]"
+    line: "files_per_second = 1"
+  - dest: "~/openstack/my_cloud/config/swift/object-server.conf.j2"
+    regexp: "^#?\\s*bytes_per_second\\s+="
+    insertafter: "\\[object-auditor\\]"
+    line: "bytes_per_second = 100"
+  # BUG-45555
+  - dest: "~/openstack/my_cloud/config/percona/my.cfg.j2"
+    backrefs: yes
+    regexp: "max_connections(\\s+)=\\s+\\d+"
+    line: "max_connections\\1= 1000"
+
+_deployer_iso_mounts:
+  hlinux: /media/cdrom0
+  rhel: /media/rhel
+  sles: /media/sles
+  sles_sdk: /media/sles_sdk

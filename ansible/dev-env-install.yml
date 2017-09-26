@@ -1,0 +1,35 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Top level playbook to install the developer environment
+---
+
+# Execute the ansible task to install the development environment
+- hosts: localhost
+  connection: local
+  roles:
+    - dev-env
+    - vagrant
+    - packer
+    - artifacts
+  tasks:
+    - include: roles/artifacts/tasks/setup.yml
+    - include: roles/dev-env/tasks/install.yml
+    - include: roles/vagrant/tasks/install.yml
+    - include: roles/packer/tasks/install.yml
+    # make sure the validate task is the last one executed
+    # to allow any information notify triggers to appear last
+    - include: roles/dev-env/tasks/validate.yml

@@ -1,0 +1,78 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Specify defaults for the developer environment
+---
+dev_env_git_servers:
+  gozer: "https://gerrit.suse.provo.cloud"
+  gerrit: "https://gerrit.suse.provo.cloud"
+  github: "https://github.com"
+
+dev_env_global_git_update: "{{ lookup('env', 'ARDANA_GIT_UPDATE') | default('yes', true) }}"
+
+dev_env_git_timeout: 900
+
+# Working dir is ardana-dev-tools, sources dir is a level above thanks to the dirname
+dev_env_working_dir: "{{ playbook_dir | dirname }}"
+dev_env_scratch_dir: "{{ dev_env_working_dir }}/scratch-{{ product_cache_directory_basename }}"
+dev_env_sources_dir: "{{ dev_env_working_dir | dirname }}"
+
+dev_env_site_config_default: "{{ sites[site] }}"
+
+dev_env_site_config: "{{ dev_env_site_config_default |
+                        update(dev_env_site_config_update | default({})) }}"
+dev_env_default_git_server: "{%- if dev_env_site_config.git is defined -%}git://{{ dev_env_site_config.git.host }}{%- else -%}{{ dev_env_git_servers.gozer }}{%- endif -%}"
+
+site: "{{ lookup('env','ARDANA_SITE') |
+          default('provo', true) }}"
+
+detected_ansible_version: "{{ lookup('pipe', 'command ansible --version').split('\n')[0].split(' ') | last }}"
+dev_env_requirements: "{{ lookup('file', playbook_dir | dirname ~ '/requirements.txt').split('\n') }}"
+dev_env_ansible_pip_specs: "{{ dev_env_requirements | parse_requirements('ansible') | flatten | list }}"
+dev_env_pips_installed: "{{ lookup('pipe', 'command pip freeze | grep -vEe \"^(#|[^=]*$)\"') }}"
+
+dev_env_ansible_venv: "{{ dev_env_working_dir }}/tools/venvs/ansible"
+
+dev_env_artifact_branch: "{{ product_branch }}"
+
+dev_env_ext_net:
+  bridge_ip: 169.254.1.1
+  vlan: 103
+  netmask:
+    - 172.31.0.1/16
+
+dev_env_provider_net:
+  bridge_ip: 192.168.245.1
+  octavia_net:
+    - netmask: 172.30.1.1/24
+      vlan: 106
+
+# Should we use RHEL artifacts in build
+dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | default(False, true) }}"
+
+# Should we use SLES artifacts in build
+dev_env_use_sles12_artifacts: "{{ lookup('env', 'ARDANA_SLES_ARTIFACTS') | default(False, true) }}"
+dev_env_use_sles12_net_repos: "{{ lookup('env', 'ARDANA_SLES_NET_REPOS') | default(False, true) }}"
+
+# Should we use Guest image artifacts in build (e.g for Octavia etc)
+dev_env_use_guest_image_artifacts: "{{ lookup('env', 'ARDANA_GUEST_IMAGE_ARTIFACTS') | default(False, true) }}"
+
+# Variable to indicate when we are running in CI.
+# We may want to do things slightly different
+dev_env_in_ci: "{{ lookup('env', 'CI') | default(False, true) }}"
+
+# Variable to indicate when we are running in Developer mode
+dev_env_in_developer:  "{{ lookup('env', 'ARDANA_DEVELOPER') | default(False, true) }}"

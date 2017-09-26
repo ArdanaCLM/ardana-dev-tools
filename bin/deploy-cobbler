@@ -1,0 +1,61 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called by CI
+#
+
+set -eux
+set -o pipefail
+
+source $(dirname $0)/libci.sh
+
+CLOUDNAME="${1:-"deployerincloud"}"
+DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+
+cobblerdeployscript=deploy-cobbler.sh
+cat > $cobblerdeployscript << "EOF"
+#!/bin/bash
+
+set -eux
+set -o pipefail
+
+ARDANA_CLOUD_NAME="${1}"
+ARDANA_USER="${2}"
+
+pushd "${HOME}/openstack/ardana/ansible"
+
+export PYTHONUNBUFFERED=1
+# Note: This must _NOT_ go into the default ansible config.
+export ANSIBLE_MAX_FAIL_PERCENTAGE=0
+
+cp -r ${HOME}/ardana-ci/${ARDANA_CLOUD_NAME}/* \
+      ${HOME}/openstack/my_cloud/definition/
+
+sudo mkdir -p /opt/ardana_packager/preseed/
+sudo date +%Y%m%d%H%M%S | sudo tee /opt/ardana_packager/preseed/timestamp > /dev/null
+#CI check for deployer in CP
+sudo cat /opt/ardana_packager/preseed/timestamp | sudo tee /etc/cobbler_ardana_installeda > /dev/null
+
+ansible-playbook -i hosts/localhost cobbler-deploy.yml -vvvv \
+  -e ardanauser_password="${ARDANA_USER}" | tee ${HOME}/cobbler-deployer.log
+EOF
+
+sshconfig=deploy-vagrant-ssh-config
+vagrant ssh-config deployer 2>>"${VAGRANT_LOG_DIR}/${sshconfig}.log" > $sshconfig
+
+scp -F $sshconfig $cobblerdeployscript $DEPLOYERNODE:~
+ssh -F $sshconfig $ARDANAUSER@$DEPLOYERNODE bash $cobblerdeployscript "$CLOUDNAME" "$ARDANAUSER"

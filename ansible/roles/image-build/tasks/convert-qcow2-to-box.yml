@@ -1,0 +1,83 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Convert a qcow2 to a vagrant box
+---
+
+- name: image-build | convert-qcow2-to-box | Set up scratch path variable
+  set_fact:
+    _image_build_scratch_dir: "{{ dev_env_scratch_dir }}/boxes/{{ image_build_box }}"
+
+- name: image-build | convert-qcow2-to-box | Create local directories if necessary
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ _image_build_scratch_dir }}"
+
+- name: image-build | convert-qcow2-to-box | Check box inputs
+  shell: |
+    set -eux
+
+    md5sum --strict --check "{{ dev_env_scratch_dir }}/boxes/{{ image_build_box }}.md5sum"
+  register: image_build_box_inputs_check_result
+  failed_when: False
+  changed_when: image_build_box_inputs_check_result.rc != 0 or
+      image_build_box_inputs_check_result.stdout.find(image_build_output_dir ~ "/" ~
+            images_build_images[image_build_name].name | default(image_build_name) ~ ".qcow2") < 0
+
+- name: image-build | convert-qcow2-to-box | Create box Vagrantfile
+  template:
+    src: "roles/image-build/templates/vagrant-box/Vagrantfile.j2"
+    dest: "{{ _image_build_scratch_dir }}/Vagrantfile"
+  register: _image_build_vagrantfile
+
+- name: image-build | convert-qcow2-to-box | Create box tarball
+  shell: |
+    set -eu
+
+    disk_file_name="{{ images_build_images[image_build_name].name | default(image_build_name) }}"
+    tar cvf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
+        --transform "s:.*/::" \
+        -C "roles/image-build/files/vagrant-box" metadata.json \
+          "{{ _image_build_scratch_dir }}/Vagrantfile"
+    tar rvf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
+        --transform "s/${disk_file_name}\.qcow2/box.img/" \
+        -C "{{ image_build_output_dir }}" "${disk_file_name}.qcow2"
+    mv "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" "{{ dev_env_working_dir }}/{{ image_build_box }}"
+
+    md5sum "{{ image_build_output_dir }}/${disk_file_name}.qcow2" \
+        "roles/image-build/files/vagrant-box/metadata.json" \
+        roles/image-build/tasks/convert-qcow2-to-box.yml \
+        "{{ dev_env_working_dir }}/{{ image_build_box }}" \
+            > "{{ dev_env_scratch_dir }}/boxes/{{ image_build_box }}.md5sum"
+  register: _create_tarball_result
+  when: image_build_box_inputs_check_result | changed or _image_build_vagrantfile | changed
+
+- include: vagrant-box-version.yml
+  vars:
+    image_build_box_path: "{{ dev_env_working_dir }}/{{ image_build_box }}"
+  when: _create_tarball_result | changed
+
+- name: image-build | convert-qcow2-to-box | Save box artifact
+  include: ../../artifact-publisher/tasks/save-artifact.yml
+  vars:
+    type: "{{ image_build_name }}"
+    branch: "{{ dev_env_artifact_branch }}"
+    version: "{{ image_version }}"
+    filename: "{{ dev_env_working_dir }}/{{ image_build_box }}"
+  when: _create_tarball_result | changed

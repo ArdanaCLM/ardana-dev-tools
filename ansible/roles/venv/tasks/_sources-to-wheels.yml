@@ -1,0 +1,83 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Creat wheels from a service's sources using a build virtualenv
+# Input:
+#   source.name='nova'
+#   source.url='...'
+#   source.dest='...'
+#      ... etc.
+# Env:
+#   ccache.env  ; from ccache role
+#   services[nova].sources=[nova, oslomessaging, ironicclient]
+---
+
+# Make sure we clean from any old run.
+- name: venv | _sources-to-wheels | Clear down the virtual environment for all wheels
+  file:
+    dest: "{{ VENV.WHEEL_DIR }}/{{ source.name }}"
+    state: absent
+
+# Upgrade pip to a newer version then that embedded in virtualenv package.
+- name: venv | _sources-to-wheels | Set up the basic virtual environment for wheels that need to be built
+  pip:
+    virtualenv: "{{ VENV.WHEEL_DIR }}/{{ source.name }}"
+    virtualenv_command: "{{ _venv_virtualenv_command }}"
+    state: present
+    name: pip wheel setuptools
+    extra_args: >
+      --upgrade
+      --timeout {{ venv_timeout }}
+  environment: "{{ ccache.env }}"
+  when: not _venv_built_stats_result.stat.exists
+  register: _setup_basic_virtualenv_result
+  until: _setup_basic_virtualenv_result|success
+  retries: 5
+  delay: 10
+
+- name: venvs | _sources-to-wheels | Clear down old wheel for rebuilding
+  file:
+    dest: "{{ VENV.WHEEL_DIR }}/{{ source.name }}_wheelhouse"
+    state: absent
+  when: not _venv_built_stats_result.stat.exists
+
+- name: venv | _sources-to-wheels | Create wheels parallel build template
+  template:
+    dest: "{{ VENV.WHEEL_DIR }}/wheel_{{ source.name }}.bash"
+    src: wheel_{{ source.build_type | default('python') }}.bash.j2
+    mode: 0755
+  when: not _venv_built_stats_result.stat.exists
+
+- name: venv | _sources-to-wheels | Run remote template to build wheels
+  command: "{{ VENV.WHEEL_DIR }}/wheel_{{ source.name }}.bash"
+  when: not _venv_built_stats_result.stat.exists
+
+# For some reason checksum validation fails here. No idea why. These
+# are just the log files so I am happy to turn it off for now
+- name: venv | _sources-to-wheels | Get logs for build
+  fetch:
+    src: "{{ VENV.WHEEL_DIR }}/{{ source.name }}.log"
+    dest: "{{ venv_logs_dir }}/"
+    validate_checksum: no
+    flat: yes
+  when: not _venv_built_stats_result.stat.exists
+
+- name: venv | _sources-to-wheels | Clear down any new wheels virtual environment
+  file:
+    dest: "{{ VENV.WHEEL_DIR }}/{{ source.name }}"
+    state: absent
+  when: not _venv_built_stats_result.stat.exists
+  with_items: _venv_built_stats_result.results

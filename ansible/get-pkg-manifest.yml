@@ -1,0 +1,57 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- hosts: vagrant
+  tasks:
+    - name: pkg-manifest | Set os-specific variables
+      include_vars: "roles/pkg-manifest/vars/{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}.yml"
+
+    - name: pkg-manifest | Get package information
+      shell: "{{ pkg_query }}"
+      register: pkgs_result
+
+- hosts: localhost
+  connection: local
+  roles:
+    - pkg-manifest
+    - artifact-publisher
+  tasks:
+    - name: pkg-manifest | Generate unified package manifest
+      set_fact:
+        unified: >
+          {% set newline = joiner("\n") %}{% for host in groups['vagrant'] -%}
+          {{ newline()+hostvars[host]['pkgs_result'].stdout }}
+          {%- endfor %}
+
+    - name: pkg-manifest | Create output directory
+      file:
+        path: "{{ manifest_output_dir }}"
+        state: directory
+
+    - name: pkg-manifest | Write out manifest file
+      template:
+        src: roles/pkg-manifest/templates/manifest.j2
+        dest: "{{ pkg_manifest }}"
+
+    - name: pkg-manifest | Register package manifest on localhost
+      include: roles/artifact-publisher/tasks/save-artifact.yml
+      vars:
+        type: "package"
+        branch: "{{ dev_env_artifact_branch }}"
+        version: "{{ deployer_version }}"
+        filename: "{{ pkg_manifest }}"

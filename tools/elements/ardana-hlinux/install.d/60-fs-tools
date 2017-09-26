@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -eux
+
+# Filesystem tools
+install-packages genisoimage
+

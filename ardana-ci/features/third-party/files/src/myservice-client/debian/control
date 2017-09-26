@@ -1,0 +1,12 @@
+Source: myservice-client
+Maintainer: SUSE LLC <ardana@googlegroups.com>
+Section: misc
+Priority: optional
+Standards-Version: 3.9.6
+Build-Depends: debhelper (>= 9)
+
+Package: myservice-client
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: Test package
+ The myservice-client installs this deb.

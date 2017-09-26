@@ -1,0 +1,47 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: vagrant-vm | setup-iso | Test for {{ vagrant_vm_cdrom_dev }}
+  stat:
+    path: "{{ vagrant_vm_cdrom_dev }}"
+  register: _cdrom_present_result
+
+- name: vagrant-vm | setup-iso | Create mount directory
+  become: yes
+  file:
+    path: "{{ vagrant_vm_cdrom_mount_path }}"
+    state: directory
+    follow: yes
+  when: _cdrom_present_result.stat.exists
+
+- name: vagrant-vm | setup-iso | Mount CD-ROM
+  become: yes
+  shell: |
+    set -eux
+    set -o pipefail
+
+    cdrom="{{ vagrant_vm_cdrom_mount_path }}"
+
+    if mount | awk '{ print $3 }' | grep -q $cdrom ; then
+        umount $cdrom
+    fi
+
+    mount {{ vagrant_vm_cdrom_dev }} $cdrom
+  args:
+    executable: "/bin/bash"
+  when: _cdrom_present_result.stat.exists

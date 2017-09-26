@@ -1,0 +1,70 @@
+#
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Add current user in the libvirt group and start libvirtd
+---
+
+- name: libvirt | _add_group | identify correct libvirt group
+  set_fact:
+    _libvirt_group:
+      "{% if ansible_os_family | lower == 'debian' %}libvirtd{% else %}libvirt{% endif %}"
+    _libvirt_service:
+      "{% if ansible_os_family | lower == 'debian' %}libvirt-bin{% else %}libvirtd{% endif %}"
+
+- name: libvirt | _add_group | check libvirt group defined
+  group:
+    name: "{{ _libvirt_group }}"
+    state: present
+
+- debug:
+    msg: "user = {{ lookup('env','USER') }}"
+
+- name: libvirt | _add_group | add user to libvirt group
+  sudo: yes
+  user:
+    name: "{{ lookup('env','USER') }}"
+    groups: "{{ _libvirt_group }}"
+    append: yes
+
+- name: libvirt | _add_group | ensure libvirtd.conf settings are correct
+  sudo: yes
+  lineinfile:
+    dest: /etc/libvirt/libvirtd.conf
+    line: '{{ item }}'
+  with_items:
+    - 'unix_sock_group = "{{ _libvirt_group }}"'
+    - 'unix_sock_rw_perms = "0770"'
+    - 'auth_unix_rw = "none"'
+  register: _libvirtd_conf_result
+
+- name: libvirt | _add_group | ensure libvirtd service enabled
+  sudo: yes
+  service:
+    name: "{{ _libvirt_service }}"
+    enabled: yes
+
+- name: libvirt | _add_group | restart libvirtd service if needed
+  sudo: yes
+  service:
+    name: "{{ _libvirt_service }}"
+    state: restarted
+  when: _libvirtd_conf_result | changed
+
+- name: libvirt | _add_group | ensure libvirtd service started
+  sudo: yes
+  service:
+    name: "{{ _libvirt_service }}"
+    state: started

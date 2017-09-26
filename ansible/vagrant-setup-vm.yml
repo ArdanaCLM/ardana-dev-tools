@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2015,2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Playbook to set vms to set boor order to pxe or hd boot
+# Needs to be run from a "Vagrant directory"
+# Needs environment vars VAGRANT_ENV set to standard-vagrant
+# and a COBBLER_TEST=True
+# an optional arg to the playbook is vagrant_vm_pxe_setting which
+# if true sets the order to pxe. If false sets to hd
+# e.g. ansible-playbook -i hosts/localhost -e vagrant_vm_pxe_setting=False
+---
+
+- hosts: all
+  roles:
+    - role: vagrant-vm
+
+  tasks:
+    - include: roles/vagrant-vm/tasks/setup-ssh-access.yml
+    - include: roles/vagrant-vm/tasks/setup-root-partition.yml
+    - include: roles/vagrant-vm/tasks/setup-yum-repo.yml
+      vars:
+        vagrant_vm_yum_repo_name: RHEL-OS
+        vagrant_vm_yum_repo_url: http://{{ deployer_address }}:79/ardana/rhel7/yum/OS/
+      when: deployer_address is defined and ansible_os_family | lower == 'redhat'
+    - include: roles/vagrant-vm/tasks/setup-zypper-repo.yml
+      vars:
+        vagrant_vm_zypper_repo_name: SLES-OS
+        vagrant_vm_zypper_repo_url: http://{{ deployer_address }}:79/ardana/sles12/zypper/OS/
+        vagrant_vm_zypper_sdk_repo_name: SLES-SDK
+        vagrant_vm_zypper_sdk_repo_url: http://{{ deployer_address }}:79/ardana/sles12/zypper/SDK/
+      when: deployer_address is defined and ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'

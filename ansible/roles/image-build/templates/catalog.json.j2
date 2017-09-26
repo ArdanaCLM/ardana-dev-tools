@@ -1,0 +1,11 @@
+{
+  "name": "{{ images_build_images[image_build_name].vagrant_box_name }}",
+  "description": "{{ images_build_images[image_build_name].vagrant_box_desc }}",
+  "versions": [{
+    "version": "{{ image_version }}",
+    "providers": [{
+      "name": "libvirt",
+      "url": "file://{{ image_build_box_path }}"
+    }]
+  }]
+}

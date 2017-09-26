@@ -1,0 +1,51 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Playbook used by vagrant to help provision virtual build machines
+# You should not need to run this manually! "vagrant up" in ../build-vagrant
+---
+
+- include: vagrant-setup-vm.yml
+
+- hosts: all
+  roles:
+    - role: ccache
+    - role: vagrant-vm
+  tasks:
+    - include: roles/vagrant-vm/tasks/setup-iso.yml
+    - include: roles/vagrant-vm/tasks/setup-iso.yml
+      vars:
+        vagrant_vm_cdrom_dev: "{{ vagrant_vm_sdk_dev }}"
+        vagrant_vm_cdrom_mount_path: "{{ vagrant_vm_sdk_mount_path }}"
+      when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
+    - include: roles/vagrant-vm/tasks/setup-apt.yml
+      when: ansible_os_family | lower == 'debian'
+    - include: roles/vagrant-vm/tasks/setup-yum.yml
+      when: ansible_os_family | lower == 'redhat'
+    - include: roles/vagrant-vm/tasks/setup-zypper.yml
+      when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
+    - include: roles/vagrant-vm/tasks/create-sles-extras-tarball.yml
+      when: (ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse') and
+            dev_env_use_sles12_net_repos|bool
+    - include: roles/vagrant-vm/tasks/setup-sles-extras-repos.yml
+      when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
+    - include: roles/vagrant-vm/tasks/setup-persistent-filesystem.yml
+      vars:
+        device: "/dev/vda"
+        persistent_cache_qcow2: "persistent-ccache.qcow2"
+        persistent_dir: "/tmp/persistent"
+        persistent_min_size: 11000000
+        persistent_cleanup_min_size: 7340032

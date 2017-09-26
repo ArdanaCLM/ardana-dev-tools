@@ -1,0 +1,49 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Build the ova image from the qcow2 for the developer environment
+---
+
+- include: image-build-setup.yml
+
+- hosts: localhost
+  connection: local
+  roles:
+    - image-build
+    - apt-repos
+    - dev-env
+  vars:
+    image_build_output_dir: "{{ hlinux_artefacts_dir }}/ova"
+  tasks:
+    - include: roles/image-build/tasks/build-packer-qcow2.yml
+      vars:
+        image_build_iso: "{{ hlinux_iso }}"
+        image_build_name: hlinux
+        image_build_user: "{{ ova_username }}"
+        image_build_password: "{{ image_build_user }}"
+        image_build_disk_size: "{{ ova_disk_size | int * 1024 }}"
+      when: qcow2_build_tool == "packer"
+    - include: roles/image-build/tasks/build-hlinux-qcow2.yml
+      vars:
+        image_size: "{{ ova_disk_size }}"
+        image_elements_ova:
+          - "ardana-hlinux-ova"
+        image_user_ova:
+          ARDANAUSER: "{{ ova_username }}"
+      when: qcow2_build_tool == "DIB"
+    - include: roles/image-build/tasks/convert-qcow2-to-ova.yml
+      vars:
+        ova_name: hlinux

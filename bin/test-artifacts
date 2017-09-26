@@ -1,0 +1,77 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called by CI
+#
+# usage: test-artefacts [job-type]
+
+set -eux
+set -o pipefail
+
+SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
+
+# TODO - we have to default to the CI version of ARDANAUSER here
+# has this script is run after the astack.sh, and as such ARDANAUSER
+# is not set.
+export ARDANAUSER=${ARDANAUSER:-ardanauser}
+export CI=yes
+
+source $(dirname $0)/libci.sh
+
+WORKSPACE=${WORKSPACE:-$PWD}
+JOB_TYPE=${1:-ci}
+CLOUDNAME="${2:-"deployerincloud"}"
+
+# Tags are optional, default to empty string to avoid unbound variable error
+TAGS="${3:-}"
+# Test timeout in minutes
+TEST_TIMEOUT="${4:-80}"
+DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+
+if [[ "$JOB_TYPE" != "upgrade-ci" ]]; then
+    # BUG-1478 Validate that manifests are good yaml
+    manifest_fail=
+    for manifest in $(dirname $0)/../scratch*/*.manifest-*; do
+        if ! python -c "import yaml; yaml.load(open('$manifest'))"; then
+            echo
+            echo "Failed to parse manifest '$manifest':"
+            cat $manifest
+            manifest_fail=1
+            echo
+        fi
+    done
+    [[ -n "$manifest_fail" ]] && exit 1
+fi
+
+# BUG-4695 - we need to treat the tests differently when ironic is not
+# present in the cloud model.
+source $SCRIPT_HOME/lib/restrict-services.sh
+
+NO_IRONIC=
+if [ -n "$ARDANA_DISABLE_SERVICES" ]; then
+    if echo $ARDANA_DISABLE_SERVICES | grep -q "ironic-api" ; then
+        NO_IRONIC=1
+    fi
+fi
+
+# AQA-902 Log time for total tests run, and give it 40 minutes to complete
+logsubunit --inprogress tests
+timeout ${TEST_TIMEOUT}m $SCRIPT_HOME/run-in-deployer.sh \
+    $SCRIPT_HOME/deployer/run-tests.sh \
+    -- --timeout $TEST_TIMEOUT ${NO_IRONIC:+ --no-ironic} \
+        "$JOB_TYPE" "$CLOUDNAME" "$TAGS" || logtimeoutfail tests
+logsubunit --success tests

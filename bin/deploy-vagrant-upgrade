@@ -1,0 +1,55 @@
+#!/bin/bash
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called by CI
+#
+
+set -eux
+set -o pipefail
+
+SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
+
+source $(dirname $0)/libci.sh
+
+WORKSPACE=${WORKSPACE:-$PWD}
+CLOUDNAME="${1:-"deployerincloud"}"
+
+DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+
+# Revert all local configurations to be ready for the upgrade. We reapply
+# all the virtual configuration during the vagrant provision below.
+$SCRIPT_HOME/run-in-deployer.sh $SCRIPT_HOME/deployer/clear-ardana-git-for-upgrade.sh
+
+# release.iso -> hlinux.iso
+# This script moved to an ansible playbook so that we correctly
+# find the location of the hlinux iso to use.
+ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
+    $DEVTOOLS/ansible/vagrant-attach-upgrade-iso.yml \
+        -e cloud=$CLOUDNAME -e deployernode=$DEPLOYERNODE
+
+# Provision the deployer with the latest ISO and venv packages
+vagrant provision --debug $DEPLOYERNODE 2> "${VAGRANT_LOG_DIR}/deployer-provision.log"
+
+# Always run 1 more fork so that if localhost is included in
+# the group, there is sufficient numbers.
+forks=$(( $(vagrant --machine-readable status | \
+    awk -F, '/provider-name/ {print $2}' | wc -l) + 1))
+
+# Log onto the deployer and run the appropriate upgrade playbooks
+$SCRIPT_HOME/run-in-deployer.sh \
+  $SCRIPT_HOME/deployer/run-upgrade.sh \
+  "${forks}" "${HTTP_PROXY:-${http_proxy:-}}"

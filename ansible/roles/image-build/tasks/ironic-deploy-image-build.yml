@@ -1,0 +1,88 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Create a hlinux qcow2
+---
+
+- include_vars: ../defaults/git-repos.yml
+
+- name: image-build | build-hlinux-ironic-deploy | Create image output directory
+  file: path={{ image_build_output_dir }} state=directory
+
+- name: image-build | build-hlinux-ironic-deploy | Create image cache directory
+  file: path={{ image_build_dib_env.DIB_IMAGE_CACHE }} state=directory
+
+# Apt sources
+- name: image-build | build-hlinux-qcow2 | Create apt configuration for image
+  template:
+    dest: "{{ image_build_apt_sources }}"
+    src: "sources.list.j2"
+
+# Add checks to validate our cached image. First create snapshot of our
+# environment and git dependencies
+- name: image-build | build-hlinux-ironic-deploy | Snapshot the environment
+  shell: |
+    envfile="{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}.env"
+
+    > $envfile
+    {% for key in ["DIB_DISTRIBUTION_MIRROR", "DIB_DEBIAN_DISTRO_NAME", "DIB_RELEASE", "ARDANAUSER"] %}
+    echo "{{ key }} = {{ image_build_dib_env.get(key) }}" >> $envfile
+    {% endfor %}
+
+    echo "__ARDANA_IMAGE_ELEMENTS = {{ ironic_deploy_elements.hlinux | join( " " ) }}" >> $envfile
+
+- name: image-build | build-hlinux-ironic-deploy | Snapshot git dependencies
+  shell: |
+    gitfile="{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}.gitdependencies"
+
+    > $gitfile
+    {% for repo in image_build_git_repositories %}
+    ( cd ../tools/{{ repo }}
+      echo {{ repo }} $(git rev-parse HEAD) >> $gitfile )
+    {% endfor %}
+
+- name: image-build | build-hlinux-ironic-deploy | Check ironic deploy image inputs
+  shell: |
+    set -eux
+
+    # In order to ensure we rebuild when elements within this repo change, we tar them
+    # up to produce a single file for use with MD5. With plain tar, this results in a
+    # bit consistent file we can use.
+    tar --mtime='1970-01-01' -cf {{ image_build_output_dir }}/elements.tar {{ dev_env_working_dir }}/tools/elements
+
+    md5sum --strict --check "{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}.md5sum"
+  register: image_hlinux_inputs_check_result
+  ignore_errors: true
+
+- include: _install_pip_packages.yml
+  when: image_hlinux_inputs_check_result | failed
+
+- name: image-build | build-hlinux-ironic-deploy | Run diskimage-builder
+  shell: |
+    set -eu
+
+    image="{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}"
+    image_elements="{{ ironic_deploy_elements.hlinux | join( " " ) }}"
+
+    disk-image-create -x -o $image $image_elements
+
+    md5sum "{{ image_build_apt_sources }}" > "${image}.md5sum"
+    md5sum "{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}.env" >> "${image}.md5sum"
+    md5sum "{{ image_build_output_dir }}/{{ ironic_deploy_image_name }}.gitdependencies" >> "${image}.md5sum"
+    md5sum roles/image-build/tasks/ironic-deploy-image-build.yml >> "${image}.md5sum"
+    md5sum "{{ image_build_output_dir }}/elements.tar" >> "${image}.md5sum"
+
+  environment: image_build_dib_env

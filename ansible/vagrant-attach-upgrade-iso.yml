@@ -1,0 +1,36 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called by upgrade CI to attach the correct hlinux ISO to the deployer
+# we want to upgrade.
+# This needs to be called with -e cloud=blah and optionally with
+# -e deployernode=deployer
+---
+
+- hosts: localhost
+  connection: local
+  roles:
+    - apt-repos
+  tasks:
+    - name: vagrant-attach-upgrade-iso | Run virsh command to attach new ISO
+      shell: |
+        virsh attach-disk {{ cloud }}-vagrant_{{ deployernode | default('deployer') }} \
+            {{ hlinux_iso }} hda --type cdrom --mode readonly
+      register: attach_disk_result
+      # Required for an intermitant eject QEMU bug in version 2.5.0 (ubuntu 16.04)
+      until: (attach_disk_result | success)
+      retries: 5
+      delay: 2

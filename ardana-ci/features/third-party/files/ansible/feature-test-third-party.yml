@@ -1,0 +1,89 @@
+#
+# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+#
+# Playbook run on the deployer
+# (in the context of ~/scratch/ansible/next/ardana/ansible)
+# to test third-party features have been correctly deployed.
+#
+- hosts: all
+  tasks:
+    - ping:
+
+- hosts: NEU-SVR
+  tasks:
+    - name: Demonstrate that the Neutron venv is patched
+      shell: |
+          /opt/stack/service/neutron/venv/bin/python -c "
+          from __future__ import print_function
+          import my_library
+          print(my_library.VERSION)
+          "
+      register: feature_test_third_party_venv_results
+    - fail:
+        msg: Expected my_library.VERSION = 0.0.1, not {{ feature_test_third_party_venv_results.stdout }}
+      when: feature_test_third_party_venv_results.stdout_lines[0] != "0.0.1"
+
+- hosts: MYS-CLI
+  tasks:
+    - name: Confirm that the myserver-client deb has been deployed
+      shell: |
+          set -e
+          dpkg-query -W -f '${version}' myservice-client
+      register: feature_test_third_party_dpkg_results
+    - fail:
+        msg: Expected my_library.VERSION = 1.0.0, not {{ feature_test_third_party_dpkg_results.stdout }}
+      when: feature_test_third_party_dpkg_results.stdout_lines[0] != "1.0.0"
+
+- hosts: MYS-SVR
+  tasks:
+    - shell: |
+        awk '$1 == "myservice-server" {print $2}' /var/log/feature-third-party.log
+      register: feature_test_third_party_log_results
+    - name: Ensure that MYS-SVR is installed, configured, started
+      fail:
+        msg: |
+          myservice-server should be installed, configured, started
+          got
+          {{ feature_test_third_party_log_results.stdout_lines }}
+      when: feature_test_third_party_log_results.stdout_lines != ['install', 'configure', 'start']
+
+- hosts: MYS-PLG
+  tasks:
+    - shell: |
+        awk '$1 == "myservice-plugin" {print $2}' /var/log/feature-third-party.log
+      register: feature_test_third_party_log_results
+    - name: Ensure that MYS-PLG is installed, configured, started
+      fail:
+        msg: |
+          myservice-plugin should be installed, configured, started
+          got
+          {{ feature_test_third_party_log_results.stdout_lines }}
+      when: feature_test_third_party_log_results.stdout_lines != ['install', 'configure', 'start']
+
+- hosts: MYS-CLI
+  tasks:
+    - shell: |
+        awk '$1 == "myservice-client" {print $2}' /var/log/feature-third-party.log
+      register: feature_test_third_party_log_results
+    - name: Ensure that MYS-CLI is installed, configured
+      fail:
+        msg: |
+          myservice-client should be installed, configured
+          got
+          {{ feature_test_third_party_log_results.stdout_lines }}
+      when: feature_test_third_party_log_results.stdout_lines != ['install', 'configure']

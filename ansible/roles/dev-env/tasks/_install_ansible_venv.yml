@@ -1,0 +1,81 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: dev-env | _install_ansible_venv | Check pips match specs
+  set_fact:
+    _dev_env_pip_update_check: "{{
+        dev_env_pips_installed.split('\n') |
+        check_specs(dev_env_requirements | parse_requirements()) |
+        list }}"
+
+- name: dev-env | _install_ansible_venv | Create virtual environment
+  pip:
+    virtualenv: "{{ dev_env_ansible_venv }}"
+    name: pip
+    state: present
+    virtualenv_site_packages: yes
+
+- name: dev-env | _install_ansible_venv | Set trusted host arg
+  set_fact:
+    _dev_env_trusted_host: "--trusted-host {{ pip['host'] }}"
+  when: lookup('pipe', dev_env_ansible_venv ~ '/bin/pip show pip') |
+           findall("(?m)^Version:\s+(.*)$") | first | first | version_compare('6.0.0', '>=')
+  changed_when: False
+
+# Upgrade pip to a newer version then that embedded in virtualenv package.
+- name: dev-env | _install_ansible_venv | Upgrade pip in virtual environment if required
+  pip:
+    virtualenv: "{{ dev_env_ansible_venv }}"
+    name: pip
+    extra_args: >
+      --upgrade
+      --timeout 30
+      --index-url {{ pip['base_url'] }}/simple
+      {{ _dev_env_trusted_host | default }}
+    virtualenv_site_packages: yes
+  retries: 5
+  delay: 3
+
+- name: dev-env | _install_ansible_venv | Create ansible virtualenv
+  pip:
+    virtualenv: "{{ dev_env_ansible_venv }}"
+    state: present
+    requirements: "{{ playbook_dir | dirname ~ '/requirements.txt' }}"
+    extra_args: >
+      --upgrade
+      --timeout 30
+      --index-url {{ pip['base_url'] }}/simple
+      --trusted-host {{ pip['host'] }}
+    virtualenv_site_packages: yes
+  retries: 5
+  delay: 3
+  register: _dev_env_ansible_installed
+  changed_when: _dev_env_ansible_installed | success
+  # check if any of the pip specs are not satisfied by current env
+  when: False in _dev_env_pip_update_check
+
+- name: dev-env | _install_ansible_venv | Check for user ansible config file
+  stat:
+    path: ~/.ansible.cfg
+  register: _dev_env_ansible_user_config
+
+- name: dev-env | _install_ansible_venv | Write default ansible config
+  template:
+    src: roles/dev-env/templates/ansible.cfg.j2
+    dest: ~/.ansible.cfg
+  when: not _dev_env_ansible_user_config.stat.exists
