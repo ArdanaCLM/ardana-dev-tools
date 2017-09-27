@@ -384,12 +384,8 @@ module Ardana
 
           box_name = !!ENV["ARDANA_OS_DIST"] ? ENV["ARDANA_OS_DIST"] : "#{distro}box"
 
-          # Add local volume on /dev/vda
-          if distro != "hlinux"
-            ccache_path = "persistent-ccache-#{distro}.qcow2"
-          else
-            ccache_path = "persistent-ccache.qcow2"
-          end
+          # Add local cache volume on /dev/vda
+          ccache_path = "persistent-ardana-cache-#{distro}.qcow2"
 
           set_vm_box(vm: build.vm, box: box_name)
           add_access_network(vm: build.vm)

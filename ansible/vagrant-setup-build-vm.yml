@@ -45,7 +45,7 @@
     - include: roles/vagrant-vm/tasks/setup-persistent-filesystem.yml
       vars:
         device: "/dev/vda"
-        persistent_cache_qcow2: "persistent-ccache.qcow2"
+        persistent_cache_qcow2: "persistent-ardana-cache-hlinux.qcow2"
         persistent_dir: "/tmp/persistent"
         persistent_min_size: 11000000
         persistent_cleanup_min_size: 7340032
