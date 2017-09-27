@@ -151,7 +151,7 @@ It is recommended to install Ansible in its own virtualenv.
 3. virtualenv ~/[your-venv-folder]/ansible
 4. Activate the ansible venv with:
    . ~/[your-venv-folder]/ansible/bin/activate
-5. pip install ansible==1.9.4
+5. pip install -r ardana-dev-tools/requirements.txt
 
 
 ### Local sites

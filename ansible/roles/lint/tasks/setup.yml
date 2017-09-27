@@ -62,7 +62,7 @@
   pip:
     virtualenv: "{{ lint_venv }}"
     name: ansible
-    version: "1.9.4"
+    version: "1.9.6"
     state: present
 
 # todo: this should come from pypi mirror
