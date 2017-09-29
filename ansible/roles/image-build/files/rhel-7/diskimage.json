@@ -34,7 +34,7 @@
       "ssh_wait_timeout": "600s",
       "shutdown_command": "echo '/sbin/halt -h -p' > shutdown.sh; echo '{{ user `password` }}'|sudo -S sh 'shutdown.sh'",
       "boot_command": [
-        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+        "<up><tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
       ],
       "qemuargs": [
         [ "-m", "1024M" ]
