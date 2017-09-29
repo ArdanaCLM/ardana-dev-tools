@@ -25,6 +25,8 @@
       "iso_checksum_type": "md5",
       "disk_size": "{{ user `disk_size` }}",
       "disk_cache": "unsafe",
+      "disk_discard": "unmap",
+      "disk_interface": "virtio-scsi",
       "format": "qcow2",
       "headless": true,
       "accelerator": "kvm",

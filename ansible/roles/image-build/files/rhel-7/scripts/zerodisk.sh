@@ -13,6 +13,5 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Zero out the free space to save space in the final image:
-dd if=/dev/zero of=/EMPTY bs=1M
-rm -f /EMPTY
+# trim out the free/unused space to save space in the final image:
+fstrim -v /

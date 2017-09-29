@@ -46,6 +46,13 @@
     force: yes
   when: _packer_install_needed | changed
 
+- name: packer | _install_package | Remove legacy packer directory if exists
+  sudo: yes
+  file:
+    path: "{{ packer_path }}"
+    state: absent
+  when: _packer_install_needed | changed
+
 - name: packer | _install_package | Create target directory
   sudo: yes
   file:
@@ -61,6 +68,14 @@
     src: "/tmp/{{ packer_archive }}"
     dest: "{{ packer_path }}"
   when: _packer_install_needed | changed
+
+- name: packer | _install_package | Remove stale packer plugins if they exist
+  sudo: yes
+  file:
+    path: "{{ item }}"
+    state: absent
+  with_fileglob: "{{ packer_path }}/packer-*"
+  when: "packer_version != '0.8.6'"
 
 - name: packer | _install_package | Remove packer download package
   file:
