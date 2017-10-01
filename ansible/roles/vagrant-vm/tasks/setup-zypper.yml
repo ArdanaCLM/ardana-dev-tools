@@ -46,6 +46,6 @@
 - name: vagrant-vm | setup-zypper | Update zypper cache
   become: yes
   shell: |
-    zypper refresh
+    zypper -n refresh
   when: _zypper_repository_result|changed or
         _zypper_sdk_repository_result|changed

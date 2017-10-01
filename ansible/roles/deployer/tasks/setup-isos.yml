@@ -21,6 +21,7 @@
 - include: install-isoinfo.yml
 
 - name: deployer | setup-isos | Determine which ISOs are attached
+  become: yes
   shell: |
     set -eux
     set -o pipefail
@@ -81,25 +82,11 @@
     set -eux
     set -o pipefail
 
-    mounted_at()
-    {
-        mount | awk -v dev="${1}" '$1 == dev {print $3}'
-    }
-
     mount_dev="{{ item.dev }}"
     mount_point="$(readlink -e {{ item.dir }})"
 
-    # if device is mounted
-    if [[ -n "$(mounted_at "${mount_dev}")" ]]; then
-        # and not mounted on correct mount point
-        if [[ "$(mounted_at "${mount_dev}")" != "${mount_point}" ]]; then
-            umount "${mount_dev}"
-        fi
-    fi
-
-    # if device is not mounted
-    if [[ -z "$(mounted_at "${mount_dev}")" ]]; then
-        mount "${mount_dev}" "${mount_point}"
+    if ! mount | grep -q -E "^${mount_dev}\s+on\s+${mount_point}\s+"; then
+        mount -o loop,ro "${mount_dev}" "${mount_point}"
     fi
 
   args:

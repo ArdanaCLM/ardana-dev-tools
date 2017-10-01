@@ -86,6 +86,12 @@ sudo rm -rf "${ansible_package_dir}" \
   "${script_ansible}" \
   "${ardana_staging_dir}"
 
+# Get Deployer OS name
+OS="hpelinux"
+if [ -f /etc/os-release ]; then
+   . /etc/os-release
+   OS=$NAME
+fi
 
 #
 # Get an Ansible venv set-up (bootstrap Ansible)
@@ -93,9 +99,16 @@ sudo rm -rf "${ansible_package_dir}" \
 sudo mkdir -p "${ansible_package_dir}"
 sudo mkdir -p "${ansible_service_dir}"
 # Extract the Ansible venv from the venv tarball.
-sudo tar xOf "${ardana_output_dir}/{{ deployer_hlinux_venv_tarball }}" \
-  "./ansible-{{ deployer_version }}.tgz" |
-  sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
+if [ "${OS,,}" == "sles" ]; then
+   sudo tar xOf "${ardana_output_dir}/{{ deployer_sles12_venv_tarball }}" \
+     "./ansible-{{ deployer_version }}.tgz" |
+     sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
+else
+   sudo tar xOf "${ardana_output_dir}/{{ deployer_hlinux_venv_tarball }}" \
+     "./ansible-{{ deployer_version }}.tgz" |
+     sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
+fi
+
 sudo ln -sf "${ansible_package_dir}" "${ansible_service_dir}/venv"
 sudo rm -f "${ansible_generic_service_dir}"
 sudo ln -sf "${ansible_service_dir}" "${ansible_generic_service_dir}"
@@ -136,7 +149,12 @@ tar xf "${ardana_output_dir}/{{ deployer_ardana_extensions_tarball }}" \
 rm -rf "${ardana_output_dir}/.ansible.cfg"
 pushd "${ardana_ansible_dir}" &>/dev/null
 echo "[defaults]" > ansible.cfg
-ansible-playbook -i hosts/localhost check-apt-configuration.yml
+if [ "${OS,,}" == "sles" ]; then
+   ansible-playbook -i hosts/localhost check-zypper-configuration.yml
+else
+   ansible-playbook -i hosts/localhost check-apt-configuration.yml
+fi
+
 ansible-playbook -i hosts/localhost ansible-init.yml
 ansible-playbook -i hosts/localhost git-00-initialise.yml
 ansible-playbook -i hosts/localhost deployer-init.yml
