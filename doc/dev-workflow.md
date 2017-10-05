@@ -22,9 +22,9 @@ the Ardana stack. A change may be a local change on the developer workstation
 or a change that has recently pulled onto the developer workstation (e.g. a
 rebase). Changes in the following areas are documented:
 
-- Ansible code on ardana-ansible or any of the &lt;service&gt;-ansible repos, e.g.
+- Ansible code in ardana-ansible or any of the &lt;service&gt;-ansible repos, e.g.
 nova-ansible, neutron-ansible, glance-ansible, etc.
-- Ansible code on osconfig-ansible.
+- Ansible code in osconfig-ansible.
 - ardana-configuration-processor
 - OpenStack source repos, e.g. nova, neutron, glance, etc.
 - PyPI package.
