@@ -45,5 +45,5 @@ yum_extras_archive:
   sha256: "33fa93e54f423ef6c75ab6e982c44cfb1beccd23d9cd1c8267a29905e39b510b"
 
 sles_extras_archive:
-  path: "/sles-extras/sles12sp3-extras-20171030-220236.tgz"
-  sha256: "d49fbedc18c2f32995ec7de84949d8d77b685df80acc68d3fd38b959f7660700"
+  path: "/sles-extras/sles12sp3-extras-20171030-214417.tgz"
+  sha256: "cf36b4613430c06a8c31d6e0693c601ccfe394f23c05c69f8b629f5e62e19465"

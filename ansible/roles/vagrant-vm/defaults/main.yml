@@ -64,10 +64,16 @@ vagrant_vm_sles_extras:
       - liberasurecode-devel
       - logstash
       - novnc
+      - python-cssselect
       - python-elasticsearch-curator
+      - python-functools32
       - python-httplib2
+      - python-ipaddress
+      - python-jsonschema
       - python-passlib
+      - python-pexpect
       - python-pika
+      - python-ptyprocess
       - python-PyYAML
       - python-virtualenv
       - python-urllib3
@@ -99,3 +105,28 @@ vagrant_vm_sles_extras:
       - pdns-backend-mysql
       - pdns-common
     url: "https://download.opensuse.org/repositories/server:/dns:/powerdns/SLE_12/"
+
+  - repo: sle-12-ga-standard
+    disable_gpg_check: yes
+    pkgs:
+      - fence-agents
+      - python-gpgme
+      - python-iniparse
+    url: "http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/"
+
+  - repo: sle-12-update-standard
+    disable_gpg_check: yes
+    pkgs:
+      - cobbler
+      - python-requests
+      - python-simplejson
+      - wallpaper-branding-SLE
+      - yum
+    url: "http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard"
+
+  - repo: sle-12-sp2-update-products-manager31-standard
+    disable_gpg_check: yes
+    pkgs:
+      - yum-utils
+    url: "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Manager31/standard"
+
