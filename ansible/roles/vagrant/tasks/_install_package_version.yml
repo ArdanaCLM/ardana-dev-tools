@@ -72,7 +72,11 @@
 # a command here.
 - name: vagrant | _install_package_version | Install Vagrant (SUSE)
   sudo: yes
-  command: zypper -n install "{{ vagrant_tmp_path}}/{{ vagrant_pkg }}"
+  command: >
+    zypper \
+      --non-interactive \
+      --no-gpg-checks install \
+      "{{ vagrant_tmp_path}}/{{ vagrant_pkg }}"
   when: vagrant_installed_version != _vagrant_version and
         ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
 

@@ -31,6 +31,7 @@ dev_env_apt_packages_default:
     devscripts:
     debhelper:
     fakeroot:
+    sysfsutils:
 
 dev_env_apt_packages: "{{ dev_env_apt_packages_default |
                           update( dev_env_apt_packages_update |
