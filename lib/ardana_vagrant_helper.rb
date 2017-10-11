@@ -44,6 +44,14 @@ module Ardana
     RGW_NODE = 'RGW' # (Swift and S3 API for Ceph)
     SWOBJ_NODE = 'SWOBJ' # (Swift object server)
 
+    # Node classes used by the std-* models
+    STD_DPLY_NODE = 'STD_ARDANA'
+    STD_CTRL_NODE = 'STD_CTRL'
+    STD_OSC_NODE = 'STD_OSC'
+    STD_DBMQ_NODE = 'STD_DBMQ'
+    STD_MML_NODE = 'STD_MML'
+    STD_COMP_NODE = 'STD_COMP'
+
     VM_MEMORY = {
       'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
       'default' => 2048,
@@ -60,7 +68,15 @@ module Ardana
       OSD_NODE => !!ENV["ARDANA_CON_MEMORY"] ? ENV["ARDANA_CON_MEMORY"].to_i : 4096,
       VSA_NODE => !!ENV["ARDANA_VSA_MEMORY"] ? ENV["ARDANA_VSA_MEMORY"].to_i : 12288,
       RGW_NODE => !!ENV["ARDANA_RGW_MEMORY"] ? ENV["ARDANA_RGW_MEMORY"].to_i : 4096,
-      SWOBJ_NODE => !!ENV["ARDANA_SWOBJ_MEMORY"] ? ENV["ARDANA_SWOBJ_MEMORY"].to_i : 2048
+      SWOBJ_NODE => !!ENV["ARDANA_SWOBJ_MEMORY"] ? ENV["ARDANA_SWOBJ_MEMORY"].to_i : 2048,
+
+      # Node classes used by std-* models
+      STD_DPLY_NODE => !!ENV["ARDANA_SDPLY_MEMORY"] ? ENV["ARDANA_SDPLY_MEMORY"].to_i : 1280,
+      STD_CTRL_NODE => !!ENV["ARDANA_SCTRL_MEMORY"] ? ENV["ARDANA_SCTRL_MEMORY"].to_i : 15360,
+      STD_OSC_NODE => !!ENV["ARDANA_SOSC_MEMORY"] ? ENV["ARDANA_SOSC_MEMORY"].to_i : 7424,
+      STD_DBMQ_NODE => !!ENV["ARDANA_SDBMQ_MEMORY"] ? ENV["ARDANA_SDBMQ_MEMORY"].to_i : 2816,
+      STD_MML_NODE => !!ENV["ARDANA_SMML_MEMORY"] ? ENV["ARDANA_SMML_MEMORY"].to_i : 7424,
+      STD_COMP_NODE => !!ENV["ARDANA_SCMP_MEMORY"] ? ENV["ARDANA_SCMP_MEMORY"].to_i : 5120
     }
 
     VM_CPU = {
@@ -77,7 +93,15 @@ module Ardana
       OSD_NODE => !!ENV["ARDANA_CON_CPU"] ? ENV["ARDANA_CON_CPU"].to_i : 2,
       VSA_NODE => !!ENV["ARDANA_VSA_CPU"] ? ENV["ARDANA_VSA_CPU"].to_i : 2,
       RGW_NODE => !!ENV["ARDANA_RGW_CPU"] ? ENV["ARDANA_RGW_CPU"].to_i : 2,
-      SWOBJ_NODE => !!ENV["ARDANA_SWOBJ_CPU"] ? ENV["ARDANA_SWOBJ_CPU"].to_i : 2
+      SWOBJ_NODE => !!ENV["ARDANA_SWOBJ_CPU"] ? ENV["ARDANA_SWOBJ_CPU"].to_i : 2,
+
+      # Node classes used by std-* models
+      STD_DPLY_NODE =>  !!ENV["ARDANA_SDPLY_CPU"] ? ENV["ARDANA_SDPLY_CPU"].to_i : 2,
+      STD_CTRL_NODE => !!ENV["ARDANA_SCTRL_CPU"] ? ENV["ARDANA_SCTRL_CPU"].to_i : 4,
+      STD_OSC_NODE => !!ENV["ARDANA_SOSC_CPU"] ? ENV["ARDANA_SOSC_CPU"].to_i : 2,
+      STD_DBMQ_NODE => !!ENV["ARDANA_SDBMQ_CPU"] ? ENV["ARDANA_SDBMQ_CPU"].to_i : 2,
+      STD_MML_NODE => !!ENV["ARDANA_SMML_CPU"] ? ENV["ARDANA_SMML_CPU"].to_i : 2,
+      STD_COMP_NODE => !!ENV["ARDANA_SCMP_CPU"] ? ENV["ARDANA_SCMP_CPU"].to_i : 2
     }
 
     VM_FLAVOR = {
@@ -94,7 +118,15 @@ module Ardana
       OSD_NODE => ENV["ARDANA_CON_FLAVOR"] || 'standard.small',
       VSA_NODE => ENV["ARDANA_VSA_FLAVOR"] || 'standard.medium',
       RGW_NODE => ENV["ARDANA_RGW_FLAVOR"] || 'standard.small',
-      SWOBJ_NODE => ENV["ARDANA_SWOBJ_FLAVOR"] || 'standard.small'
+      SWOBJ_NODE => ENV["ARDANA_SWOBJ_FLAVOR"] || 'standard.small',
+
+      # Node classes used by std-* models
+      STD_DPLY_NODE => ENV["ARDANA_SDPLY_FLAVOR"] || 'standard.xsmall',
+      STD_CTRL_NODE => ENV["ARDANA_SCTRL_FLAVOR"] || 'standard.medium',
+      STD_OSC_NODE => ENV["ARDANA_SOSC_FLAVOR"] || 'standard.small',
+      STD_DBMQ_NODE => ENV["ARDANA_SDBMQ_FLAVOR"] || 'standard.small',
+      STD_MML_NODE => ENV["ARDANA_SMML_FLAVOR"] || 'standard.small',
+      STD_COMP_NODE => ENV["ARDANA_SCMP_FLAVOR"] || 'standard.small'
     }
 
     VM_DISK = {
@@ -107,8 +139,16 @@ module Ardana
       LITECOMPUTE_NODE => ENV["ARDANA_CPN_DISK"] || '20GB',
       OSD_NODE => ENV["ARDANA_CON_DISK"] || '11GB',
       VSA_NODE => ENV["ARDANA_VSA_DISK"] || '30GB',
-      SWOBJ_NODE => ENV["ARDANA_SWOBJ_DISK"] || '20GB'
+      SWOBJ_NODE => ENV["ARDANA_SWOBJ_DISK"] || '20GB',
+
+      # Node classes used by std-* models
+      STD_CTRL_NODE => ENV["ARDANA_SCTRL_DISK"] || '20GB',
+      STD_OSC_NODE => ENV["ARDANA_SOSC_DISK"] || '20GB',
+      STD_DBMQ_NODE => ENV["ARDANA_SDBMQ_DISK"] || '20GB',
+      STD_MML_NODE => ENV["ARDANA_SMML_DISK"] || '20GB',
+      STD_COMP_NODE => ENV["ARDANA_SCMP_DISK"] || '20GB'
     }
+
     VM_EXTRA_DISKS = {
       VMFACTORY_NODE => ENV["ARDANA_VMF_EXTRA_DISKS"] || 5,
       ARDANA_HYPERVISOR_NODE => ENV["ARDANA_HV_EXTRA_DISKS"] || 5,
@@ -119,7 +159,14 @@ module Ardana
       LITECOMPUTE_NODE => ENV["ARDANA_CPN_EXTRA_DISKS"] || 1,
       OSD_NODE => ENV["ARDANA_CON_EXTRA_DISKS"] || 6,
       VSA_NODE => ENV["ARDANA_VSA_EXTRA_DISKS"] || 6,
-      SWOBJ_NODE => ENV["ARDANA_SWOBJ_EXTRA_DISKS"] || 5
+      SWOBJ_NODE => ENV["ARDANA_SWOBJ_EXTRA_DISKS"] || 5,
+
+      # Node classes used by std-* models
+      STD_CTRL_NODE => ENV["ARDANA_SCTRL_EXTRA_DISKS"] || 5,
+      STD_OSC_NODE => ENV["ARDANA_SOSC_EXTRA_DISKS"] || 5,
+      STD_DBMQ_NODE => ENV["ARDANA_SDBMQ_EXTRA_DISKS"] || 5,
+      STD_MML_NODE => ENV["ARDANA_SMML_EXTRA_DISKS"] || 5,
+      STD_COMP_NODE => ENV["ARDANA_SCMP_EXTRA_DISKS"] || 1,
     }
 
     #
@@ -264,6 +311,8 @@ module Ardana
           # check for LITE version
           if map_role.match("LITE-COMPUTE")
             node_type=LITECOMPUTE_NODE
+          elsif map_role.match("STD-COMPUTE")
+            node_type=STD_COMP_NODE
           else
             node_type=COMPUTE_NODE
           end
@@ -284,6 +333,15 @@ module Ardana
           # check for LITE version
           if map_role.match("LITE-CONTROLLER")
             node_type=LITECONTROL_NODE
+          # check for STD-OSC version
+          elsif map_role.match("STD-OSC-CONTROLLER")
+            node_type=STD_OSC_NODE
+          # check for STD-DBMQ version
+          elsif map_role.match("STD-DBMQ-CONTROLLER")
+            node_type=STD_DBMQ_NODE
+          # check for STD-MML version
+          elsif map_role.match("STD-MML-CONTROLLER")
+            node_type=STD_MML_NODE
           else
             node_type=CONTROL_NODE
           end
@@ -292,7 +350,12 @@ module Ardana
         elsif map_role.match("VSA")
           node_type=VSA_NODE
         elsif map_role.match("ARDANA")
-          node_type=DEPLOYER_NODE
+          # check for STD version
+          if map_role.match("STD-ARDANA")
+            node_type=STD_DPLY_NODE
+          else
+            node_type=DEPLOYER_NODE
+          end
         elsif map_role.match("RGW")
           node_type=RGW_NODE
         elsif map_role.match("SWOBJ")
