@@ -25,11 +25,4 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
 source $SCRIPT_HOME/libci.sh
 
-# Call dev-env-install to instal supported version of ansible
-devenvinstall
-
-pushd $DEVTOOLS/ansible
-ansible-playbook -i hosts/localhost get-previous-iso.yml
-popd
-
-$SCRIPT_HOME/astack.sh --no-setup --build-hlinux-ova --rhel --sles --squashkit previous.iso $*
+$SCRIPT_HOME/astack.sh --no-setup --build-hlinux-ova --rhel --sles $*

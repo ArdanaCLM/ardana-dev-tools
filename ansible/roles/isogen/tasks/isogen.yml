@@ -48,39 +48,6 @@
     version: "{{ output_version }}"
     filename: "{{ output_iso }}"
 
-# Defines the variable artifact_source
-- include: ../../artifacts/tasks/get-local-cached-source.yml
-  vars:
-    artifact_key: "previous.iso"
-
-# This includes the previous GOZER build id. This can be changed in the future
-# to split the this value on the underscore '_' and take the first item.
-- set_fact:
-    _delta_previous_version: "{{ artifact_source | basename | splitext | first }}"
-
-- set_fact:
-    delta_version: "{{ output_version }}_delta_{{ _delta_previous_version }}"
-
-- set_fact:
-    delta_iso: "{{ isogen_working_dir }}/output/{{ delta_version }}.iso"
-
-- name: isogen | isogen | Create delta kit from previous ISO
-  sudo: yes
-  shell: ./iso_deb_diff.sh \
-      {{ artifact_cache_dir }}/previous.iso \
-      {{ output_iso }} \
-      {{ delta_iso }}
-  args:
-    chdir: "{{ isogen_working_dir }}"
-
-- name: isogen | isogen | Save delta ISO
-  include: ../../artifact-publisher/tasks/save-artifact.yml
-  vars:
-    type: "ardana-iso"
-    branch: "{{ product_branch }}"
-    version: "{{ output_version }}"
-    filename: "{{ delta_iso }}"
-
 # Remove the isogen scratch directories since some parts
 # of them are root-owned, and can cause problems (e.g. for
 # jenkins during workspace cleanup)
