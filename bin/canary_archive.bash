@@ -100,10 +100,6 @@ while read type branch version filename; do
             deployer_tarball=$name
             fdest=$DEST
             ;;
-        *delta*.iso)
-            delta_hlinux_iso=$name
-            fdest=$DEST
-            ;;
         *.iso)
             hlinux_iso=$name
             fdest=$DEST
@@ -119,7 +115,6 @@ while read type branch version filename; do
 done < $ARTIFACTS_FILE
 
 echo "hlinux_iso=${hlinux_iso:?Unable to determine ISO artefact name}"
-echo "delta_hlinux_iso=${delta_hlinux_iso:?Unable to determine delta ISO artefact name}"
 echo "deployer_tarball=${deployer_tarball:?Unable to determine deployer artefact name}"
-(cd $DEST && md5sum $deployer_tarball $hlinux_iso $delta_hlinux_iso > MD5SUMS)
-(cd $DEST && sha256sum $deployer_tarball $hlinux_iso $delta_hlinux_iso > SHA256SUMS)
+(cd $DEST && md5sum $deployer_tarball $hlinux_iso > MD5SUMS)
+(cd $DEST && sha256sum $deployer_tarball > SHA256SUMS)
