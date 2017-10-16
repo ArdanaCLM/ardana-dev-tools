@@ -603,7 +603,7 @@ def ignore_safe_packages(new, same, diffs, removed):
             safe.append(entry)
     for entry in diffs:
         if entry["name"] in SAFE_PACKAGES:
-            new.remove(entry)
+            diffs.remove(entry)
             safe.append(entry)
     for entry in removed:
         if entry["name"] in SAFE_PACKAGES:
