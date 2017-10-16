@@ -1,5 +1,28 @@
+{#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#}
 product: {{ product_name_version_release }}
 pip_mirror: {{ pip_mirror }}
+os_platform:
+{% for line in _venv_lsb_release_result.stdout_lines %}
+  {{ line | lower | regex_replace('\t', ' ') |
+     regex_replace('(distributor) (id:)', '\\1_\\2') |
+     regex_replace('(description: )(.*)', '\\1"\\2"') |
+     lower }}
+{% endfor %}
 {% for key,value in services[service]|dictsort %}
 {% if key != "version" %}
 {{ key }}: {{ value }}

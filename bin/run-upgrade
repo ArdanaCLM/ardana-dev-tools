@@ -31,6 +31,7 @@ SCRIPT_NAME=$(basename $0)
 export SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 export DEVTOOLS=$(dirname $SCRIPT_HOME)
 export WORKSPACE=${WORKSPACE:-$PWD}
+export ARDANA_UPGRADE_DEPLOY_TIMEOUT=${ARDANA_UPGRADE_DEPLOY_TIMEOUT:-18000}
 
 export PYTHONUNBUFFERED=1
 
@@ -206,7 +207,7 @@ if test -n "$CI" -a "$cloud" = "standard" || test -n "$ARDANA_RHEL_COMPUTE_NODES
 fi
 
 # Run upgrade and build in parallel
-run_in_parallel timeout 9000 \
+run_in_parallel timeout ${ARDANA_UPGRADE_DEPLOY_TIMEOUT} \
                 $SCRIPT_HOME/lib/run_upgrade_deploy_base_release $cloud $RELEASE_KIT
 run_in_parallel $SCRIPT_HOME/lib/run_upgrade_build_latest_packages
 
