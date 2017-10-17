@@ -27,29 +27,29 @@ release_input_model_dir: "{{ artifact_cache_dir }}/input-model"
 artifacts:
   # This is the base release we are upgrading from
   "release.iso":
-    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/01-0001"
+    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/03-27"
     re: "*.iso/ && !/_delta_"
     ardana-input-model:
       url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
       dest: "{{ release_input_model_dir }}"
-      branch: "ardana_20170901-120000"
+      branch: "ardana/ardana-prerelease-0.9_20171017-191501"
 
   "recent.iso":
-    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/01-0001"
+    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/03-27"
     re: "*.iso/ && !/_delta_"
     ardana-input-model:
       url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
       dest: "{{ release_input_model_dir }}"
-      branch: "ardana_20170901-120000"
+      branch: "ardana/ardana-prerelease-0.9_20171017-191501"
 
   # This is the kit to compare against when building the associated delta kit for this kit.
   "previous.iso":
-    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/01-0001"
+    url: "http://{{ dev_env_site_config['artefact']['host'] }}/ardana/ardana-0.9/archived_build/03-27"
     re: "*.iso/ && !/_delta_"
     ardana-input-model:
       url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
       dest: "{{ release_input_model_dir }}"
-      branch: "ardana_20170901-120000"
+      branch: "ardana/ardana-prerelease-0.9_20171017-191501"
 
 # Use user supplied artifact_key or else default to 'release'
 artifact_key: "release.iso"
