@@ -313,6 +313,8 @@ _venv_ardana_sources_default:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/monasca-log-api"
 
+  libvirt_python: # os specific
+
   beaver:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/josegonzalez/python-beaver"
@@ -1064,7 +1066,6 @@ _services_default:
       - "{{ product_ardana_venv_deps.pkgconfig }}"
     pips:
       - MySQL-python
-      - libvirt-python
       - oslo.log
       - oslo.vmware
     version: "{{ package_version }}"
@@ -1130,7 +1131,6 @@ _services_default:
       - kafka-python
       - PyMySQL
       - lxml
-      - libvirt-python
       - psutil<3.1.0,>=2.2.1
       - oslo.vmware
     version: "{{ package_version }}"
@@ -1329,5 +1329,5 @@ _services_default:
     version: "{{ package_version }}"
 
 services: "{{ _services_default |
-              update(services_update |
-                     default({})) }}"
+              update(services_os | default({})) |
+              update(services_update | default({})) }}"

@@ -45,6 +45,14 @@ product_ardana_venv_deps:
   pkgconfig: pkg-config
   libpcre_devel: libpcre3-dev
 
+services_os:
+  monasca_agent:
+    pips:
+      - libvirt-python
+  nova:
+    pips:
+      - libvirt-python
+
 _venv_ardana_sources_os:
   ceph_common:
     package: python-ceph
@@ -60,6 +68,9 @@ _venv_ardana_sources_os:
       guestfs.py: /usr/lib/python2.7/dist-packages/guestfs.py
       libguestfsmod.so: /usr/lib/python2.7/dist-packages/libguestfsmod.so
     build_type: copy
+
+  # Need to provide empty dict here to avoid errors in dump-sources.yml
+  libvirt_python: {}
 
 # On Debian (HLinux), we want everything.
 packages_dist_os: "{{ packages_dist_os_debian | union(packages_nondist) }}"

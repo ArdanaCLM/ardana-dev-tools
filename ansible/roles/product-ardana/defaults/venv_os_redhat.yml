@@ -42,6 +42,14 @@ product_ardana_venv_deps:
   pkgconfig: pkgconfig
   libpcre_devel: pcre
 
+services_os:
+  monasca_agent:
+    pips:
+      - libvirt-python
+  nova:
+    pips:
+      - libvirt-python
+
 _venv_ardana_sources_os:
   ceph_common:
     package: ceph-common
@@ -56,6 +64,9 @@ _venv_ardana_sources_os:
       guestfs.py: /usr/lib64/python2.7/site-packages/guestfs.py
       libguestfsmod.so: /usr/lib64/python2.7/site-packages/libguestfsmod.so
     build_type: copy
+
+  # Need to provide empty dict here to avoid errors in dump-sources.yml
+  libvirt_python: {}
 
 connection_type_os: paramiko
 
