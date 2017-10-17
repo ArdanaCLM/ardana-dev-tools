@@ -18,7 +18,7 @@
 #
 #zypper remove gtk2 libX11 hicolor-icon-theme avahi bitstream-vera-fonts
 zypper clean --all
-zypper removerepo SLES12-SP2-12.2-0
+zypper removerepo SLES12-SP2-12.3-0
 # if we add VirtualBox builder support
 #rm -rf VBoxGuestAdditions_*.iso
 

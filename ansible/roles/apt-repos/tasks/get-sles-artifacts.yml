@@ -20,7 +20,7 @@
   vars:
     artifact_url_use_proxy: "{{ hlinux_iso_url_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/SLE"
-    artifact: "SLE-12-SP2-Server-DVD-x86_64-GM-DVD1.iso"
+    artifact: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso"
     artifact_alias: "{{ artifact }}"
     filename: "{{ sles12_iso | basename }}"
 
@@ -28,7 +28,7 @@
   vars:
     artifact_url_use_proxy: "{{ hlinux_iso_url_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/SLE"
-    artifact: "SLE-12-SP2-SDK-DVD-x86_64-GM-DVD1.iso"
+    artifact: "SLE-12-SP3-SDK-DVD-x86_64-GM-DVD1.iso"
     artifact_alias: "{{ artifact }}"
     filename: "{{ sles12sdk_iso | basename }}"
 

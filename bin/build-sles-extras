@@ -97,7 +97,7 @@ eval $(grep '"msg": "SLES_EXTRAS_TARBALL=' $tmp_dir/stdout | cut -d : -f 2 | tr 
 
 rm -rf $tmp_dir
 
-extras_upload_name=$(date -u -r $SLES_EXTRAS_TARBALL +'sles12sp2-extras-%Y%m%d-%H%M%S.tgz')
+extras_upload_name=$(date -u -r $SLES_EXTRAS_TARBALL +'sles12sp3-extras-%Y%m%d-%H%M%S.tgz')
 extras_upload_path=$(readlink -f $DEVTOOLS/../$extras_upload_name)
 
 cp -p $SLES_EXTRAS_TARBALL $extras_upload_path

@@ -204,7 +204,7 @@ module Ardana
       end
 
       if names.include?("sles12")
-        %w{ sles12.iso sles12sdk.iso }.each do |iso_name|
+        %w{ sles12sp3.iso sles12sp3sdk.iso }.each do |iso_name|
           iso_files.push(File.join(get_image_output_dir(), iso_name))
           if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
             raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"

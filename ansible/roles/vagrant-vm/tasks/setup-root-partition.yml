@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -52,10 +52,17 @@
 - name: vagrant-vm | setup-root-partition | Get root partition number
   become: yes
   shell: |
-    lsblk --raw --output NAME,MOUNTPOINT | \
-        awk '/^(s|v)da/ { device=$1 }; $2=="/" { print substr(device, 4); exit; }'
+     mount_dev=$(mount | awk '$3 == "/" {print $1}')
+     kname=$(lsblk --noheadings --output KNAME ${mount_dev})
+     slaves_count=$(ls /sys/block/${kname}/slaves|wc -l)
+     if [ ${slaves_count} = 1 ]; then
+         echo $(ls /sys/block/${kname}/slaves|awk '{print substr($1,4)}')
+     else
+         echo "Unknown"
+     fi
   register: vagrant_vm_root_partition
   changed_when: False
+  failed_when: vagrant_vm_root_partition.stdout == "Unknown"
 
 - name: vagrant-vm | setup-root-partition | Change fdisk start field number for single partition layout
   set_fact:

@@ -1,7 +1,7 @@
 {
   "variables": {
     "image_name": "sles-12.qcow2",
-    "iso_url": "file://{{ env `HOME` }}/sles-12/sles12.iso",
+    "iso_url": "file://{{ env `HOME` }}/sles-12/sles12sp3.iso",
     "disk_size": "4120",
     "output_directory": "{{ env `PWD` }}/output",
     "base_dir": "{{ env `PWD` }}/",
@@ -21,7 +21,7 @@
       "output_directory": "{{ user `output_directory` }}",
       "type": "qemu",
       "iso_url": "{{ user `iso_url` }}",
-      "iso_checksum": "fe01223a08b2d293da2f940658af8168",
+      "iso_checksum": "633537da81d270a9548272dfe1fdd20d",
       "iso_checksum_type": "md5",
       "disk_size": "{{ user `disk_size` }}",
       "disk_cache": "unsafe",

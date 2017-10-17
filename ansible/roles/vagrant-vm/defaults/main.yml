@@ -36,10 +36,10 @@ vagrant_vm_existing_apt_repo: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/hlinux/"
 vagrant_vm_yum_repo_name: DVD
 vagrant_vm_yum_repo_url: "file://{{ vagrant_vm_cdrom_mount_path }}"
 
-vagrant_vm_zypper_repo_name: SLES12-SP2-12.2-0
+vagrant_vm_zypper_repo_name: SLES12-SP3-12.3-0
 vagrant_vm_zypper_repo_url: "file://{{ vagrant_vm_cdrom_mount_path }}"
 
-vagrant_vm_zypper_sdk_repo_name: SLES12-SP2-SDK-12.2-0
+vagrant_vm_zypper_sdk_repo_name: SLES12-SP3-SDK-12.3-0
 vagrant_vm_zypper_sdk_repo_url: "file://{{ vagrant_vm_sdk_mount_path }}"
 
 vagrant_cobbler_nodes: "{{ lookup('env', 'ARDANA_COBBLER_NODES') }}"
@@ -56,4 +56,4 @@ vagrant_vm_sles_extras:
       - python-virtualenv
       - python-urllib3
       - python-PyYAML
-    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP2/"
+    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP3/"

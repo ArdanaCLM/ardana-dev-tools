@@ -51,7 +51,7 @@ class InvalidServersPathError(StandardError):
 
 class Servers(object):
 
-    _DISTRO_ID_MAP = dict(sles12="sles12sp2-x86_64",
+    _DISTRO_ID_MAP = dict(sles12="sles12sp3-x86_64",
                           rhel7="rhel72-x86_64")
 
     def __init__(self, cloud=None, hpci_base=None):
