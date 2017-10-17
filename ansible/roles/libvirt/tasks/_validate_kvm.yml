@@ -23,7 +23,7 @@
   when: ansible_os_family | lower == "debian"
 
 - name: libvirt | _validate_kvm | Gather kvm-ok details
-  command: kvm-ok
+  command: /usr/sbin/kvm-ok
   register: kvm_ok
   changed_when: false
   when: ansible_os_family | lower == "debian"
