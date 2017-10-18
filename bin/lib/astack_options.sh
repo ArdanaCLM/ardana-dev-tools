@@ -57,6 +57,10 @@ SQUASH_KIT=
 FEATURE_DIRS=
 FEATURE_PREPARE=1
 
+# Total system memory rounded up to nearest multiple of 8GB
+TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
+BLDVM_MB=$(( (TOTMEM_GB / 4) * 1024 ))
+
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
@@ -64,7 +68,7 @@ while true ; do
             SKIP_EXTRA_PLAYBOOKS=
             export ARDANAUSER=ardanauser
             export CI=yes
-            export ARDANA_BUILD_MEMORY=49152
+            export ARDANA_BUILD_MEMORY=${ARDANA_BUILD_MEMORY:-${BLDVM_MB}}
             export ARDANA_BUILD_CPU=$(( $(nproc) - 2 ))
             shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
