@@ -20,7 +20,7 @@
 
 apt_repos:
   baseline:
-    archive: "hLinuxArchive/2017/hos4.0.3_ga-2/"
+    archive: "hLinuxArchive/2017/hos4.0.4_ga-1/"
     codename: cattleprod
     dists:
       - main
@@ -34,7 +34,7 @@ hlinux_iso_url_base: "http://{{ _hlinux_iso.host }}/{{ _hlinux_iso.path }}"
 
 hlinux_iso_url_use_proxy: "{{ dev_env_site_config['artefact']['use_proxy'] | default('no') }}"
 
-hlinux_iso_archive: "hLinux-cattleprod-amd64-blaster-netinst-20170309-4.0.3_ga_2-hlm.iso"
+hlinux_iso_archive: "hLinux-cattleprod-amd64-blaster-netinst-20170928-4.0.4_ga-1.iso"
 
 hlinux_ova_archive:
   path: "/ova/hLinux-template-20160919T121725.ova"
