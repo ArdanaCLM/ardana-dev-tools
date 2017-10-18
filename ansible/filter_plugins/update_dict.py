@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -20,12 +20,13 @@
 def update(hash_a, hash_b):
     new = dict(hash_a)
     for k_b, v_b in hash_b.items():
-        if isinstance(v_b, dict):
-            # v_b is a dict. if v_a is also a dict then
-            # then merge recursively
-            v_a = hash_a.get(k_b)
-            if isinstance(v_a, dict):
-                v_b = update(v_a, v_b)
+        v_a = hash_a.get(k_b)
+        # If both are dicts, merge recursively
+        if isinstance(v_b, dict) and isinstance(v_a, dict):
+            v_b = update(v_a, v_b)
+        # If both are lists, concatenate
+        elif isinstance(v_b, list) and isinstance(v_a, list):
+            v_b = v_a + v_b
         new[k_b] = v_b
     return new
 

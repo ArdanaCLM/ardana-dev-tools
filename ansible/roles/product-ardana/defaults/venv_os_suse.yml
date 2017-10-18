@@ -31,6 +31,7 @@ venv_deps:
 
   - ceph-common
   - python-libguestfs # Used by nova_guestfs
+  - libvirt-python
 
 product_ardana_venv_deps:
   db_devel: libmysqlclient-devel
@@ -39,6 +40,14 @@ product_ardana_venv_deps:
   libvirt_devel: libvirt-devel
   pkgconfig: pkgconfig
   libpcre_devel: pcre
+
+services_os:
+  monasca_agent:
+    sources:
+      - libvirt_python
+  nova:
+    sources:
+      - libvirt_python
 
 _venv_ardana_sources_os:
   ceph_common:
@@ -54,6 +63,18 @@ _venv_ardana_sources_os:
       guestfs.py: /usr/lib64/python2.7/site-packages/guestfs.py
       libguestfsmod.so: /usr/lib64/python2.7/site-packages/libguestfsmod.so
     build_type: copy
+
+  libvirt_python:
+    package: libvirt-python
+    copy_files:
+      libvirt.py: /usr/lib64/python2.7/site-packages/libvirt.py
+      libvirt_lxc.py: /usr/lib64/python2.7/site-packages/libvirt_lxc.py
+      libvirt_qemu.py: /usr/lib64/python2.7/site-packages/libvirt_qemu.py
+      libvirtmod.so: /usr/lib64/python2.7/site-packages/libvirtmod.so
+      libvirtmod_lxc.so: /usr/lib64/python2.7/site-packages/libvirtmod_lxc.so
+      libvirtmod_qemu.so: /usr/lib64/python2.7/site-packages/libvirtmod_qemu.so
+    build_type: copy
+    ignore_constraints: True
 
 #connection_type_os: paramiko
 

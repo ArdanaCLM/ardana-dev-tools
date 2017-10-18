@@ -84,7 +84,7 @@
     extra_args: >
       --no-index
       --find-links {{ VENV.WHEEL_DIR }}/{{ item }}_wheelhouse
-      {% if not(services[service].ignore_constraints | default(False)) %}
+      {% if not(services[service].ignore_constraints | default(False)) and not(_venv_ardana_sources[item].ignore_constraints | default(False)) %}
         --constraint "{{ VENV.STATE_DIR }}/{{ service }}.constraint"
       {% endif %}
   environment: "{{ ccache.env }}"
