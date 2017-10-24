@@ -69,7 +69,9 @@ while true ; do
             export ARDANAUSER=ardanauser
             export CI=yes
             export ARDANA_BUILD_MEMORY=${ARDANA_BUILD_MEMORY:-${BLDVM_MB}}
-            export ARDANA_BUILD_CPU=$(( $(nproc) - 2 ))
+            # Since there could be up to 3 build VMs, only overcommit
+            # system CPU resources by at most 50%
+            export ARDANA_BUILD_CPU=$(( $(nproc) / 2 ))
             shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-build) NO_BUILD=1 ; shift ;;

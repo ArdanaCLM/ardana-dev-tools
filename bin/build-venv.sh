@@ -95,16 +95,34 @@ pushd "$DEVTOOLS/build-vagrant"
 
 $SCRIPT_HOME/deploy-vagrant-up
 
-# ansible will limit the forks to the number of virtual hosts created
-# to build the venvs.
+# Specify the max number of "forks" (parallel host actions) used by
+# Ansible during the venv build phase. A large fork factor (>50) may
+# help when there are lots of fast CPUs, and a fast, low latency, I/O
+# subsystem, e.g. SSD. However this has been found to be unreliable in
+# general, and for CI driven testing in particular. For that reason the
+# default setting is conservative, though if running in developer mode
+# we use the number of system CPUs times three, on the assumption that
+# developers are (a) more likely to tolerate infrequent failures and
+# try again, (b) will probably have more capable hardware, and (c) will
+# likely be using cached wheel builds, so most parallel actions will be
+# minimal in nature, and thus not encounter the problem scenarios.
+
+if [ "${ARDANA_ANSIBLE_FORKS:+true}" != "true" ]; then
+    if [ "${ARDANA_DEVELOPER:+true}" == "true" ]; then
+        ARDANA_ANSIBLE_FORKS=$(( $(nproc) * 3 ))
+    else
+        ARDANA_ANSIBLE_FORKS=20
+    fi
+fi
 
 vagrant_data_on_error env ARDANA_SKIP_REPO_CHECKOUT=1 ansible-playbook \
-    -f 100 -i ../ansible/hosts/vagrant.py \
+    -f ${ARDANA_ANSIBLE_FORKS} -i ../ansible/hosts/vagrant.py \
     ../ansible/venv-build.yml \
-        ${ARDANA_FORCE_VENV_REBUILD:+-e rebuild=True} \
-        ${jpackages:+'-e "$jpackages"'}
+    ${ARDANA_FORCE_VENV_REBUILD:+-e rebuild=True} \
+    ${jpackages:+'-e "$jpackages"'}
 
 # halting a vagrant image can introduce a problem where if someone does
 # a vagrant up after, it will clear out the /tmp/persistent folder.
-[ -n "$DO_STOP" ] && vagrant destroy
-exit 0 # The last line can return 1 from the script
+[ -z "$DO_STOP" ] || vagrant destroy
+
+exit 0  # The last line can return 1 from the script
