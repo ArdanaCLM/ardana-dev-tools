@@ -101,7 +101,7 @@ while read type branch version filename; do
             fdest=$DEST
             ;;
         *.iso)
-            hlinux_iso=$name
+            ardana_iso=$name
             fdest=$DEST
             ;;
         *)
@@ -114,7 +114,7 @@ while read type branch version filename; do
     cp $filename $fdest/$name
 done < $ARTIFACTS_FILE
 
-echo "hlinux_iso=${hlinux_iso:?Unable to determine ISO artefact name}"
+echo "ardana_iso=${ardana_iso:?Unable to determine ISO artefact name}"
 echo "deployer_tarball=${deployer_tarball:?Unable to determine deployer artefact name}"
-(cd $DEST && md5sum $deployer_tarball $hlinux_iso > MD5SUMS)
-(cd $DEST && sha256sum $deployer_tarball > SHA256SUMS)
+(cd $DEST && md5sum $deployer_tarball $ardana_iso > MD5SUMS)
+(cd $DEST && sha256sum $deployer_tarball $ardana_iso > SHA256SUMS)
