@@ -22,7 +22,7 @@ deployer_version: "{{ product_name_version_release }}"
 deployer_git_update : "{{ dev_env_global_git_update }}"
 
 _deployer_branch_default: "{{ product_branch }}"
-_deployer_legacy_branch_default: "stable/ocata"
+_deployer_legacy_branch_default: "stable/pike"
 _deployer_eon_branch_default: "master"
 
 _deployer_git_repositories_default:

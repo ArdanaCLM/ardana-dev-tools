@@ -146,7 +146,7 @@ _suffix: "{{ package_version_suffix | default }}"
 package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 
 _venv_service_branch_default: "{{ product_branch }}"
-_venv_openstack_service_branch_default: "stable/ocata"
+_venv_openstack_service_branch_default: "stable/pike"
 _venv_eon_branch_default: "master"
 _venv_installer_server_branch_default: "master"
 
@@ -456,7 +456,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/ardana/swiftlm"
 
   tempest:
-    branch: "hp/prerelease/newton"
+    branch: "master"
     url: "{{ dev_env_default_git_server }}/openstack/tempest"
 
   monasca_notification:
@@ -472,7 +472,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/monasca-agent"
 
   monascaclient:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "stable/ocata"
     url: "{{ dev_env_default_git_server }}/openstack/python-monascaclient"
 
   monasca_common:
