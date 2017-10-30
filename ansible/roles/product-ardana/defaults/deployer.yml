@@ -22,7 +22,7 @@ deployer_version: "{{ product_name_version_release }}"
 deployer_git_update : "{{ dev_env_global_git_update }}"
 
 _deployer_branch_default: "{{ product_branch }}"
-_deployer_legacy_branch_default: "hp/release/newton/5.0"
+_deployer_legacy_branch_default: "stable/ocata"
 _deployer_eon_branch_default: "master"
 
 _deployer_git_repositories_default:
@@ -73,7 +73,7 @@ _deployer_git_repositories_default:
     branch: "{{ _deployer_branch_default }}"
   icinga-ansible:
     url: "{{ dev_env_default_git_server }}/hp/icinga-ansible"
-    branch: "{{ _deployer_legacy_branch_default }}"
+    branch: "hp/prerelease/newton"
   ironic-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ironic-ansible"
     branch: "{{ _deployer_branch_default }}"
@@ -112,10 +112,10 @@ _deployer_git_repositories_default:
     branch: "{{ _deployer_branch_default }}"
   server-ansible:
     url: "{{ dev_env_default_git_server }}/hp/server-ansible"
-    branch: "{{ _deployer_legacy_branch_default }}"
+    branch: "hp/prerelease/newton"
   sherpa-ansible:
     url: "{{ dev_env_default_git_server }}/hp/sherpa-ansible"
-    branch: "{{ _deployer_legacy_branch_default }}"
+    branch: "hp/prerelease/newton"
   spark-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/spark-ansible"
     branch: "{{ _deployer_branch_default }}"

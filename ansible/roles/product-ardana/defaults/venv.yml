@@ -38,6 +38,7 @@ _packages_dist:
   - heat
   - eon
   - ceilometer
+  - monasca_ceilometer
   - tempest
   - config_processor
   - openstackclient
@@ -145,7 +146,7 @@ _suffix: "{{ package_version_suffix | default }}"
 package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 
 _venv_service_branch_default: "{{ product_branch }}"
-_venv_openstack_service_branch_default: "hp/prerelease/newton"
+_venv_openstack_service_branch_default: "stable/ocata"
 _venv_eon_branch_default: "master"
 _venv_installer_server_branch_default: "master"
 
@@ -184,12 +185,16 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/python-barbicanclient"
 
   ceilometer:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/ceilometer"
 
   ceilometerclient:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/python-ceilometerclient"
+
+  monasca_ceilometer:
+    branch: "{{ _venv_openstack_service_branch_default }}"
+    url: "https://github.com/openstack/monasca-ceilometer"
 
   ceph_common: # os specific
 
@@ -227,7 +232,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/designate-dashboard"
 
   designate_tempest_plugin:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/designate-tempest-plugin"
 
   django_openstack_auth:
@@ -329,11 +334,11 @@ _venv_ardana_sources_default:
   libvirt_python: # os specific
 
   beaver:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/josegonzalez/python-beaver"
 
   logstash_formatter:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/vklochan/python-logstash"
 
   opsconsole-server:
@@ -377,7 +382,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/neutron-lbaas"
 
   neutron_lbaas_dashboard:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/neutron-lbaas-dashboard"
 
   neutron_vpnaas:
@@ -399,7 +404,7 @@ _venv_ardana_sources_default:
   nova_guestfs: # os specific
 
   novaclient:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/python-novaclient"
 
   octavia:
@@ -423,7 +428,7 @@ _venv_ardana_sources_default:
     ignore_constraints: true
 
   sos:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/sosreport/sos"
 
   swift:
@@ -431,7 +436,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/swift"
 
   swift3:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/swift3"
 
   swiftclient:
@@ -443,7 +448,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/ardana/swiftlm"
 
   tempest:
-    branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "hp/prerelease/newton"
     url: "{{ dev_env_default_git_server }}/openstack/tempest"
 
   monasca_notification:
@@ -595,6 +600,11 @@ _services_default:
       - certifi
       - keystoneclient
       - ceilometerclient
+    version: "{{ package_version }}"
+
+  monasca_ceilometer:
+    sources:
+      - monasca_ceilometer
     version: "{{ package_version }}"
 
   cephlm:
@@ -1187,6 +1197,7 @@ _services_default:
       - novaclient
       - monascaclient
       - monasca_agent
+      - monasca_common
     pips:
       - kafka-python
       - PyMySQL
@@ -1341,6 +1352,7 @@ _services_default:
     pips:
       - ddt # neutron-vpnaas and neutron-fwaas
       - urllib3==1.16 # BUG-4232
+      - testscenarios>=0.4 # Apache-2.0/BSD from neutron-lbaas
     version: "{{ package_version }}"
 
   ardana_qa_tests_example:

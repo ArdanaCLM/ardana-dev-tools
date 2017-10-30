@@ -188,6 +188,10 @@ if [[ -n "${ARDANA_SLES_DEPLOYER:-}" && \
     unset ARDANA_HLINUX_ARTIFACTS
 fi
 
+    unset ARDANA_RHEL_ARTIFACTS
+    unset ARDANA_RHEL_COMPUTE
+    unset ARDANA_RHEL_COMPUTE_NODES
+
 installsubunit
 logsubunit --inprogress total
 
