@@ -70,6 +70,7 @@ _packages_dist:
   - vsa
   - cmc
   - dayzero
+  - installui
   - ardana_service
   - freezer_api
   - freezer_agent
@@ -132,6 +133,7 @@ packages_external_venv:
   - vsa
   - cmc
   - dayzero
+  - installui
   - ardana_service
   - spark
 
@@ -824,6 +826,16 @@ _services_default:
     pips:
       - MySQL-python
       - oslo.log
+    version: "{{ package_version }}"
+
+  # dev_env_site_config['artefact']['host'] maps to tarballs.suse.provo.cloud,
+  # 'artefact' matches the spelling used elsewhere to reference this url
+  # as of the most recent versions, tarballs.... is an acceptable source for
+  # external content
+  installui:
+    external:
+      - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20171031T185548Z-c9a425/cloudinstaller-20171031T185548Z-c9a425.tgz
+        sha256: e34b82e8b7f88e7dc1b3e4eb087f09e960179175d112de97fff973e7c985347e
     version: "{{ package_version }}"
 
   ironic:
