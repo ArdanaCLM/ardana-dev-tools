@@ -474,9 +474,13 @@ module Ardana
     end
 
     def add_build
-      machines = ["build-hlinux"]
+      machines = []
       # dirty hack to be able to have vagrant tell us what it knows about already
       active_machines = ObjectSpace.each_object(Vagrant::Environment).first.active_machines
+      if !ENV.fetch("ARDANA_HLINUX_ARTIFACTS", "").empty? or
+          active_machines.map { |machine, _| machine.to_s == "build-hlinux" }.any?
+        machines << "build-hlinux"
+      end
       if !ENV.fetch("ARDANA_RHEL_ARTIFACTS", "").empty? or
           active_machines.map { |machine, _| machine.to_s == "build-rhel7" }.any?
         machines << "build-rhel7"

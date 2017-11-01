@@ -178,6 +178,22 @@ then
     unset ARDANA_SLES_DEPLOYER
 fi
 
+# Do not build HLinux artifacts, if standard deployer, control plane and computes
+# are all SLES or RHEL.
+export ARDANA_HLINUX_ARTIFACTS=1
+if [[ "$CLOUDNAME" = "standard" ]]; then
+    NUM_SLES_CONTROL_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_SLES_CONTROL_NODES:-})
+    NUM_SLES_COMPUTE_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_SLES_COMPUTE_NODES:-})
+    NUM_RHEL_COMPUTE_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_RHEL_COMPUTE_NODES:-})
+    if [[ "${ARDANA_SLES_ARTIFACTS:-}" = "1" && \
+          "${ARDANA_SLES_DEPLOYER:-}" = "1" && \
+          ("${ARDANA_SLES_CONTROL:-}" = "1" || "${NUM_SLES_CONTROL_NODES}" = "3") && \
+          ("${ARDANA_SLES_COMPUTE:-}" = "1" || "${ARDANA_RHEL_COMPUTE:-}" = "1" || \
+            "$(($NUM_SLES_COMPUTE_NODES + $NUM_RHEL_COMPUTE_NODES))" = "3") ]]; then
+        unset ARDANA_HLINUX_ARTIFACTS
+    fi
+fi
+
 installsubunit
 logsubunit --inprogress total
 

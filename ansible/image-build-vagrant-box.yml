@@ -34,6 +34,7 @@
       vars:
         image_build_name: hlinux
         image_build_box: "{{ images_build_images['hlinux'].box }}"
+      when: dev_env_use_hlinux_artifacts|bool
 
     - include: roles/image-build/tasks/build-packer-qcow2.yml
       vars:

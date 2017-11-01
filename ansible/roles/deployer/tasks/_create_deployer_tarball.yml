@@ -50,6 +50,7 @@
 
     - source_dir: "{{ deployer_hlinux_venv_dir }}"
       target_tar: "{{ deployer_hlinux_venv_tarball }}"
+      when_cond: "{{ dev_env_use_hlinux_artifacts }}"
 
     - source_dir: "{{ deployer_config_dir }}"
       target_tar: "{{ deployer_config_tarball }}"

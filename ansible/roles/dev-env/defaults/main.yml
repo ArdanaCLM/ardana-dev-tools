@@ -60,12 +60,16 @@ dev_env_provider_net:
     - netmask: 172.30.1.1/24
       vlan: 106
 
+# Should we use HLinux artifacts in build
+dev_env_use_hlinux_artifacts: "{{ lookup('env', 'ARDANA_HLINUX_ARTIFACTS') | default(False, true) }}"
+
 # Should we use RHEL artifacts in build
 dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | default(False, true) }}"
 
 # Should we use SLES artifacts in build
 dev_env_use_sles12_artifacts: "{{ lookup('env', 'ARDANA_SLES_ARTIFACTS') | default(False, true) }}"
 dev_env_use_sles12_net_repos: "{{ lookup('env', 'ARDANA_SLES_NET_REPOS') | default(False, true) }}"
+dev_env_use_sles12_deployer: "{{ lookup('env', 'ARDANA_SLES_DEPLOYER') | default(False, true) }}"
 
 # Should we use Guest image artifacts in build (e.g for Octavia etc)
 dev_env_use_guest_image_artifacts: "{{ lookup('env', 'ARDANA_GUEST_IMAGE_ARTIFACTS') | default(False, true) }}"

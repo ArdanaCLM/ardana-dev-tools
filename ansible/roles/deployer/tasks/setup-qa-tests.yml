@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -25,12 +25,19 @@
     delete: yes
   with_dict: deployer_qa_git_repositories
 
+- name: deployer | setup-qa-tests | Evaluate target dir
+  set_fact:
+    setup_qa_tests_dir: |
+      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{
+          (ansible_os_family == "Debian" ) |
+          ternary(package_venv_locations.hlinux, package_venv_locations.sles) }}
+
 # Install deployer_nondist_venvs directly into /opt/ardana_packager
 - name: deployer | setup-qa-tests | Copy nondist venv packages into the deployer
   become: yes
   copy:
     src: "{{ venv_cache_dir }}/{{ item.value.1 }}"
-    dest: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux }}"
+    dest: "{{ setup_qa_tests_dir }}"
   when: item.key in packages_nondist
   with_dict: venv_cache_dir | find_latest_packages(deployer_version)
 
@@ -39,6 +46,6 @@
   become: yes
   command: >
     ./create_index
-    --dir={{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux }}
+    --dir={{ setup_qa_tests_dir }}
   args:
     chdir: "{{ PACKAGE_CONSTANTS.SERVICE_DIR }}/packager/venv/bin"

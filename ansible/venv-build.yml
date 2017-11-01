@@ -19,6 +19,18 @@
 
 - hosts: localhost
   connection: local
+  roles:
+    - dev-env
+  tasks:
+    - name: venv | - | Check if target OS selected
+      fail: msg="Nothing to build - either ARDANA_HLINUX_ARTIFACTS, or ARDANA_RHEL_ARTIFACTS,
+        or ARDANA_SLES_ARTIFACTS env variable must be exported"
+      when: (not dev_env_use_hlinux_artifacts|bool) and
+        (not dev_env_use_rhel7_artifacts|bool) and
+        (not dev_env_use_sles12_artifacts|bool)
+
+- hosts: localhost
+  connection: local
   max_fail_percentage: 0
   roles:
     - dev-env
@@ -139,7 +151,7 @@
     # Build venvs from sources
     - include: roles/venv/tasks/build.yml
 
-- hosts: build-hlinux
+- hosts: build-hlinux:build-sles12
   roles:
     - venv
   tasks:

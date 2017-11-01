@@ -80,5 +80,5 @@ _venv_ardana_sources_os:
 
 #connection_type_os: paramiko
 
-# On SUSE, we want only these:
-packages_dist_os: "{{ packages_dist_os_suse }}"
+# On SLES, we want everything since we now support SLES deployer
+packages_dist_os: "{{ packages_dist_os_suse | union(packages_nondist) }}"

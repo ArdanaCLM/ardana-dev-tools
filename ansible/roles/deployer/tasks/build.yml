@@ -17,11 +17,19 @@
 # Build the deployer tarball for customer distribution
 ---
 
-# Validate that we have the nondist packages. We don't specify a deployer_hlinux_venv_dir
+- name: deployer | build | Evaluate directory holding nondist packages
+  set_fact:
+      packages_nondist_dir:
+        "{{ dev_env_use_sles12_deployer|bool|ternary(venv_cache_dir_suse, venv_cache_dir_debian)  }}"
+
+- name: deployer | build | Print directory holding nondist packages
+  debug: var=packages_nondist_dir
+
+# Validate that we have the nondist packages.
 - name: deployer | build | Validate that we have all the nondist packages
   fail: msg="Missing {{ item }}"
   with_items: packages_nondist
-  when: item not in ( venv_cache_dir_debian | find_latest_packages(deployer_version) )
+  when: item not in (packages_nondist_dir|find_latest_packages(deployer_version))
 
 # Validate that we have all of the venvs needed for hLinux
 - include: _validate_venvs.yml
@@ -29,6 +37,7 @@
     _validate_packages: "{{ packages_dist_os_debian }}"
     _validate_venv_cache_dir: "{{ venv_cache_dir_debian }}"
     _validate_deployer_venv_dir: "{{ deployer_hlinux_venv_dir }}"
+  when: dev_env_use_hlinux_artifacts|bool
 
 # Validate that we have all of the venvs needed for RHEL
 - include: _validate_venvs.yml
