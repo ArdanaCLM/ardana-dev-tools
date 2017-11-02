@@ -37,9 +37,9 @@
     - name: Create the debian packages
       shell: |
         set -ex
-        tar zcvf {{ item.name }}_{{ item.version }}.orig.tar.gz -C src {{ item.dir }}-{{ item.version }}
+        tar zcvf {{ item.name }}_{{ item.version }}.orig.tar.gz -C ../src {{ item.dir }}-{{ item.version }}
         tar xvf {{ item.name }}_{{ item.version }}.orig.tar.gz
-        cp -a debian {{ item.name }}-{{ item.version }}
+        cp -a ../debian {{ item.name }}-{{ item.version }}
         (
             cd {{ item.name }}-{{ item.version }}
             debuild -us -uc
@@ -47,6 +47,6 @@
         cp {{ item.name }}_{{ item.version }}_amd64.deb \
             {{ playbook_dir }}/files/third-party/myservice/pkgs/debian
       args:
-        chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}"
+        chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}/build"
       with_items:
         - { dir: myservice-client, name: myservice-client, version: 1.0.0 }

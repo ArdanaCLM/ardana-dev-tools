@@ -26,6 +26,11 @@
 
 - name: Test update-ansible.sh script
   local:
+    - cmd: >
+        ../tools/venvs/ansible/bin/ansible-playbook
+        -i hosts/localhost
+        dump-sources.yml
+      chdir: ../../ansible
     - test-get-repo.bash ardana/keystone-ansible
     - cmd: update-ansible.sh keystone-ansible
       chdir: ../../ardana-vagrant-models/project-vagrant

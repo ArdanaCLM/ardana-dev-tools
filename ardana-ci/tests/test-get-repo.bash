@@ -22,15 +22,37 @@ set -o pipefail
 REPO=${1:-ardana/keystone-ansible}
 REPONAME=$(basename $REPO)
 
-SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
-DEVTOOLS=$(cd $SCRIPT_HOME/../../.. ; pwd)
+SCRIPT_HOME=$(readlink -e $(dirname $0))
+CLONE_DIR=$(readlink -e $SCRIPT_HOME/../../..)
+DEVTOOLS=$(readlink -e $CLONE_DIR/ardana-dev-tools)
+SCRATCH_DIR=$DEVTOOLS/scratch-$(git config -f $DEVTOOLS/.gitreview gerrit.defaultbranch | tr '/' '_')
+BUILD_SOURCES=$SCRATCH_DIR/build-sources.json
 
-pushd $SCRIPT_HOME
-branch=$(cat $(git rev-parse --show-toplevel)/.gitreview |
-    awk -F= '/defaultbranch/ { print $2 }')
-url=$(git config --get remote.origin.url)
-popd
+# we use the command line jq tool to parse the BUILD_SOURCES and extract
+# out the info for the repo in question, either from the venvs or the ansible
+JQ_FILTER='if .venvs | has("'$REPONAME'") then .venvs["'$REPONAME'"] elif .ansible | has("'$REPONAME'") then .ansible["'$REPONAME'"] else null end'
+_jq_check_log=$(mktemp /tmp/.jq_filter_check_log.XXXXXXXX)
 
-if [ ! -e "$DEVTOOLS/$REPONAME" ]; then
-    git clone -b $branch $(dirname $(dirname $url))/$REPO $DEVTOOLS/$REPONAME
+if [[ ! -r $BUILD_SOURCES ]]; then
+    echo 1>&2 "ERROR: Missing $BUILD_SOURCES file; did you run the dump-sources.yml play?"
+    exit 1
+elif ! jq "$JQ_FILTER" $BUILD_SOURCES >$_jq_check_log 2>&1; then
+    echo "Content of $BUILD_SOURCES:"
+    cat $BUILD_SOURCES
+    echo 1>&2 "ERROR: Failed to parse $BUILD_SOURCES"
+    cat $_jq_check_log
+    rm -f $_jq_check_log
+    exit 1
+elif [[ "$(jq "$JQ_FILTER" $BUILD_SOURCES)" == "null" ]]; then
+    echo 1>&2 "ERROR: Not a venv or ansible source repo: $REPO"
+    exit 1
+fi
+
+# query results are quoted so assign them using eval so that quoting
+# is handled appropriately.
+eval "branch=$(jq "$JQ_FILTER | .branch" $BUILD_SOURCES)"
+eval "url=$(jq "$JQ_FILTER | .url" $BUILD_SOURCES)"
+
+if [ ! -e "$CLONE_DIR/$REPONAME" ]; then
+    git clone -b $branch $(dirname $(dirname $url))/$REPO $CLONE_DIR/$REPONAME
 fi
