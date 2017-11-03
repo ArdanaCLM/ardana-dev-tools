@@ -51,6 +51,14 @@
   retries: 5
   delay: 3
 
+# Check if there is an ansible in the ansible venv - it appears that the
+# above requirements check can be unreliable under the native ansible on
+# openSUSE Leap 42.3 causing us to skip the install of the ansible module
+- name: dev-env | _install_ansible_venv | Check if ansible command exists in venv
+  stat:
+    path: "{{ dev_env_ansible_venv }}/bin/ansible"
+  register: _stat_venv_ansible_result
+
 - name: dev-env | _install_ansible_venv | Create ansible virtualenv
   pip:
     virtualenv: "{{ dev_env_ansible_venv }}"
@@ -67,7 +75,8 @@
   register: _dev_env_ansible_installed
   changed_when: _dev_env_ansible_installed | success
   # check if any of the pip specs are not satisfied by current env
-  when: False in _dev_env_pip_update_check
+  when: ((False in _dev_env_pip_update_check) or
+         not _stat_venv_ansible_result.stat.exists)
 
 - name: dev-env | _install_ansible_venv | Check for user ansible config file
   stat:
