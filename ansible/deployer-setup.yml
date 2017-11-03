@@ -23,12 +23,34 @@
     - deployer
     - vagrant-vm
   tasks:
+
+    # mount /media/cdrom on /dev/sr0
     - include: roles/vagrant-vm/tasks/setup-iso.yml
-      var:
-        vagrant_vm_cdrom_dev: /dev/sr0
+
+    # mount /media/sdk on /dev/sr1
+    - include: roles/vagrant-vm/tasks/setup-iso.yml
+      vars:
+        vagrant_vm_cdrom_dev: "{{ vagrant_vm_sdk_dev }}"
+        vagrant_vm_cdrom_mount_path: "{{ vagrant_vm_sdk_mount_path }}"
+      when: ansible_os_family == 'Suse'
+
     - include: roles/vagrant-vm/tasks/setup-apt.yml
+      when: ansible_os_family == 'Debian'
+
+    # Setup zypper repos pointing to /media/cdrom and /media/sdk
+    - include: roles/vagrant-vm/tasks/setup-zypper.yml
+      when: ansible_os_family == 'Suse'
+
+    # Setup sles-extras zypper repos - needed for Apache mod_wsgi
+    - include: roles/vagrant-vm/tasks/setup-sles-extras-repos.yml
+      when: ansible_os_family == 'Suse'
+
+    # Mount ISO's on /media/cdrom0, /media/sles, /media/sles_sdk and /media/rhel
+    # Needed to populate ISO content by pre-init-deployer
     - include: roles/deployer/tasks/setup-isos.yml
+
     - include: roles/deployer/tasks/check-release-iso.yml
+
     - include: roles/vagrant-vm/tasks/setup-persistent-filesystem.yml
       vars:
         device: "{{ persistent_apt_device }}"

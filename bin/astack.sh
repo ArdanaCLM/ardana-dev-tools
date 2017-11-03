@@ -44,6 +44,7 @@ usage() {
     echo "--sles            -- Include any sles artifacts"
     echo "--sles-control    -- Switch control nodes to use sles"
     echo "--sles-compute    -- Switch compute nodes to use sles"
+    echo "--sles-deployer   -- Switch deployer node to use sles"
     echo "--guest-images    -- Include any guest image artifacts"
     echo "--tarball TARBALL -- Specify a prebuilt deployer tarball to use."
     echo "--cobble-nodes nodes -- Specify a list of nodes to reimage with cobbler"
@@ -174,6 +175,7 @@ then
     unset ARDANA_SLES_COMPUTE_NODES
     unset ARDANA_SLES_CONTROL
     unset ARDANA_SLES_CONTROL_NODES
+    unset ARDANA_SLES_DEPLOYER
 fi
 
 installsubunit

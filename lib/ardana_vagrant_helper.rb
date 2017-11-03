@@ -196,6 +196,14 @@ module Ardana
       return get_product_branch_cache() + "/artifacts"
     end
 
+    def get_deployer_os()
+      deployer_os = "hlinux"
+      if ENV.fetch("HLM_SLES_DEPLOYER", "") == "1"
+        deployer_os = "sles12"
+      end
+      return deployer_os
+    end
+
     def initialize_baremetal(cloud_name)
       if !!ENV["ARDANA_SERVERS"]
         metal_cfg = ENV["ARDANA_SERVERS"]
@@ -222,7 +230,7 @@ module Ardana
       return metal_cfg
     end
 
-    def setup_iso(server: None, names: ["hlinux"])
+    def setup_iso(server: None, names: [distro])
       iso_files = []
 
       if names.include?("hlinux")
@@ -301,7 +309,8 @@ module Ardana
       sles_compute_all = ENV.fetch("ARDANA_SLES_COMPUTE", "") == "1"
 
       deployer_info = server_details.find { |server| server["id"] == deployer_node }
-      distributions = server_details.map { |server| server["os-dist"] || "hlinux" }.uniq
+      deployer_os = get_deployer_os()
+      distributions = server_details.map { |server| server["os-dist"] || deployer_os }.uniq
       distributions = distributions | ["rhel7"] if ! rhel_compute_nodes.empty? || rhel_compute_all
       distributions = distributions | ["sles12"] if ! sles_control_nodes.empty? || sles_control_all
       distributions = distributions | ["sles12"] if ! sles_compute_nodes.empty? || sles_compute_all
@@ -374,7 +383,7 @@ module Ardana
         end
 
         server_name = serverInfo["id"]
-        box_name = (serverInfo["os-dist"] || "hlinux") +  "box"
+        box_name = (serverInfo["os-dist"] || deployer_os) +  "box"
 
         @config.vm.define server_name do |server|
           set_vm_box(vm: server.vm,
