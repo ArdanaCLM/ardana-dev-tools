@@ -295,12 +295,15 @@ module Ardana
 
       rhel_compute_nodes = ENV.fetch("ARDANA_RHEL_COMPUTE_NODES", "").split(":")
       rhel_compute_all = ENV.fetch("ARDANA_RHEL_COMPUTE", "") == "1"
+      sles_control_nodes = ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":")
+      sles_control_all = ENV.fetch("ARDANA_SLES_CONTROL", "") == "1"
       sles_compute_nodes = ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":")
       sles_compute_all = ENV.fetch("ARDANA_SLES_COMPUTE", "") == "1"
 
       deployer_info = server_details.find { |server| server["id"] == deployer_node }
       distributions = server_details.map { |server| server["os-dist"] || "hlinux" }.uniq
       distributions = distributions | ["rhel7"] if ! rhel_compute_nodes.empty? || rhel_compute_all
+      distributions = distributions | ["sles12"] if ! sles_control_nodes.empty? || sles_control_all
       distributions = distributions | ["sles12"] if ! sles_compute_nodes.empty? || sles_compute_all
 
       server_details.each do |serverInfo|
@@ -344,6 +347,10 @@ module Ardana
             node_type=STD_MML_NODE
           else
             node_type=CONTROL_NODE
+            if ( sles_control_nodes.include? serverInfo["id"] ) || sles_control_all
+              serverInfo["os-dist"] = "sles12"
+              use_release_artifact = false
+            end
           end
         elsif map_role.match("OSD")
           node_type=OSD_NODE

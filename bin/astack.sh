@@ -42,6 +42,7 @@ usage() {
     echo "--rhel            -- Include any rhel artifacts"
     echo "--rhel-compute    -- Switch compute nodes to use rhel"
     echo "--sles            -- Include any sles artifacts"
+    echo "--sles-control    -- Switch control nodes to use sles"
     echo "--sles-compute    -- Switch compute nodes to use sles"
     echo "--guest-images    -- Include any guest image artifacts"
     echo "--tarball TARBALL -- Specify a prebuilt deployer tarball to use."
@@ -149,12 +150,14 @@ fi
 # We also make another SLES compute node in CI mode
 # This is under testing so the change is commented out.
 if [ -n "$CI" -a "$CLOUDNAME" = "standard" ]; then
+    # Test SLES deloy & upgrade
+    export ARDANA_SLES_ARTIFACTS=1
+    # todo -  uncomment when all sles bits are in.
+    #export ARDANA_SLES_CONTROL_NODES=ccn-0001:ccn-0002:ccn-0003
+    export ARDANA_SLES_COMPUTE_NODES=COMPUTE-0002
     # Test RHEL deploy & upgrade
     export ARDANA_RHEL_ARTIFACTS=1
     export ARDANA_RHEL_COMPUTE_NODES=COMPUTE-0003
-    # Test SLES deloy & upgrade
-    export ARDANA_SLES_ARTIFACTS=1
-    export ARDANA_SLES_COMPUTE_NODES=COMPUTE-0002
 fi
 
 # Check for upgrade flags disabling RHEL or SLES support
@@ -169,6 +172,8 @@ then
     unset ARDANA_SLES_ARTIFACTS
     unset ARDANA_SLES_COMPUTE
     unset ARDANA_SLES_COMPUTE_NODES
+    unset ARDANA_SLES_CONTROL
+    unset ARDANA_SLES_CONTROL_NODES
 fi
 
 installsubunit
