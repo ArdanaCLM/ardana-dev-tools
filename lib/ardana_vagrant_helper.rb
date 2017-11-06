@@ -198,7 +198,7 @@ module Ardana
 
     def get_deployer_os()
       deployer_os = "hlinux"
-      if ENV.fetch("HLM_SLES_DEPLOYER", "") == "1"
+      if ENV.fetch("ARDANA_SLES_DEPLOYER", "") == "1"
         deployer_os = "sles12"
       end
       return deployer_os
