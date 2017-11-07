@@ -18,7 +18,7 @@
 
 # WARNING: product_name_version must be a basic string and not contain any
 # ansible variables as constructs.
-product_name_version: "ardana-0.9.0"
+product_name_version: "ardana-0.99.0"
 product_name: "{{ product_name_version.split('-') | first }}"
 
 # hack to 0 pad version out to three places so can specify just the
