@@ -67,6 +67,13 @@
       <package>sudo</package>
     </packages>
   </software>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel config:type="list">
+      <listentry>72M,low</listentry>
+      <listentry>128M,high</listentry>
+    </crash_kernel>
+  </kdump>
   <networking>
     <interfaces config:type="list">
       <interface>
@@ -136,11 +143,6 @@
         <source><![CDATA[
 # set flag
 #wget http://$http_server/preseed/timestamp -O /etc/cobbler_ardana_installed
-
-sed -i -e 's/^GRUB_CMDLINE_LINUX=.*$/GRUB_CMDLINE_LINUX="crashkernel=768M,high crashkernel=128M,low"/' /etc/default/grub
-
-grub2-mkconfig -o /boot/grub2/grub.cfg
-dracut -f
 
 # ardanauser access
 
