@@ -56,4 +56,6 @@ vagrant_vm_sles_extras:
       - python-virtualenv
       - python-urllib3
       - python-PyYAML
+      - liberasurecode1
+      - liberasurecode-devel
     url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP3/"
