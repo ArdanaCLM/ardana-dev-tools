@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -80,6 +80,7 @@ OUTPUT=$ISOGEN/output
 PRESEED_DIR=$ISOGEN/saved_preseed
 SCRIPT_DIR=$ISOGEN/scripts
 FILES_DIR=$ISOGEN/files
+SLES_FILES_DIR=$ISOGEN/sles
 
 # A git SHA1 of the ardana/ardana-dev-tools repo (which contains this script)
 # is required, to provide a 'munge id' for the generated iso image.
@@ -112,36 +113,45 @@ cd $ISOGEN
 ISO_MOUNT=$(mktemp -d /tmp/create_iso.mount.XXXX)
 sudo mount -o loop $HLINUX_ISO $ISO_MOUNT
 pushd $ISO_MOUNT
-tar cf - * .disk| ( cd $SCRATCH; tar xfp -)
+tar cf - $(ls -1 -A) | ( cd $SCRATCH; tar xfp -)
 popd
 sudo umount $ISO_MOUNT
 rmdir $ISO_MOUNT
 
-cp $SCRATCH/initrd.gz $SCRATCH_INITRD
-pushd $SCRATCH_INITRD
-gunzip initrd.gz
-mkdir -p extracted
-cd extracted
-sudo cpio -id < ../initrd
+if [ -f $SCRATCH/initrd.gz ]; then
+    # Hlinux ISO
+    cp $SCRATCH/initrd.gz $SCRATCH_INITRD
+    pushd $SCRATCH_INITRD
+    gunzip initrd.gz
+    mkdir -p extracted
+    cd extracted
+    sudo cpio -id < ../initrd
 
-sudo cp ./preseed.cfg $PRESEED_DIR/preseed.orig
-sudo cp $PRESEED_DIR/preseed.cfg .
-sudo cp $SCRIPT_DIR/configure_network.sh ./sbin
-sudo cp $SCRIPT_DIR/configure_partitioning ./sbin
-sudo cp $SCRIPT_DIR/configure_kdump ./sbin
-sudo cp $SCRIPT_DIR/update_fcoe_udev.py ./sbin
-sudo cp $SCRIPT_DIR/configure_fcoe_udev ./sbin
-sudo mkdir -p ./files
-sudo cp $FILES_DIR/* files
+    sudo cp ./preseed.cfg $PRESEED_DIR/preseed.orig
+    sudo cp $PRESEED_DIR/preseed.cfg .
+    sudo cp $SCRIPT_DIR/configure_network.sh ./sbin
+    sudo cp $SCRIPT_DIR/configure_partitioning ./sbin
+    sudo cp $SCRIPT_DIR/configure_kdump ./sbin
+    sudo cp $SCRIPT_DIR/update_fcoe_udev.py ./sbin
+    sudo cp $SCRIPT_DIR/configure_fcoe_udev ./sbin
+    sudo mkdir -p ./files
+    sudo cp $FILES_DIR/* files
 
-sudo find . | cpio --create --format='newc' > ../newinitrd
-cd ..
-gzip newinitrd
-sudo cp newinitrd.gz $SCRATCH/initrd.gz
+    sudo find . | cpio --create --format='newc' > ../newinitrd
+    cd ..
+    gzip newinitrd
+    sudo cp newinitrd.gz $SCRATCH/initrd.gz
 
-ls -l $SCRATCH/initrd.gz
+    ls -l $SCRATCH/initrd.gz
 
-popd
+    popd
+elif [ -f $SCRATCH/boot/x86_64/loader/isolinux.bin ]; then
+    sudo cp -f $SLES_FILES_DIR/isolinux.cfg $SCRATCH/boot/x86_64/loader/
+    sudo cp -f $SLES_FILES_DIR/sles12sp3-autoyast.xml $SCRATCH/
+else
+    echo "ERROR: isolinux.bin not found on source ISO"
+    exit 1
+fi
 
 if [[ ${#INCLUDE_ARTIFACTS[@]} != 0 ]]; then
     mkdir $SCRATCH/$artifacts_root

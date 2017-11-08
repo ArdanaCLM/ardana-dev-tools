@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -34,7 +34,7 @@
   shell: ./create_iso.sh \
       -d {{ deployer_tarball }} \
       -o {{ output_iso }} \
-      {{ hlinux_iso }} \
+      {{ isogen_produce_sles_iso|ternary(sles12_iso, hlinux_iso) }} \
       {{ hlinux_artefacts_dir }}/ova/hlinux.ova \
       {{ hlinux_artefacts_dir }}/hlinux.qcow2
   args:

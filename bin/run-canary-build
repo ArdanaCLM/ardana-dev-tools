@@ -25,7 +25,13 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
 source $SCRIPT_HOME/libci.sh
 
-# Call dev-env-install to instal supported version of ansible
+# Call dev-env-install to install supported version of ansible
 devenvinstall
 
-$SCRIPT_HOME/astack.sh --no-setup --build-hlinux-ova --rhel --sles $*
+$SCRIPT_HOME/astack.sh --no-setup --build-hlinux-ova \
+  --rhel \
+  --sles \
+  --sles-deployer \
+  --sles-control \
+  --sles-compute \
+  $*
