@@ -520,7 +520,7 @@ class Scratch(Kit):
 
     def read_hlinux_build_manifest(self):
         buildmanifest_filename = os.path.join(
-            self.path, "ardana-0.9.0-build.manifest")
+            self.path, "ardana-0.99.0-build.manifest")
 
         buildmanifest_y = yaml.load(open(buildmanifest_filename))
         packages = buildmanifest_y["packages"]
