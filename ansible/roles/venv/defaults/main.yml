@@ -61,8 +61,8 @@ venv_cache_dir_debian: "{{ dev_env_scratch_dir }}"
 venv_cache_dir_redhat: "{{ dev_env_scratch_dir }}/redhat"
 venv_cache_dir_suse : "{{ dev_env_scratch_dir }}/suse"
 
-venv_timeout: 30
-ext_dl_timeout: 20
+venv_timeout: "{{ lookup('env', 'ARDANA_VENV_PIP_TIMEOUT') | default('60', true) }}"
+ext_dl_timeout: "{{ lookup('env', 'ARDANA_VENV_EXT_DL_TIMEOUT') | default('60', true) }}"
 
 _venv_virtualenv_command: "{{ ansible_env.HOME }}/virtualenv/bin/virtualenv"
 _venv_pip_command: "{{ ansible_env.HOME }}/virtualenv/bin/pip"

@@ -130,6 +130,15 @@ For example, a typical proxy setup would be as follows:
     https_proxy=http://proxy.example.com:8080
     no_proxy=localhost,devhost.example.com
 
+#### Remote/Slow connection suggestions
+
+If you are working remotely using a VPN connection, or in an office with a
+poor/unreliable connection to the specified ARDANA_SITE servers then you can
+increase the chances of successful building the sources by increasing the
+following timeouts via setting the relevant environment variables:
+
+1. ARDANA_VENV_PIP_TIMEOUT - default 60
+2. ARDANA_VENV_EXT_DL_TIMEOUT - default 60
 
 ### Installing SUSE ROOT CA
 Ensure that you have the SUSE ROOT CA installed as detailed at
