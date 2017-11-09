@@ -834,8 +834,8 @@ _services_default:
   # external content
   installui:
     external:
-      - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20171031T185548Z-c9a425/cloudinstaller-20171031T185548Z-c9a425.tgz
-        sha256: e34b82e8b7f88e7dc1b3e4eb087f09e960179175d112de97fff973e7c985347e
+      - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20171109T221427Z-01e55d/cloudinstaller-20171109T221427Z-01e55d.tgz
+        sha256: bc22267bb74deba9bad5d76b416ad17000b0d4d0d98cedf341c17f5bee0f23a8
     version: "{{ package_version }}"
 
   ironic:
