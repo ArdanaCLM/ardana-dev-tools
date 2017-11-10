@@ -29,6 +29,9 @@ _deployer_git_repositories_default:
   barbican-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/barbican-ansible"
     branch: "{{ _deployer_branch_default }}"
+  cassandra-ansible:
+    url: "{{ dev_env_default_git_server }}/ardana/cassandra-ansible"
+    branch: "{{ _deployer_branch_default }}"
   ceilometer-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ceilometer-ansible"
     branch: "{{ _deployer_branch_default }}"
