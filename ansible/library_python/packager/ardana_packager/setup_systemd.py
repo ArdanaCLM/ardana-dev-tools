@@ -66,6 +66,7 @@ def main():
             after=dict(default=""),
             wants=dict(default=""),
             wanted_by=dict(default=""),
+            limit_open_files=dict(default=""),
         ),
         supports_check_mode=False
     )
@@ -90,6 +91,7 @@ def main():
     after = params['after']
     wants = params['wants']
     wanted_by = params['wanted_by']
+    limit_open_files = params['limit_open_files']
 
     changed = False
 
@@ -100,7 +102,8 @@ def main():
                                 env=env, restart=restart,
                                 restart_sec=restart_sec, before=before,
                                 after=after, wants=wants, wanted_by=wanted_by,
-                                stdout=stdout, stderr=stderr)
+                                stdout=stdout, stderr=stderr,
+                                limit_open_files=limit_open_files)
     except Exception as e:
         module.fail_json(msg="Write systemd failed",
                          service=service,
@@ -117,6 +120,7 @@ def main():
                          after=after,
                          wants=wants,
                          wanted_by=wanted_by,
+                         limit_open_files=limit_open_files,
                          enable=enable,
                          exception=str(e))
         return
@@ -131,7 +135,8 @@ def main():
                          group=group,
                          args=args,
                          restart=restart, restart_sec=restart_sec,
-                         startup_type=startup_type)
+                         startup_type=startup_type,
+                         limit_open_files=limit_open_files)
         return
 
     if type(enable) is bool:
@@ -153,6 +158,7 @@ def main():
                              after=after,
                              wants=wants,
                              wanted_by=wanted_by,
+                             limit_open_files=limit_open_files,
                              enable=enable)
 
     module.exit_json(service=service, cmd=cmd, name=name,
@@ -161,6 +167,7 @@ def main():
                      env=env, restart=restart, restart_sec=restart_sec,
                      enable=enable, before=before, after=after,
                      wants=wants, wanted_by=wanted_by,
+                     limit_open_files=limit_open_files,
                      changed=changed)
 
 
