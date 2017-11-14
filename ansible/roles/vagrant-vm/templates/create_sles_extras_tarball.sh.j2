@@ -26,13 +26,18 @@ set -o pipefail
 
 ZYPPER_CACHE_BASE=/var/cache/zypp/packages
 
-packages=(
+# create hashmap for storing repo name to related packages mapping
+declare -A packages_per_repo
+
 {% for extra in vagrant_vm_sles_extras %}
+repo_pkg_names=(
 {%   for pkg in extra.pkgs %}
     "{{ pkg }}"
 {%   endfor %}
-{% endfor %}
 )
+packages_per_repo["{{ extra.repo }}"]=${repo_pkg_names[*]}
+{% endfor %}
+
 
 repos=(
 {% for extra in vagrant_vm_sles_extras %}
@@ -108,7 +113,10 @@ fi
 
 sudo zypper clean
 
-sudo zypper install --no-confirm --download-only ${packages[@]}
+for key in "${!packages_per_repo[@]}"
+do
+    sudo zypper install --no-confirm --download-only --from $key ${packages_per_repo[$key]}
+done
 
 for repo in ${repos[@]}
 do

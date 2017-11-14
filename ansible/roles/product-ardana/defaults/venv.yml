@@ -993,7 +993,8 @@ _services_default:
         sha256: cb141c1d50b1bd0d741d68e5e21c090341d961cd801e11e42fb693fa53e9aaed
       - path: /vertica/vertica-jdbc-7.2.1-0.jar
         sha256: 38a4e993ecc3f3e46bef944edf08df85c1a4ebd586b7d07c1bf323b92e2c1036
-        dest: vertica-jdbc.jar
+      - path: vertica/vertica-jdbc-9.0.0-0.jar
+        sha256: ecac60c9ea3077acff68eba3c361f0653c2eb3494060c31dd9e34c6e04dc155a
     version: "{{ package_version }}"
 
   spark:

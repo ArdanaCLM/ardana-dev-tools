@@ -45,5 +45,5 @@
 - name: vagrant-vm | setup-sles-extras-repos | Update zypper cache as needed
   become: yes
   command:
-    zypper --gpg-auto-import-keys refresh
+    zypper --gpg-auto-import-keys -n refresh
   when: _zypper_add_repos_result|changed
