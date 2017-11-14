@@ -22,7 +22,7 @@ def parse_tarball_version(tarball):
     filename = os.path.basename(tarball)
     matcher = re.compile(
         "(?P<version>\w+-\d+.\d+.\d+(.[a-zA-Z0-9]+|)"
-        "(-([a-z])*(\d)?(.\d+)*)?)"
+        "(-([a-z])*(\d+)?(.\d+)*)?)"
         "\-[0-9TZ]+.t[a-z][a-z]")
     matched = matcher.match(filename)
     if not matched:

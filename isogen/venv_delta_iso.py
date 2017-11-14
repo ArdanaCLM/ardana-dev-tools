@@ -35,7 +35,7 @@ import yaml
 
 
 VENV_FILENAME_PATTERN = \
-    re.compile("(.*)-([0-9]{8}T[0-9]{6}Z|\d\.\d\.\d)(\.h\w{3,})?(\.tgz)")
+    re.compile("(.*)-([0-9]{8}T[0-9]{6}Z|\d+\.\d+\.\d+)(\.h\w{3,})?(\.tgz)")
 
 
 def read_yaml(filename):
