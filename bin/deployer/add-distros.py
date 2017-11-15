@@ -19,9 +19,12 @@
 #
 
 import argparse
+import logging
 import os
-
 import yaml
+
+logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class InvalidCloudNameError(StandardError):
@@ -115,73 +118,113 @@ class Servers(object):
     def servers(self):
         return list(self.servers_data['servers'])
 
-    @property
-    def computes(self):
-        return [s for s in self.servers if "COMPUTE" in s['role']]
-
     def _load_servers(self):
         with open(self.servers_file) as fp:
             self._servers_data = yaml.load(fp)
 
     def _save_servers(self):
         with open(self.servers_file, "w") as fp:
-            yaml.dump(self._servers_data, fp)
+            yaml.dump(self._servers_data, fp, default_flow_style=False,
+                      indent=4)
 
     def commit(self):
         if self.dirty and self._servers_data:
+            logger.info('Server state changed, saving')
             self._save_servers()
+        else:
+            logger.info('Server state did not change, not saving')
 
-    def set_compute_distro_id(self, compute, distro="hlinux"):
+    def set_distro_id(self, server, distro="hlinux"):
         distro_id = self._DISTRO_ID_MAP.get(distro, None)
 
         # if an entry exists in distro ids map
         if distro_id:
             # if existing distro-id is not required value
-            if compute.get("distro-id") != distro_id:
+            if server.get("distro-id") != distro_id:
+                logger.info('Distro id %s for server %s does not match %s, '
+                            'updating' % (distro_id, server['id'],
+                                          server.get("distro-id", 'default')))
                 # set/update distro-id value
-                compute["distro-id"] = distro_id
+                server["distro-id"] = distro_id
 
                 # mark servers object as dirty
                 self._dirty = True
+            else:
+                logger.info('Distro id %s for server %s unchanged' %
+                            (distro_id, server['id']))
         else:
             # no entry in map means use implict distro-id, so remove
-            # any existing distro-id entry in compute
-            if "distro-id" in compute:
-                del compute["distro-id"]
+            # any existing distro-id entry in server
+            if "distro-id" in server:
+                logger.info('Distro id %s for server %s is not default, '
+                            ' removing' % (server["distro-id"], server['id']))
+                del server["distro-id"]
 
                 # mark servers object as dirty
                 self._dirty = True
+            else:
+                logger.info('Default distro id for server %s unchanged' %
+                            (server['id']))
 
 
 def main():
+
+    def str2bool(arg):
+        return arg.lower() in ("yes", "true", "1")
+
     parser = argparse.ArgumentParser(description='Configure compute distros')
     parser.add_argument('cloud',
                         help='Name of cloud being deployed')
-    parser.add_argument('--no-hlinux', dest='hlinux', action="store_false",
-                        help='Skip configuring hlinux computes')
-    parser.add_argument('--rhel7', dest='rhel7', action="store_true",
-                        help='Configure rhel7 computes')
-    parser.add_argument('--sles12', dest='sles12', action="store_true",
-                        help='Configure sles12 computes')
+    parser.add_argument('--sles-deployer', dest='sles_deployer',
+                        help='Configure deployer to run on SLES')
+    parser.add_argument('--sles-compute', dest='sles_compute',
+                        help='Configure all compute nodes to run on SLES')
+    parser.add_argument('--sles-compute-nodes', dest='sles_compute_nodes',
+                        help='Configure selected compute nodes to run on SLES'
+                        '(colon-separated list)')
+    parser.add_argument('--sles-control', dest='sles_control',
+                        help='Configure all control nodes to run on SLES')
+    parser.add_argument('--sles-control-nodes', dest='sles_control_nodes',
+                        help='Configure selected control nodes to run on SLES'
+                        '(colon-separated list)')
+    parser.add_argument('--rhel-compute', dest='rhel_compute',
+                        help='Configure all compute nodes to run on RHEL')
+    parser.add_argument('--rhel-compute-nodes', dest='rhel_compute_nodes',
+                        help='Configure selected compute nodes to run on RHEL'
+                        '(colon-separated list)')
 
     args = parser.parse_args()
-
-    known_distros = ['hlinux', 'sles12', 'rhel7']
-    required_distros = [d for d in known_distros if getattr(args, d)]
-
     servers = Servers(args.cloud)
 
-    num_distros = len(required_distros)
-    if num_distros > len(servers.computes):
-        parser.error("Specified cloud '%s' only has %d computes but %d "
-                     "distros have been specified: %s" %
-                     (args.cloud, len(servers.computes), num_distros,
-                      required_distros))
+    sles_compute_node_ids = args.sles_compute_nodes.split(':')
+    sles_control_node_ids = args.sles_control_nodes.split(':')
+    rhel_compute_node_ids = args.rhel_compute_nodes.split(':')
 
-    # set distro-id appropriately for last num_distros computes
-    for compute, distro in zip(servers.computes[-len(required_distros):],
-                               required_distros):
-        servers.set_compute_distro_id(compute, distro)
+    for i, server in enumerate(servers.servers):
+        if "COMPUTE" in server['role']:
+            if str2bool(args.sles_compute) or \
+                    server['id'] in sles_compute_node_ids:
+                servers.set_distro_id(server, 'sles12')
+            elif str2bool(args.rhel_compute) or \
+                    server['id'] in rhel_compute_node_ids:
+                servers.set_distro_id(server, 'rhel7')
+            else:
+                servers.set_distro_id(server, 'hlinux')
+        elif "CONTROL" in server['role']:
+            if str2bool(args.sles_control) or \
+                    server['id'] in sles_control_node_ids:
+                servers.set_distro_id(server, 'sles12')
+            else:
+                servers.set_distro_id(server, 'hlinux')
+        # Treat 1st server in the list as deployer
+        elif i == 0 and "CONTROL" not in server['role']:
+            if str2bool(args.sles_deployer):
+                servers.set_distro_id(server, 'sles12')
+            else:
+                servers.set_distro_id(server, 'hlinux')
+        else:
+            logger.info('Unrecognized node type %s, not changing distro' %
+                        server['role'])
 
     # write out changes if necessary
     servers.commit()

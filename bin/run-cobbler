@@ -102,29 +102,6 @@ $SCRIPT_HOME/astack.sh \
     ${RHEL:+--rhel} \
     ${SLES:+--sles} \
     --skip-extra-playbooks \
-    $CLOUDNAME
-
-# Edit the servers.yml file to configure specified distros
-$SCRIPT_HOME/run-in-deployer.sh \
-    $SCRIPT_HOME/deployer/add-compute-distros.py \
-    	-- \
-        ${OPT_HLINUX:+--no-hlinux} \
-        ${RHEL:+--rhel} \
-        ${SLES:+--sles} \
-        $CLOUDNAME
-
-# Re-run astack.sh but wihout setup / build and this time cobble all nodes.
-# This will run astack.sh
-$SCRIPT_HOME/astack.sh \
-    --no-setup \
-    --no-build \
-    --no-config \
-    --no-site \
-    $args \
-    ${CI:+--ci} \
-    ${RHEL:+--rhel} \
-    ${SLES:+--sles} \
-    --skip-extra-playbooks \
     --cobble-all-nodes \
     $CLOUDNAME
 

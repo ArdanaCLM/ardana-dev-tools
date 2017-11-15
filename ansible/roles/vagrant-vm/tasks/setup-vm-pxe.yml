@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -23,6 +23,8 @@
 - include: _get_requested_vms.yml
 
 - name: vagrant-vm | setup-vm-pxe | Toggle pxe_set on the vm
+  # On SUSE, need to be root to access domains created by vagrant
+  become: yes
   local_action:
     module: virsh_set_pxe_boot
     name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"

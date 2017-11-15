@@ -293,6 +293,19 @@ generate_ssh_config "FORCE"
 # Run any feature hooks between ardana-init.bash and initialising the input model
 feature_ansible post-ardana-init.yml
 
+# Edit the servers.yml file on deployer to configure specified distros
+$SCRIPT_HOME/run-in-deployer.sh \
+    $SCRIPT_HOME/deployer/add-distros.py \
+        -- \
+        --sles-deployer=${ARDANA_SLES_DEPLOYER:-} \
+        --sles-compute=${ARDANA_SLES_COMPUTE:-} \
+        --sles-compute-nodes=${ARDANA_SLES_COMPUTE_NODES:-} \
+        --sles-control=${ARDANA_SLES_CONTROL:-} \
+        --sles-control-nodes=${ARDANA_SLES_CONTROL_NODES:-} \
+        --rhel-compute=${ARDANA_RHEL_COMPUTE:-} \
+        --rhel-compute-nodes=${ARDANA_RHEL_COMPUTE_NODES:-} \
+        $CLOUDNAME
+
 # Init the model
 $SCRIPT_HOME/run-in-deployer.sh \
     "$SCRIPT_HOME/deployer/init-input-model.sh" "$CLOUDNAME" || logfail deploy
