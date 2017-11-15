@@ -230,41 +230,70 @@ module Ardana
       return metal_cfg
     end
 
+    def set_release(iso_files)
+      iso_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}"
+      if !File.exists?(iso_file)
+        iso_file = get_release_artifact_dir() + "/release.iso"
+      end
+      if !File.exists?(iso_file)
+        raise "Run 'ansible-playbook -i hosts/localhost get-release-artifacts.yml' to get the relase ISO"
+      end
+      iso_files.push(iso_file)
+    end
+
+    def set_hlinux(iso_files)
+      iso_files.push( get_image_output_dir() + "/hlinux.iso" )
+      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        raise "Run 'ansible-playbook -i hosts/localhost get-hlinux-iso.yml' to get the correct ISO"
+      end
+    end
+
+    def set_sles(iso_files)
+      iso_files.push( get_image_output_dir() + "/sles12sp3.iso" )
+      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"
+      end
+    end
+
+    def set_sles_sdk(iso_files)
+      iso_files.push( get_image_output_dir() + "/sles12sp3sdk.iso" )
+      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"
+      end
+    end
+
+    def set_rhel(iso_files)
+      iso_files.push( get_image_output_dir() + "/rhel7.iso" )
+      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        raise "Run 'ansible-playbook -i hosts/localhost get-rhel-artifacts.yml' to get the RHEL ISO"
+      end
+    end
+
     def setup_iso(server: None, names: [distro])
       iso_files = []
 
-      if names.include?("hlinux")
-        if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
-          iso_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}"
-          if !File.exists?(iso_file)
-            iso_file = get_release_artifact_dir() + "/release.iso"
-          end
-          if !File.exists?(iso_file)
-            raise "Run 'ansible-playbook -i hosts/localhost get-release-artifacts.yml' to get the relase ISO"
-          end
-          iso_files.push(iso_file)
-        else
-          iso_files.push( get_image_output_dir() + "/hlinux.iso" )
-          if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-            raise "Run 'ansible-playbook -i hosts/localhost get-hlinux-iso.yml' to get the correct ISO"
-          end
-        end
+      # /dev/sr0 - last release, or bare HLinux, or bare SLES
+      if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
+        set_release(iso_files)
+      elsif names.include?("hlinux")
+        set_hlinux(iso_files)
+      elsif names.include?("sles12")
+        set_sles(iso_files)
       end
 
-      if names.include?("rhel7")
-        iso_files.push( get_image_output_dir() + "/rhel7.iso" )
-        if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-          raise "Run 'ansible-playbook -i hosts/localhost get-rhel-artifacts.yml' to get the RHEL ISO"
-        end
+      # HLinux control plane with SLES computes
+      if names.include?("hlinux") and names.include?("sles12")
+        set_sles(iso_files)
       end
 
+      # SLES SDK
       if names.include?("sles12")
-        %w{ sles12sp3.iso sles12sp3sdk.iso }.each do |iso_name|
-          iso_files.push(File.join(get_image_output_dir(), iso_name))
-          if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-            raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"
-          end
-        end
+        set_sles_sdk(iso_files)
+      end
+
+      # RHEL
+      if names.include?("rhel7")
+        set_rhel(iso_files)
       end
 
       server.vm.provider :libvirt do |libvirt, override|
