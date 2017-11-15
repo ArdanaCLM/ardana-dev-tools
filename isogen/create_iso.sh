@@ -148,6 +148,7 @@ if [ -f $SCRATCH/initrd.gz ]; then
 elif [ -f $SCRATCH/boot/x86_64/loader/isolinux.bin ]; then
     sudo cp -f $SLES_FILES_DIR/isolinux.cfg $SCRATCH/boot/x86_64/loader/
     sudo cp -f $SLES_FILES_DIR/sles12sp3-autoyast.xml $SCRATCH/
+    sudo cp -f $SLES_FILES_DIR/add_nic.xslt $SCRATCH/
 else
     echo "ERROR: isolinux.bin not found on source ISO"
     exit 1
