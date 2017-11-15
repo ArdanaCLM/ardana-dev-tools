@@ -28,10 +28,39 @@
     <storage/>
     <ask-list config:type="list">
       <ask>
+        <title>Network Configuration</title>
+        <question>IP address</question>
+        <type>string</type>
+        <dialog config:type="integer">0</dialog>
+        <element config:type="integer">0</element>
+        <pathlist config:type="list">
+          <path>networking,interfaces,0,ipaddr</path>
+        </pathlist>
+      </ask>
+      <ask>
+        <question>Netmask</question>
+        <type>string</type>
+        <dialog config:type="integer">0</dialog>
+        <element config:type="integer">1</element>
+        <pathlist config:type="list">
+          <path>networking,interfaces,0,netmask</path>
+        </pathlist>
+      </ask>
+      <ask>
+        <question>Gateway</question>
+        <type>string</type>
+        <dialog config:type="integer">0</dialog>
+        <element config:type="integer">2</element>
+        <pathlist config:type="list">
+          <path>networking,routing,routes,0,gateway</path>
+        </pathlist>
+      </ask>
+      <ask>
+        <title>User Configuration</title>
         <question>Enter password for user "stack"</question>
         <type>string</type>
         <password config:type="boolean">true</password>
-        <dialog config:type="integer">0</dialog>
+        <dialog config:type="integer">1</dialog>
         <element config:type="integer">0</element>
         <pathlist config:type="list">
           <path>users,0,user_password</path>
@@ -69,21 +98,30 @@
     </crash_kernel>
   </kdump>
   <networking>
+    <ipv6 config:type="boolean">false</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <setup_before_proposal config:type="boolean">true</setup_before_proposal>
     <interfaces config:type="list">
       <interface>
-        <bootproto>dhcp</bootproto>
+        <bootproto>static</bootproto>
         <device>eth0</device>
-        <dhclient_set_default_route>no</dhclient_set_default_route>
-        <dhclient_set_hostname>no</dhclient_set_hostname>
+        <ipaddr>192.168.2.1</ipaddr>
+        <netmask>255.0.0.0</netmask>
         <startmode>auto</startmode>
       </interface>
     </interfaces>
-    <ipv6 config:type="boolean">true</ipv6>
-    <keep_install_network config:type="boolean">true</keep_install_network>
-    <managed config:type="boolean">false</managed>
     <routing>
       <ipv4_forward config:type="boolean">false</ipv4_forward>
       <ipv6_forward config:type="boolean">false</ipv6_forward>
+      <routes config:type="list">
+        <route>
+          <destination>default</destination>
+          <device>eth0</device>
+          <gateway>192.168.1.1</gateway>
+          <netmask>-</netmask>
+        </route>
+      </routes>
     </routing>
   </networking>
   <partitioning config:type="list">
