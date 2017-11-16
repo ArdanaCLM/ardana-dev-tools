@@ -41,7 +41,7 @@ VERBOSE = False
 
 # TODO(kerrin) figure out how to generalize this
 VENV_FILENAME_PATTERN = \
-    re.compile("(.*)-([0-9]{8}T[0-9]{6}Z|\d\.\d\.\d)(\.h\w{3,})?(\.tgz)")
+    re.compile("(.*)-([0-9]{8}T[0-9]{6}Z|\d+\.\d+\.\d+)(\.h\w{3,})?(\.tgz)")
 # Some packages we know won't ever cause changes to binaries in venvs
 # - This list is non-exhausive, but for safety should probably only be added
 #   to when a package is found to be unexpectedly triggering the non-removal
