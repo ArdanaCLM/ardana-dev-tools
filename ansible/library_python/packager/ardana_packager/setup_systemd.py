@@ -167,7 +167,8 @@ def main():
 def write_systemd(service, cmd, name, install_dir, user, group,
                   args="", startup_type="", env={}, restart="",
                   restart_sec="", before="", after="",
-                  wants="", wanted_by="", stdout="journal", stderr="inherit"):
+                  wants="", wanted_by="", stdout="journal", stderr="inherit",
+                  limit_open_files=None):
     # Format env vars into X=Y space separated string
     env_str = ' '.join(('{0}={1}'.format(k, v)) for k, v in env.iteritems())
 
@@ -184,6 +185,10 @@ def write_systemd(service, cmd, name, install_dir, user, group,
     if restart_sec:
         restart_params += "RestartSec=%s\n" % (restart_sec)
 
+    limit_params = ""
+    if limit_open_files:
+        limit_params += "LimitNOFILE=%s\n" % (limit_open_files)
+
     s = ("[Unit]\n"
          "Description={name} Service\n"
          "Wants={wants}\n"
@@ -198,6 +203,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
          "Group={group}\n"
          "{restart_params}"
          "PermissionsStartOnly=true\n"
+         "{limit_params}"
          "\n"
          "RuntimeDirectory={name}\n"
          "RuntimeDirectoryMode=0755\n"
@@ -217,6 +223,7 @@ def write_systemd(service, cmd, name, install_dir, user, group,
                                           startup_type=startup_type,
                                           env=env_str,
                                           restart_params=restart_params,
+                                          limit_params=limit_params,
                                           wants=wants,
                                           wanted_by=wanted_by,
                                           before=before,
