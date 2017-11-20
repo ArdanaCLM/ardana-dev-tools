@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,6 +20,6 @@
   vars:
     artifact_url_use_proxy: "{{ hlinux_iso_url_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/RHEL"
-    artifact: "RHEL-7.2-20151030.0-Server-x86_64-dvd1.iso"
+    artifact: "RHEL-7.3-20170728-Server-x86_64-dvd.iso"
     artifact_alias: "{{ artifact }}"
     filename: "{{ rhel7_iso | basename }}"
