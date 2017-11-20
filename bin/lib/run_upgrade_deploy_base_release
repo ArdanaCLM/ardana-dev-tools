@@ -35,6 +35,9 @@ pushd $DEVTOOLS/ansible
 # Determine Ardana release for ISO we are upgrading from
 _ardana_ver=$(python -c "import yaml ; print yaml.load(open('roles/artifacts/defaults/main.yml'))['artifacts']['$ARDANA_USE_RELEASE_ARTIFACT']['url'].split('/')[4]")
 
+# Determine the RHEL ISO version
+_rhel_ver=$(python -c "import yaml ; print yaml.load(open('roles/apt-repos/tasks/get-rhel7-iso.yml'))[0]['vars']['artifact'].split('-')[1]")
+
 # Clear env settings associated with compute platforms not supported
 # by particular releases
 export ARDANA_UPGRADE_NO_RHEL=
@@ -51,6 +54,15 @@ case "$_ardana_ver" in
 	;;
 (*ardana-0.9*)
 	# Includes RHEL and SLES support
+	;;
+esac
+
+case "$_rhel_ver" in
+(7.2)
+	;;
+(*)
+	# Upgrade only supported for RHEL 7.2
+	ARDANA_UPGRADE_NO_RHEL=true
 	;;
 esac
 
