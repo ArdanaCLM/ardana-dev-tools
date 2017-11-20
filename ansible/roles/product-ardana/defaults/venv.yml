@@ -71,7 +71,10 @@ _packages_dist:
   - cmc
   - dayzero
   - installui
+# TODO - refactor to remove duplicate ardana_service once python version
+# is confirmed functional in the build
   - ardana_service
+  - ardanaservice
   - freezer_api
   - freezer_agent
   - barbican
@@ -149,6 +152,7 @@ package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 _venv_service_branch_default: "{{ product_branch }}"
 _venv_openstack_service_branch_default: "hp/prerelease/newton"
 _venv_eon_branch_default: "master"
+_venv_ardanaservice_branch_default: "python-prototype"
 
 # ardana-build-config is used to other CI jobs to configure
 # the pypi repo. We need to use the same mirror has other
@@ -172,6 +176,10 @@ _venv_global_constraints_sources:
 
 # List of sources for Ardana
 _venv_ardana_sources_default:
+  ardanaservice:
+    branch: "{{ _venv_ardanaservice_branch_default }}"
+    url: "{{ dev_env_default_git_server }}/ardana/ardana-service"
+
   barbican:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/barbican"
@@ -511,6 +519,19 @@ _services_default:
     # Note: Not to be confused with real ansible version
     version: "{{ deployer_version }}"
 
+  ardanaservice:
+    sources:
+      - ardanaservice
+    pips:
+      - Flask
+      - eventlet
+      - flask-socketio
+      - flask-cors
+      - PyYAML
+      - gitpython
+      - filelock
+    version: "{{ package_version }}"
+
   barbican:
     sources:
       - certifi
@@ -790,6 +811,7 @@ _services_default:
       - heatclient
     version: "{{ package_version }}"
 
+#TODO - remove this once the pure python version is installed and configured
   ardana_service:
     external:
       - path: /ardana-service/ardana-service-5.0.0-e2767e60.tar.gz
