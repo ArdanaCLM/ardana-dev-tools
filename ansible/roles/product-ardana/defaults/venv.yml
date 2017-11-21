@@ -147,7 +147,7 @@ _suffix: "{{ package_version_suffix | default }}"
 package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 
 _venv_service_branch_default: "{{ product_branch }}"
-_venv_openstack_service_branch_default: "hp/release/newton/5.0"
+_venv_openstack_service_branch_default: "hp/prerelease/newton"
 _venv_eon_branch_default: "master"
 
 # ardana-build-config is used to other CI jobs to configure
