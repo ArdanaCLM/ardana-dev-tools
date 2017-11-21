@@ -44,6 +44,10 @@ module Ardana
     RGW_NODE = 'RGW' # (Swift and S3 API for Ceph)
     SWOBJ_NODE = 'SWOBJ' # (Swift object server)
 
+    # Node classes used by the dac-* models
+    DAC_CTRL_NODE = 'DAC_CTRL'
+    DAC_COMP_NODE = 'DAC_COMP'
+
     # Node classes used by the std-* models
     STD_DPLY_NODE = 'STD_ARDANA'
     STD_CTRL_NODE = 'STD_CTRL'
@@ -53,6 +57,10 @@ module Ardana
     STD_COMP_NODE = 'STD_COMP'
 
     VM_MEMORY = {
+      # Node classes used by the dac-* models
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 15360,
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 5120,
+
       'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
       'default' => 2048,
       DEPLOYER_NODE => 2048,
@@ -80,6 +88,10 @@ module Ardana
     }
 
     VM_CPU = {
+      # Node classes used by the dac-* models
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_CPU"] ? ENV["ARDANA_DCTRL_CPU"].to_i : 4,
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_CPU"] ? ENV["ARDANA_DCOMP_CPU"].to_i : 4,
+
       'build' => !!ENV["ARDANA_BUILD_CPU"] ? ENV["ARDANA_BUILD_CPU"] : 8,
       'default' => 2,
       DEPLOYER_NODE => 4,
@@ -105,6 +117,10 @@ module Ardana
     }
 
     VM_FLAVOR = {
+      # Node classes used by the dac-* models
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_FLAVOR"] || 'standard.medium',
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_FLAVOR"] || 'standard.small',
+
       'build' => 'standard.large',
       'default' => 'standard.xsmall',
       VMFACTORY_NODE => 'standard.xlarge',
@@ -130,6 +146,10 @@ module Ardana
     }
 
     VM_DISK = {
+      # Node classes used by the dac-* models
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_DISK"] || '20GB',
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_DISK"] || '20GB',
+
       VMFACTORY_NODE => ENV["ARDANA_VM_DISK"] || '70GB',
       ARDANA_HYPERVISOR_NODE => ENV["ARDANA_HV_DISK"] || '70GB',
       CONTROL_NODE => ENV["ARDANA_CCN_DISK"] || '20GB',
@@ -150,6 +170,10 @@ module Ardana
     }
 
     VM_EXTRA_DISKS = {
+      # Node classes used by the dac-* models
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_EXTRA_DISKS"] || 5,
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_EXTRA_DISKS"] || 1,
+
       VMFACTORY_NODE => ENV["ARDANA_VMF_EXTRA_DISKS"] || 5,
       ARDANA_HYPERVISOR_NODE => ENV["ARDANA_HV_EXTRA_DISKS"] || 5,
       CONTROL_NODE => ENV["ARDANA_CCN_EXTRA_DISKS"] || 5,
@@ -354,6 +378,8 @@ module Ardana
             node_type=LITECOMPUTE_NODE
           elsif map_role.match("STD-COMPUTE")
             node_type=STD_COMP_NODE
+          elsif map_role.match("DAC-COMPUTE")
+            node_type=DAC_COMP_NODE
           else
             node_type=COMPUTE_NODE
           end
@@ -383,12 +409,14 @@ module Ardana
           # check for STD-MML version
           elsif map_role.match("STD-MML-CONTROLLER")
             node_type=STD_MML_NODE
+          elsif map_role.match("DAC-CONTROLLER")
+            node_type=DAC_CTRL_NODE
           else
             node_type=CONTROL_NODE
-            if ( sles_control_nodes.include? serverInfo["id"] ) || sles_control_all
-              serverInfo["os-dist"] = "sles12"
-              use_release_artifact = false
-            end
+          end
+          if ( sles_control_nodes.include? serverInfo["id"] ) || sles_control_all
+            serverInfo["os-dist"] = "sles12"
+            use_release_artifact = false
           end
         elsif map_role.match("OSD")
           node_type=OSD_NODE
