@@ -29,5 +29,5 @@
     module: virsh_set_pxe_boot
     name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
     set_pxe: "{{ vagrant_vm_pxe_setting }}"
-  when: item != "deployer"
+  when: item != _vagrant_deployer
   with_items: _vagrant_cobbler_requested_vms

@@ -27,5 +27,5 @@
   # Retry for 60 minutes
   retries: 240
   delay: 15
-  when: '"deployer" not in item'
+  when: '_vagrant_deployer not in item'
   with_items: _vagrant_cobbler_requested_vms

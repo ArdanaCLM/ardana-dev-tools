@@ -251,6 +251,14 @@ module Ardana
       server_details = metal_cfg["servers"]
       # We skip any Virtual Control Plane VMs.
       server_details.delete_if { |serverInfo| serverInfo.key?('hypervisor-id') }
+
+      # setup unique VNC ports for each server
+      vnc_base = 5910  # 590{1..9} range wil be used for build VMs
+      server_details.each_with_index do |serverInfo, i|
+        if !serverInfo.key?("graphics_port")
+          serverInfo["graphics_port"] = vnc_base + i
+        end
+      end
       return metal_cfg
     end
 
@@ -347,7 +355,7 @@ module Ardana
     end
     private :provision_deployer
 
-    def add_server_group(modifier: 0, cloud_name: None, deployer_node: None)
+    def add_server_group(modifier: 0, cloud_name: None, deployer_node: None, vnc_base: 5900)
       metal_cfg = initialize_baremetal(cloud_name)
       server_details = metal_cfg["servers"]
 
@@ -459,7 +467,7 @@ module Ardana
 
           add_idle_networks(vm: server.vm, count: 6)
 
-          set_vm_hardware(vm: server.vm, type: node_type)
+          set_vm_hardware(vm: server.vm, type: node_type, graphics_port: serverInfo["graphics_port"])
 
           disks = []
           if deployer_node == server_name
@@ -503,6 +511,12 @@ module Ardana
 
     def add_build
       machines = []
+      gfx_ports = {
+        "build-sles12" => 5901,
+        "build-rhel7" => 5902,
+        "build-hlinux" => 5903
+      }
+
       # dirty hack to be able to have vagrant tell us what it knows about already
       active_machines = ObjectSpace.each_object(Vagrant::Environment).first.active_machines
       if !ENV.fetch("ARDANA_HLINUX_ARTIFACTS", "").empty? or
@@ -534,7 +548,7 @@ module Ardana
           setup_vm(vm: build.vm, name: machine, playbook: "vagrant-setup-build-vm",
                    extra_vars: {"persistent_cache_qcow2" => ccache_path} )
 
-          set_vm_hardware(vm: build.vm, type: 'build')
+          set_vm_hardware(vm: build.vm, type: 'build', graphics_port: gfx_ports[machine])
 
           build.vm.provider :libvirt do |libvirt, override|
             libvirt.storage :file, :path => ccache_path, :allow_existing => true, :size => '50G'
@@ -619,7 +633,7 @@ module Ardana
       end
     end
 
-    def set_vm_hardware(vm: None, type: 'default')
+    def set_vm_hardware(vm: None, type: 'default', graphics_port: 5900)
       vm.provider "virtualbox" do |vb, override|
         vb.memory = VM_MEMORY[type]
         vb.cpus = VM_CPU[type]
@@ -633,6 +647,8 @@ module Ardana
         domain.nested = true
         domain.cpu_mode = 'host-passthrough'
         domain.machine_virtual_size = 120
+        domain.graphics_type = 'vnc'
+        domain.graphics_port = graphics_port
       end
 
       vm.provider "openstack" do |os, override|
