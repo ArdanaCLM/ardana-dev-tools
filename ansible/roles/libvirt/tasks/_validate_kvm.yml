@@ -19,7 +19,7 @@
 
 - name: libvirt | _validate_kvm | install kvm-ok
   apt: name=cpu-checker state=present
-  sudo: yes
+  become: yes
   when: ansible_os_family | lower == "debian"
 
 - name: libvirt | _validate_kvm | Gather kvm-ok details
@@ -40,7 +40,7 @@
   when:  ( '{{ ansible_processor | join(",") }}' | search("Intel") )
 
 - name: libvirt | _validate_kvm | Add option for nested KVM
-  sudo: yes
+  become: yes
   lineinfile:
     dest: /etc/modprobe.d/qemu-system-x86.conf
     line: '{{ item }}'
@@ -52,12 +52,12 @@
   register: _modprobe_conf_result
 
 - name: libvirt | _validate_kvm | rmmod kvm_intel
-  sudo: yes
+  become: yes
   command: rmmod kvm_intel
   when: _modprobe_conf_result | changed
 
 - name: libvirt | _validate_kvm | modprobe kvm_intel
-  sudo: yes
+  become: yes
   command: modprobe kvm_intel
   when: _modprobe_conf_result | changed
 

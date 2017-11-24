@@ -43,7 +43,7 @@
   when: vagrant_installed_version != _vagrant_version
 
 - name: vagrant | _install_package_version | Remove newer Vagrant package if installed (Ubuntu)
-  sudo: yes  # may be executed by Trusty base ansible version
+  become: yes  # may be executed by Trusty base ansible version
   apt:
     name: vagrant
     state: absent
@@ -52,7 +52,7 @@
         ansible_os_family | lower == "debian"
 
 - name: vagrant | _install_package_version | Remove newer Vagrant package if installed (SUSE)
-  sudo: yes  # may be executed by Trusty base ansible version
+  become: yes  # may be executed by Trusty base ansible version
   zypper:
     name: vagrant
     state: absent
@@ -61,7 +61,7 @@
         ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
 
 - name: vagrant | _install_package_version | Install Vagrant (Ubuntu)
-  sudo: yes  # may be executed by Trusty base ansible version
+  become: yes  # may be executed by Trusty base ansible version
   apt:
     deb: "{{ vagrant_tmp_path }}/{{ vagrant_pkg }}"
   when: vagrant_installed_version != _vagrant_version and ansible_os_family | lower == "debian"
@@ -71,7 +71,7 @@
 # Leap doesn't currently allow us to install from a path or URL, so we use
 # a command here.
 - name: vagrant | _install_package_version | Install Vagrant (SUSE)
-  sudo: yes
+  become: yes
   command: >
     zypper \
       --non-interactive \

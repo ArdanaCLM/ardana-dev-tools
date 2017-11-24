@@ -20,7 +20,7 @@
 # Package plugin prerequisites (libvirt)
 - name: libvirt | _install_package | Install libvirt OS packages
   apt: state=latest name={{ item }}
-  sudo: yes
+  become: yes
   with_items: "{{ libvirt_apt_packages.keys() }}"
   register: debug_apt_result
   ignore_errors: yes
@@ -28,7 +28,7 @@
 
 - name: libvirt | _install_package | Install libvirt OS packages
   zypper: state=latest name={{ item }}
-  sudo: yes
+  become: yes
   with_items: "{{ libvirt_zypp_packages.keys() }}"
   register: debug_zypp_result
   ignore_errors: yes

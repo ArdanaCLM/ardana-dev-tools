@@ -19,12 +19,12 @@
 
 # looped tasks will hide problems with sudo access
 - name: apt-repos | _check_apt | check sudo access before looped processes
-  sudo: yes
+  become: yes
   command: "true"
   changed_when: false
 
 - name: apt-repos | _check_apt | wait until any running apt processes end
-  sudo: yes
+  become: yes
   shell: |
     set -e
     eval $(apt-config shell \

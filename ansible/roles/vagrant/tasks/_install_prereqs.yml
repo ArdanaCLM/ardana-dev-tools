@@ -18,7 +18,7 @@
 ---
 
 - name: vagrant | _install_prereqs | install vagrant dependencies
-  sudo: yes
+  become: yes
   apt:
     name: "{{ item }}"
     state: present
@@ -26,7 +26,7 @@
   when: ansible_os_family | lower == "debian"
 
 - name: vagrant | _install_prereqs | install vagrant dependencies
-  sudo: yes
+  become: yes
   zypper:
     name: "{{ item }}"
     state: present

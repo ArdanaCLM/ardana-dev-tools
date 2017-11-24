@@ -64,13 +64,13 @@
 # of them are root-owned, and can cause problems (e.g. for
 # jenkins during workspace cleanup)
 - name: isogen | isogen | Remove isogen/scratch
-  sudo: yes
+  become: yes
   file:
     path: "{{ isogen_working_dir }}/scratch"
     state: absent
 
 - name: isogen | isogen | Clean isogen/scratch_initrd
-  sudo: yes
+  become: yes
   file:
     path: "{{ isogen_working_dir }}/scratch_initrd"
     state: absent

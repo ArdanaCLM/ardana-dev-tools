@@ -30,7 +30,7 @@
 
 - name: vagrant | _install_plugins | Install required packages
   zypper: state=present name={{ item }}
-  sudo: yes
+  become: yes
   with_items:
     - make
     - gcc-c++
