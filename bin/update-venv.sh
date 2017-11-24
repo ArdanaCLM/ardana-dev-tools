@@ -99,6 +99,11 @@ PLAYBOOK="${2:-}"
 
 source $SCRIPT_HOME/libci.sh
 
+export ARDANA_HLINUX_ARTIFACTS=
+if [ -z "$RHEL" -a -z "$SLES" ]; then
+    export ARDANA_HLINUX_ARTIFACTS=1
+fi
+
 if [ -z "$NO_BUILD" ]; then
     $SCRIPT_HOME/build-venv.sh ${RHEL:+--rhel} ${SLES:+--sles} $VENV_ARGS $PACKAGE
 fi

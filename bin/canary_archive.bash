@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
 # (c) Copyright 2017 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -114,7 +114,7 @@ while read type branch version filename; do
     cp $filename $fdest/$name
 done < $ARTIFACTS_FILE
 
-echo "ardana_iso=${ardana_iso:?Unable to determine ISO artefact name}"
-echo "deployer_tarball=${deployer_tarball:?Unable to determine deployer artefact name}"
+echo "ardana_iso=${ardana_iso:?Unable to determine ISO artifact name}"
+echo "deployer_tarball=${deployer_tarball:?Unable to determine deployer artifact name}"
 (cd $DEST && md5sum $deployer_tarball $ardana_iso > MD5SUMS)
 (cd $DEST && sha256sum $deployer_tarball $ardana_iso > SHA256SUMS)

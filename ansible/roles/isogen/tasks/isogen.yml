@@ -24,17 +24,29 @@
 - set_fact:
     output_version: "{{ product_name_version }}_{{ lookup('env', 'GOZER_BUILD_ID') }}"
 
+- debug: var=output_version
+
 - set_fact:
     output_iso: "{{ isogen_working_dir }}/output/{{ output_version }}.iso"
 
-- debug: var=output_version
+- debug: var=output_iso
+
+- set_fact:
+    input_iso: "{{ hlinux_iso }}"
+  when: not isogen_produce_sles_iso
+
+- set_fact:
+    input_iso: "{{ sles12_iso }}"
+  when: isogen_produce_sles_iso
+
+- debug: var=input_iso
 
 # Run isogen
 - name: isogen | isogen | Run isogen
   shell: ./create_iso.sh \
       -d {{ deployer_tarball }} \
       -o {{ output_iso }} \
-      {{ isogen_produce_sles_iso|ternary(sles12_iso, hlinux_iso) }} \
+      {{ input_iso }} \
       {{ hlinux_artefacts_dir }}/ova/hlinux.ova \
       {{ hlinux_artefacts_dir }}/hlinux.qcow2
   args:
