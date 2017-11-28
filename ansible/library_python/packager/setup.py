@@ -22,22 +22,19 @@ import setuptools
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-# parse_requirements() returns generator of pip.req.InstallRequirement objects
-with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as f:
-    reqs = [i.strip() for i in f.readlines()]
 
 setuptools.setup(
-    name="packager",
-    version="0.0.2",
+    name="ardana-packager",
+    version="0.0.3",
     description="Prepackaged virtualenv deployment tool",
     long_description=read('README.md'),
-    author="Hewlett-Packard Development Company, L.P.",
-    # author-email=""
+    author='SUSE LLC',
+    author_email='ardana@googlegroups.com',
     # url="http://"
     classifiers=[
-        "Development Status :: 1 - Alpha",
+        "Development Status :: 3 - Alpha",
         "Topic :: Utilities",
-        "License :: OSI Approved :: Apache License",
+        "License :: OSI Approved :: Apache Software License",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python",
         "Programming Language :: Python :: 2",
@@ -61,10 +58,9 @@ setuptools.setup(
             'config_symlinks = ardana_packager.symlinks:main',
         ],
     },
-
-    # scripts = [
-    #    'install_package',
-    # ],
-
-    install_requires=reqs,
+    install_requires=[
+        "PyYAML>=3.11",
+        "requests>=2.4.3",
+        "six",
+        ],
 )
