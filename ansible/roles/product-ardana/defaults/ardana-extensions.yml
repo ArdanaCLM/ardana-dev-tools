@@ -24,3 +24,6 @@ deployer_ardana_extensions_repositories:
   ardana-extensions-example:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-extensions-example"
     branch: "{{ _deployer_branch_default }}"
+  ardana-extensions-nsx:
+    url: "{{ dev_env_default_git_server }}/ardana/ardana-extensions-nsx"
+    branch: "{{ _deployer_branch_default }}"
