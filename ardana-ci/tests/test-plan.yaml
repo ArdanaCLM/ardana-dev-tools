@@ -43,7 +43,7 @@
     - cmd: update-venv.sh --no-artifacts --no-checkout keystone keystone-upgrade.yml
       chdir: ../../ardana-vagrant-models/project-vagrant
       env:
-        ARDANA_SLES_ARTIFACTS: 1
+        ARDANA_SLES_ARTIFACTS: "1"
 
 - name: Test creating ISO
   local:
