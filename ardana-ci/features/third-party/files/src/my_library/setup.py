@@ -23,6 +23,7 @@ import setuptools
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
 # parse_requirements() returns generator of pip.req.InstallRequirement objects
 with open(os.path.join(os.path.dirname(__file__), 'requirements.txt')) as f:
     reqs = [i.strip() for i in f.readlines()]
