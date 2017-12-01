@@ -223,16 +223,19 @@ fi
   <groups config:type="list">
     <group>
       <groupname>sudo</groupname>
+      <gid>1000</gid>
       <userlist>stack</userlist>
     </group>
     <group>
       <groupname>stack</groupname>
+      <gid>1001</gid>
       <userlist>stack</userlist>
     </group>
   </groups>
   <users config:type="list">
     <user>
       <username>stack</username>
+      <gid>1001</gid>
       <user_password>to be changed via prompt</user_password>
       <encrypted config:type="boolean">false</encrypted>
       <home>/home/stack</home>
