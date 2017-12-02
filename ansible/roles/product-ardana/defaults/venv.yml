@@ -530,6 +530,7 @@ _services_default:
       - PyYAML
       - gitpython
       - filelock
+      - pbr
     version: "{{ package_version }}"
 
   barbican:
