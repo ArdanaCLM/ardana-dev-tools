@@ -20,6 +20,7 @@ dev_env_git_servers:
   gozer: "https://gerrit.suse.provo.cloud"
   gerrit: "https://gerrit.suse.provo.cloud"
   github: "https://github.com"
+  openstack: "https://git.openstack.org"
 
 dev_env_global_git_update: "{{ lookup('env', 'ARDANA_GIT_UPDATE') | default('yes', true) }}"
 

@@ -389,9 +389,17 @@ _venv_ardana_sources_default:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/neutron-vpnaas"
 
+  neutron_vpnaas_dashboard:
+    branch: "{{ _venv_openstack_service_branch_default }}"
+    url: "{{ dev_env_git_servers.openstack }}/openstack/neutron-vpnaas-dashboard"
+
   neutron_fwaas:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/neutron-fwaas"
+
+  neutron_fwaas_dashboard:
+    branch: "{{ _venv_openstack_service_branch_default }}"
+    url: "{{ dev_env_git_servers.openstack }}/openstack/neutron-fwaas-dashboard"
 
   neutronclient:
     branch: "{{ _venv_openstack_service_branch_default }}"
@@ -855,6 +863,8 @@ _services_default:
       - magnum_ui
       - barbicanclient
       - neutron_lbaas_dashboard
+      - neutron_vpnaas_dashboard
+      - neutron_fwaas_dashboard
     deps:
       - "{{ product_ardana_venv_deps.db_devel }}"
     pips:
