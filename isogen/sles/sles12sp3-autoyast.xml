@@ -28,29 +28,43 @@
     <storage/>
     <ask-list config:type="list">
       <ask>
+        <title>Network Interface</title>
+        <question>Select Network Card</question>
+        <type>string</type>
+        <selection config:type="list">
+        </selection>
+        <dialog config:type="integer">0</dialog>
+        <element config:type="integer">0</element>
+        <pathlist config:type="list">
+          <path>networking,interfaces,0,device</path>
+        </pathlist>
+      </ask>
+      <ask>
         <title>Network Configuration</title>
         <question>IP address</question>
         <type>string</type>
-        <dialog config:type="integer">0</dialog>
-        <element config:type="integer">0</element>
+        <dialog config:type="integer">1</dialog>
+        <element config:type="integer">1</element>
         <pathlist config:type="list">
           <path>networking,interfaces,0,ipaddr</path>
         </pathlist>
       </ask>
       <ask>
+        <title>Network Configuration</title>
         <question>Netmask</question>
         <type>string</type>
-        <dialog config:type="integer">0</dialog>
-        <element config:type="integer">1</element>
+        <dialog config:type="integer">1</dialog>
+        <element config:type="integer">2</element>
         <pathlist config:type="list">
           <path>networking,interfaces,0,netmask</path>
         </pathlist>
       </ask>
       <ask>
+        <title>Network Configuration</title>
         <question>Gateway</question>
         <type>string</type>
-        <dialog config:type="integer">0</dialog>
-        <element config:type="integer">2</element>
+        <dialog config:type="integer">1</dialog>
+        <element config:type="integer">3</element>
         <pathlist config:type="list">
           <path>networking,routing,routes,0,gateway</path>
         </pathlist>
@@ -60,7 +74,7 @@
         <question>Enter password for user "stack"</question>
         <type>string</type>
         <password config:type="boolean">true</password>
-        <dialog config:type="integer">1</dialog>
+        <dialog config:type="integer">2</dialog>
         <element config:type="integer">0</element>
         <pathlist config:type="list">
           <path>users,0,user_password</path>
@@ -161,6 +175,25 @@
     </drive>
   </partitioning>
   <scripts>
+    <pre-scripts config:type="list">
+      <script>
+        <filename>autoyast-pre-scripts-0.sh</filename>
+        <source><![CDATA[
+NICS=$(cd /sys/class/net; ls -1 | grep -v -E '^lo$')
+PROFILE=/tmp/profile/autoinst.xml
+XSLT=$(find /var/adm/mount/*/add_nic.xslt | head -1)
+for NIC in $NICS; do
+    PCI_ADDRESS=$(udevadm info --query=path --path=/sys/class/net/$NIC | awk -F/ '{ print $(NF-2) }')
+    NIC_DESCR=$(lspci -D | grep "^${PCI_ADDRESS} " | cut -f 1 -d ' ' --complement | head -1)
+    xsltproc --output /tmp/profile/modified.xml.$NIC --stringparam nic_name "$NIC" --stringparam nic_descr "$NIC - $NIC_DESCR" $XSLT $PROFILE
+    PROFILE=/tmp/profile/modified.xml.$NIC
+done
+cp /tmp/profile/modified.xml.$NIC /tmp/profile/modified.xml
+]]></source>
+        <feedback config:type="boolean">false</feedback>
+        <debug config:type="boolean">false</debug>
+      </script>
+    </pre-scripts>
     <init-scripts config:type="list">
       <script>
         <filename>autoyast-init-scripts-0.sh</filename>

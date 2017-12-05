@@ -12,3 +12,4 @@ ardana-ci/features/third-party/files/src/myservice-client/src/myservice-client-1
 tools/elements/amphora-agent/install.d/75-run_setup_install
 tools/elements/haproxy-octavia/post-install.d/20-haproxy-tune-kernel
 isogen/sles/sles12sp3-autoyast.xml
+isogen/sles/add_nic.xslt
