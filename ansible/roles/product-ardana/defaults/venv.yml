@@ -553,6 +553,7 @@ _services_default:
       - MySQL-python
       - PyMySQL
       - python-ldap
+      - python-memcached
       - pycadf
       - pykmip
       - uwsgi
@@ -584,6 +585,7 @@ _services_default:
       - "{{ product_ardana_venv_deps.db_devel }}"
     pips:
       - MySQL-python
+      - python-memcached
     version: "{{ package_version }}"
 
   ceilometerclient:
@@ -627,6 +629,7 @@ _services_default:
       - oslo.log
       - python-3parclient
       - python-lefthandclient
+      - python-memcached
       - SQLAlchemy-Utils
     version: "{{ package_version }}"
 
@@ -757,6 +760,7 @@ _services_default:
       - MySQL-python
       - PyMySQL
       - SQLAlchemy-Utils
+      - python-memcached
     version: "{{ package_version }}"
 
   glanceclient:
@@ -799,6 +803,7 @@ _services_default:
       - MySQL-python
       - PyMySQL
       - docker-py>=0.2.2
+      - python-memcached
     version: "{{ package_version }}"
 
   heatclient:
@@ -985,6 +990,7 @@ _services_default:
       - MySQL-python
       - PyMySQL
       - python-logstash
+      - python-memcached
       - oslo.log
       - SQLAlchemy-Utils
     version: "{{ package_version }}"
@@ -1062,6 +1068,7 @@ _services_default:
       - MySQL-python
       - PyMySQL
       - oslo.log
+      - python-memcached
     version: "{{ package_version }}"
 
   neutronclient:
@@ -1103,6 +1110,7 @@ _services_default:
       - PyMySQL
       - oslo.log
       - oslo.vmware
+      - python-memcached
     version: "{{ package_version }}"
 
   novaclient:
