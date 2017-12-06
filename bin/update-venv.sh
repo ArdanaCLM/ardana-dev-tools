@@ -35,8 +35,9 @@ usage() {
     echo
     echo "--no-build     -- Use the latest existing venv package otherwise"
     echo "                  we build a new package"
-    echo "--rhel         -- build any specific RHEL venv package"
-    echo "--sles         -- build any specific SLES venv package"
+    echo "--hlinux       -- Build venv package for hLinux"
+    echo "--rhel         -- Build venv package for RHEL"
+    echo "--sles         -- Build venv package for SLES"
     echo "--no-artifacts -- Don't check and fetch any new artifacts including"
     echo "                  any necessary vagrant images."
     echo "--no-checkout  -- Skip checking out all the source repositories"
@@ -47,39 +48,41 @@ usage() {
 
 copy_venv_to_deployer()
 {
-  scratch=$1
-  DEPLOYER_PATH=$2
+  scratch_dir=$1
+  deployer_path=$2
+  package=$3
 
-  latest_venv=$(ls -tr $scratch/$PACKAGE*.tgz | tail -1)
+  latest_venv=$(ls -tr $scratch_dir/$package*.tgz | tail -1)
   latest_venv_name=$(basename $latest_venv)
 
   deployer=$(get_deployer_node)
 
   scp -F $ARDANA_VAGRANT_SSH_CONFIG $latest_venv $deployer:~/$latest_venv_name
-  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo cp \~/$latest_venv_name $DEPLOYER_PATH
-  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo /opt/stack/service/packager/venv/bin/create_index --dir $DEPLOYER_PATH
+  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo cp \~/$latest_venv_name $deployer_path
+  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo mkdir $deployer_path
+  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo /opt/stack/service/packager/venv/bin/create_index --dir $deployer_path
 }
 
+distros=()
+venv_args=()
 NO_BUILD=
-VENV_ARGS=
-RHEL=
-SLES=
 
-TEMP=$(getopt -o h -l help,ci,no-config,no-build,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,ci,no-config,no-build,hlinux,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 while true ; do
     case "$1" in
-        -h | --help) usage ; exit 0 ;;
-        --ci) export ARDANAUSER=ardanauser ; shift ;;
-        --no-build) NO_BUILD=1 ; shift ;;
-        --rhel) RHEL=1 ; shift ;;
-        --sles) SLES=1 ; shift ;;
-        --no-artifacts|--no-checkout|--rebuild|--stop)
-            VENV_ARGS="$VENV_ARGS $1"
+        (-h|--help) usage ; exit 0 ;;
+        (--ci) export ARDANAUSER=ardanauser ; shift ;;
+        (--no-build) NO_BUILD=1 ; shift ;;
+        (--hlinux|--rhel|--sles)
+            distros+=( ${1:2} )
+            venv_args+=( $1 )
             shift ;;
-        --) shift ; break ;;
+        (--no-artifacts|--no-checkout|--rebuild|--stop)
+            venv_args+=( $1 ); shift ;;
+        (--) shift ; break ;;
         *) break ;;
     esac
 done
@@ -98,33 +101,35 @@ source $SCRIPT_HOME/libci.sh
 ensure_in_vagrant_dir $SCRIPT_NAME
 
 ARDANA_VERSION=$(python -c "import yaml ; print yaml.load(open('../../ansible/roles/product/defaults/main.yml'))['product_name_version']")
-DEPLOYER_PATH=/opt/ardana_packager/$ARDANA_VERSION/hlinux_venv
 
-export ARDANA_HLINUX_ARTIFACTS=
-if [ -z "$RHEL" -a -z "$SLES" ]; then
-    export ARDANA_HLINUX_ARTIFACTS=1
+# select default distro if none specified
+if (( ${#distros[@]} == 0)); then
+    # TODO(fergal): switch to sles as default
+    distros=( hlinux )
 fi
 
 if [ -z "$NO_BUILD" ]; then
-    $SCRIPT_HOME/build-venv.sh ${RHEL:+--rhel} ${SLES:+--sles} $VENV_ARGS $PACKAGE
+    $SCRIPT_HOME/build-venv.sh "${venv_args[@]}" $PACKAGE
 fi
 
 generate_ssh_config
 
 branch=$(git config --file $(git rev-parse --show-toplevel)/.gitreview \
     --get gerrit.defaultbranch | tr '/' '_')
-scratch="$SCRIPT_HOME/../scratch-$branch"
-copy_venv_to_deployer $scratch $DEPLOYER_PATH
-if [ -n "$SLES" ]; then
-    DEPLOYER_PATH=/opt/ardana_packager/$ARDANA_VERSION/sles_venv
-    scratch="$SCRIPT_HOME/../scratch-$branch/suse"
-    copy_venv_to_deployer $scratch $DEPLOYER_PATH
-fi
-if [ -n "$RHEL" ]; then
-    DEPLOYER_PATH=/opt/ardana_packager/$ARDANA_VERSION/rhel_venv
-    scratch="$SCRIPT_HOME/../scratch-$branch/redhat"
-    copy_venv_to_deployer $scratch $DEPLOYER_PATH
-fi
+
+# paths under scratch dir where distro venvs are located
+declare -A distro_dirs
+distro_dirs["hlinux"]=""
+distro_dirs["rhel"]="redhat"
+distro_dirs["sles"]="suse"
+
+for distro in ${distros[@]}
+do
+    copy_venv_to_deployer \
+        "$SCRIPT_HOME/../scratch-$branch/${distro_dirs[$distro]}" \
+        /opt/ardana_packager/$ARDANA_VERSION/${distro}_venv \
+        $PACKAGE
+done
 
 if [ -n "$PLAYBOOK" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \

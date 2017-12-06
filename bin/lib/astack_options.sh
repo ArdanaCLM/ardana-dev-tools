@@ -32,6 +32,7 @@ export CI=${CI:-}
 NO_SETUP=
 NO_BUILD=
 BUILD_HLINUX_OVA=
+export ARDANA_HLINUX_ARTIFACTS=${ARDANA_HLINUX_ARTIFACTS:-}
 export ARDANA_UPGRADE_NO_RHEL=${ARDANA_UPGRADE_NO_RHEL:-}
 export ARDANA_RHEL_ARTIFACTS=${ARDANA_RHEL_ARTIFACTS:-}
 export ARDANA_RHEL_COMPUTE=${ARDANA_RHEL_COMPUTE:-}
@@ -128,3 +129,10 @@ while true ; do
         *) break ;;
     esac
 done
+
+# Select a default distro if none selected
+if [ -z "${ARDANA_HLINUX_ARTIFACTS:-}" -a -z "${ARDANA_RHEL_ARTIFACTS:-}" -a \
+     -z "${ARDANA_SLES_ARTIFACTS:-}" ]; then
+    # TODO(fergal): Switch to SLES
+    export ARDANA_HLINUX_ARTIFACTS=1
+fi
