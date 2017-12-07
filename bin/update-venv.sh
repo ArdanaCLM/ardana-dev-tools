@@ -112,7 +112,10 @@ if [ -z "$NO_BUILD" ]; then
     $SCRIPT_HOME/build-venv.sh "${venv_args[@]}" $PACKAGE
 fi
 
-generate_ssh_config
+if ! generate_ssh_config; then
+    echo "Aborting" >&2
+    exit 1
+fi
 
 branch=$(git config --file $(git rev-parse --show-toplevel)/.gitreview \
     --get gerrit.defaultbranch | tr '/' '_')

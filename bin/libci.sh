@@ -147,8 +147,15 @@ generate_ssh_config() {
     ensure_in_vagrant_dir generate_ssh_config
 
     if [ ! -e ${ARDANA_VAGRANT_SSH_CONFIG} -o -n "${1:-}" ]; then
-        vagrant --debug \
-            ssh-config 2>>"${VAGRANT_LOG_DIR}/${ARDANA_VAGRANT_SSH_CONFIG}.log" > $ARDANA_VAGRANT_SSH_CONFIG
+        local log="${VAGRANT_LOG_DIR}/${ARDANA_VAGRANT_SSH_CONFIG}.log"
+        vagrant --debug ssh-config 2>>"$log" >${ARDANA_VAGRANT_SSH_CONFIG}.new
+        local status=$?
+        if [ $status != 0 ]; then
+            echo "vagrant ssh-config failed; check $log" >&2
+        else
+            mv ${ARDANA_VAGRANT_SSH_CONFIG}.new $ARDANA_VAGRANT_SSH_CONFIG
+        fi
+        return $status
     fi
 }
 
