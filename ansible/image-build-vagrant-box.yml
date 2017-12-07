@@ -30,6 +30,7 @@
         image_build_iso: "{{ hlinux_iso }}"
         image_build_name: hlinux
         image_build_disk_size: 4120
+      when: dev_env_use_hlinux_artifacts|bool
     - include: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: hlinux
