@@ -258,6 +258,10 @@ _venv_ardana_sources_default:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/freezer-api"
 
+  freezer_client:
+    branch: "{{ _venv_openstack_service_branch_default }}"
+    url: "{{ dev_env_default_git_server }}/openstack/python-freezerclient"
+
   freezer_web_ui:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/freezer-web-ui"
@@ -725,6 +729,7 @@ _services_default:
       - glanceclient
       - neutronclient
       - openstackclient
+      - freezer_client
       - freezer_agent
     version: "{{ package_version }}"
 
