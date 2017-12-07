@@ -199,6 +199,7 @@ if test -n "$CI" -a "$cloud" = "standard" || test -n "$ARDANA_SLES_COMPUTE_NODES
 
 fi
 
+# TODO(fergal): Update when we switch to SLES as default distro
 # We only support upgrade HLinux (2.x,3.x,4.x,5.0.0) ==> Hlinux (5.1.0)
 # so must build HLinux artifacts
 export ARDANA_HLINUX_ARTIFACTS=1
@@ -207,7 +208,7 @@ if test -n "$CI" -a "$cloud" = "standard" || test -n "$ARDANA_RHEL_COMPUTE_NODES
                                          || test -n "$ARDANA_SLES_COMPUTE_NODES" ; then
 
     # This script gets the latest hLinux iso including RHEL ISO and SLES ISO.
-    $SCRIPT_HOME/build-hlinux-artifacts
+    $SCRIPT_HOME/build-distro-artifacts
 fi
 
 # Run upgrade and build in parallel

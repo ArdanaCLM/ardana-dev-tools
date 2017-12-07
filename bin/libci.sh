@@ -15,7 +15,7 @@
 # under the License.
 #
 export DEVTOOLS=$(cd $(dirname ${BASH_SOURCE[0]})/.. ; pwd)
-export PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
+PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
 
 # CDL convention
 cfg=/etc/profile.d/proxy.sh

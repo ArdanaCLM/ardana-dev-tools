@@ -27,15 +27,16 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
 usage() {
     set +x
-    echo "$SCRIPT_NAME [--help] [--ci] [--rhel] [--stop] [packages...]"
+    echo "$SCRIPT_NAME [--help] [--ci] [--hlinux] [--rhel] [--sles] [--stop] [packages...]"
     echo
     echo "Manage all aspects of the venv building."
     echo "This includes downloading any needed artifacts, building vargant"
     echo "box images, bringing up the build VM's, and finally building any"
     echo "or all venv packages."
     echo
-    echo "--rhel -- Also build any all specific RHEL venv packages"
-    echo "--sles -- Also build any all specific SLES venv packages"
+    echo "--hlinux       -- Build venv packages for hLinux"
+    echo "--rhel         -- Build venv packages for RHEL"
+    echo "--sles         -- Build venv packages for SLES"
     echo "--no-artifacts -- Don't fetch any required artifacts, assume we"
     echo "                  have them already."
     echo "--no-checkout  -- Don't checkout any git sources, assume we have"
@@ -45,7 +46,7 @@ usage() {
     echo "                  the specified packages."
 }
 
-TEMP=$(getopt -o h -l help,ci,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,ci,hlinux,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -59,6 +60,7 @@ while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --ci) export ARDANAUSER=ardanauser ; shift ;;
+        --hlinux) export ARDANA_HLINUX_ARTIFACTS=1 ; shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
@@ -69,6 +71,13 @@ while true ; do
         *) break ;;
     esac
 done
+
+# select a default distro if none specified
+if [ -z "${ARDANA_HLINUX_ARTIFACTS:-}" -a -z "${ARDANA_RHEL_ARTIFACTS:-}" -a \
+     -z "${ARDANA_SLES_ARTIFACTS:-}" ]; then
+    # TODO(fergal): Switch to SLES
+    export ARDANA_HLINUX_ARTIFACTS=1
+fi
 
 source "$(dirname $0)/libci.sh"
 
@@ -82,7 +91,7 @@ if [ $# -gt 0 ]; then
 fi
 
 if [ -z "$NO_ARTIFACTS" ]; then
-    $SCRIPT_HOME/build-hlinux-artifacts
+    $SCRIPT_HOME/build-distro-artifacts
 fi
 
 if [ -z "$NO_CHECKOUT" ]; then

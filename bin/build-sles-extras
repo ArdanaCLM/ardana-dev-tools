@@ -67,7 +67,7 @@ export ARDANA_SLES_NET_REPOS=true
 
 # Skip fetching artifacts if specified
 if [ -z "$NO_ARTIFACTS" ]; then
-    $SCRIPT_HOME/build-hlinux-artifacts
+    $SCRIPT_HOME/build-distro-artifacts
 fi
 
 # Skip building new tarball if specified

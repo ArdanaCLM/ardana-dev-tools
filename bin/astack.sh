@@ -153,8 +153,9 @@ fi
 if [ -n "$CI" -a "$CLOUDNAME" = "standard" ]; then
     # Test SLES deloy & upgrade
     export ARDANA_SLES_ARTIFACTS=1
-    # todo -  uncomment when all sles bits are in.
-    #export ARDANA_SLES_CONTROL_NODES=ccn-0001:ccn-0002:ccn-0003
+    # TODO(fergal) - uncomment when all sles bits are in.
+    #export ARDANA_SLES_DEPLOYER=1
+    #export ARDANA_SLES_CONTROL=1
     export ARDANA_SLES_COMPUTE_NODES=COMPUTE-0002
     # Test RHEL deploy & upgrade
     export ARDANA_RHEL_ARTIFACTS=1
@@ -178,20 +179,13 @@ then
     unset ARDANA_SLES_DEPLOYER
 fi
 
-# Do not build HLinux artifacts, if standard deployer, control plane and computes
+# Do not build HLinux artifacts, if deployer, control plane and computes
 # are all SLES or RHEL.
-export ARDANA_HLINUX_ARTIFACTS=1
-if [[ "$CLOUDNAME" = "standard" ]]; then
-    NUM_SLES_CONTROL_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_SLES_CONTROL_NODES:-})
-    NUM_SLES_COMPUTE_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_SLES_COMPUTE_NODES:-})
-    NUM_RHEL_COMPUTE_NODES=$(awk -F: '{print NF}' <<< ${ARDANA_RHEL_COMPUTE_NODES:-})
-    if [[ "${ARDANA_SLES_ARTIFACTS:-}" = "1" && \
-          "${ARDANA_SLES_DEPLOYER:-}" = "1" && \
-          ("${ARDANA_SLES_CONTROL:-}" = "1" || "${NUM_SLES_CONTROL_NODES}" = "3") && \
-          ("${ARDANA_SLES_COMPUTE:-}" = "1" || "${ARDANA_RHEL_COMPUTE:-}" = "1" || \
-            "$(($NUM_SLES_COMPUTE_NODES + $NUM_RHEL_COMPUTE_NODES))" = "3") ]]; then
-        unset ARDANA_HLINUX_ARTIFACTS
-    fi
+if [[ -n "${ARDANA_SLES_DEPLOYER:-}" && \
+      -n "${ARDANA_SLES_CONTROL:-}" && \
+      ( -n "${ARDANA_SLES_COMPUTE:-} || \
+        -n "${ARDANA_RHEL_COMPUTE:-} ) ]]; then
+    unset ARDANA_HLINUX_ARTIFACTS
 fi
 
 installsubunit
