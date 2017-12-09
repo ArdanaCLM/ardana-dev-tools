@@ -23,7 +23,10 @@ set -o pipefail
 
 source $(dirname $0)/libci.sh
 
-export CLOUDNAME=${1:-"deployerincloud"}
+export CLOUDNAME="${1:-"deployerincloud"}"
 
+pushd "$DEVTOOLS/ardana-vagrant-models/$CLOUDNAME-vagrant"
+export DEPLOYERNODE="$(get_deployer_node)"
 ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
     $DEVTOOLS/ansible/vagrant-power-status-on.yml
+popd

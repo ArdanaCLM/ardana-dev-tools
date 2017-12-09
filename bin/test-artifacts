@@ -40,7 +40,7 @@ CLOUDNAME="${2:-"deployerincloud"}"
 TAGS="${3:-}"
 # Test timeout in minutes
 TEST_TIMEOUT="${4:-80}"
-DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+DEPLOYERNODE="$(get_deployer_node)"
 
 if [[ "$JOB_TYPE" != "upgrade-ci" ]]; then
     # BUG-1478 Validate that manifests are good yaml

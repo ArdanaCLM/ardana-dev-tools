@@ -16,6 +16,10 @@
 #
 ---
 
+- name: vagrant-vm | check-vm-power-on | Determine deployer node
+  set_fact:
+    _vagrant_deployer: "{{ lookup('env', 'DEPLOYERNODE') | default('deployer', true) }}"
+
 - name: vagrant-vm | check-vm-power-on | Get vagrant vm list
   shell:
     vagrant status | grep libvirt | awk '{ print $1 }'
@@ -31,5 +35,5 @@
   virt:
     name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
     state: running
-  when: item != "deployer"
+  when: item != _vagrant_deployer
   with_items: _vagrant_all_list_result.stdout_lines

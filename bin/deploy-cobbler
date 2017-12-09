@@ -24,7 +24,7 @@ set -o pipefail
 source $(dirname $0)/libci.sh
 
 CLOUDNAME="${1:-"deployerincloud"}"
-DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+DEPLOYERNODE="$(get_deployer_node)"
 
 cobblerdeployscript=deploy-cobbler.sh
 cat > $cobblerdeployscript << "EOF"
@@ -55,7 +55,7 @@ ansible-playbook -i hosts/localhost cobbler-deploy.yml -vvvv \
 EOF
 
 sshconfig=deploy-vagrant-ssh-config
-vagrant ssh-config deployer 2>>"${VAGRANT_LOG_DIR}/${sshconfig}.log" > $sshconfig
+vagrant ssh-config $DEPLOYERNODE 2>>"${VAGRANT_LOG_DIR}/${sshconfig}.log" > $sshconfig
 
 scp -F $sshconfig $cobblerdeployscript $DEPLOYERNODE:~
 ssh -F $sshconfig $ARDANAUSER@$DEPLOYERNODE bash $cobblerdeployscript "$CLOUDNAME" "$ARDANAUSER"

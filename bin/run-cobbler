@@ -40,7 +40,7 @@ usage() {
     echo "--enable-sles  -- Enable SLES compute re-imaging."
 }
 
-TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,opt-hlinux,enable-rhel,enable-sles -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,opt-hlinux,enable-rhel,enable-sles -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -72,6 +72,9 @@ while true ; do
         --no-setup|--no-build)
             args="$args $1"
             shift ;;
+        --tarball)
+            args="$args $1 $2"
+            shift 2;;
         --) shift ; break;;
         *) break ;;
     esac

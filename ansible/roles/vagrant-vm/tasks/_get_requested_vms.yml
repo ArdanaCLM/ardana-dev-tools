@@ -38,3 +38,7 @@
   set_fact:
     _vagrant_cobbler_requested_vms: "{{ _vagrant_all_list_result.stdout_lines |
         default( _vms_requested_result.stdout_lines ) }}"
+
+- name: vagrant-vm | _get_requested_vms | Determine deployer node
+  set_fact:
+    _vagrant_deployer: "{{ lookup('env', 'DEPLOYERNODE') | default('deployer', true) }}"

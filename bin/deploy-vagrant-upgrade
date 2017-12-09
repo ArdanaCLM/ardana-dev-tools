@@ -28,7 +28,7 @@ source $(dirname $0)/libci.sh
 WORKSPACE=${WORKSPACE:-$PWD}
 CLOUDNAME="${1:-"deployerincloud"}"
 
-DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
+DEPLOYERNODE="$(get_deployer_node)"
 
 # Revert all local configurations to be ready for the upgrade. We reapply
 # all the virtual configuration during the vagrant provision below.
