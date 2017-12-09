@@ -69,12 +69,8 @@ _packages_dist:
   - storevirtual-installer
   - vsa
   - cmc
-  - dayzero
   - installui
-# TODO - refactor to remove duplicate ardana_service once python version
-# is confirmed functional in the build
-  - ardana_service
-  - ardanaservice
+  - ardana-service
   - freezer_api
   - freezer_agent
   - barbican
@@ -135,9 +131,7 @@ packages_external_venv:
   - ironic_deploy_images
   - vsa
   - cmc
-  - dayzero
   - installui
-  - ardana_service
   - spark
 
 # commenting out in favor of above RHEL names
@@ -152,6 +146,7 @@ package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 _venv_service_branch_default: "{{ product_branch }}"
 _venv_openstack_service_branch_default: "hp/prerelease/newton"
 _venv_eon_branch_default: "master"
+# TODO - remove this - choyj
 _venv_ardanaservice_branch_default: "python-prototype"
 
 # ardana-build-config is used to other CI jobs to configure
@@ -176,8 +171,10 @@ _venv_global_constraints_sources:
 
 # List of sources for Ardana
 _venv_ardana_sources_default:
-  ardanaservice:
+  ardana-service:
     branch: "{{ _venv_ardanaservice_branch_default }}"
+    # TODO: remove the line above and uncomment the line below - choyj
+    # branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/ardana/ardana-service"
 
   barbican:
@@ -523,9 +520,9 @@ _services_default:
     # Note: Not to be confused with real ansible version
     version: "{{ deployer_version }}"
 
-  ardanaservice:
+  ardana-service:
     sources:
-      - ardanaservice
+      - ardana-service
     pips:
       - Flask
       - eventlet
@@ -662,12 +659,6 @@ _services_default:
       - PyYAML
     debs:
       - libyaml
-    version: "{{ package_version }}"
-
-  dayzero:
-    external:
-      - path: /ardana-installer-ui/ardana-installer-ui-4.0.0-85ac0c6.tar.gz
-        sha256: 9200d381523042cef40ecbe27362726327df68f8598dd053b4cc9e1c6f90e10f
     version: "{{ package_version }}"
 
   designate:
@@ -820,13 +811,6 @@ _services_default:
       - swiftclient
       - openstackclient
       - heatclient
-    version: "{{ package_version }}"
-
-#TODO - remove this once the pure python version is installed and configured
-  ardana_service:
-    external:
-      - path: /ardana-service/ardana-service-5.0.0-e2767e60.tar.gz
-        sha256: 68f997771456ad2a0db43a079dbb337a7b098515ca8a4c1573763c3f642e9a3d
     version: "{{ package_version }}"
 
   horizon:
