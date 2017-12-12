@@ -146,8 +146,6 @@ package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 _venv_service_branch_default: "{{ product_branch }}"
 _venv_openstack_service_branch_default: "hp/prerelease/newton"
 _venv_eon_branch_default: "master"
-# TODO - remove this - choyj
-_venv_ardanaservice_branch_default: "python-prototype"
 
 # ardana-build-config is used to other CI jobs to configure
 # the pypi repo. We need to use the same mirror has other
@@ -172,9 +170,7 @@ _venv_global_constraints_sources:
 # List of sources for Ardana
 _venv_ardana_sources_default:
   ardana-service:
-    branch: "{{ _venv_ardanaservice_branch_default }}"
-    # TODO: remove the line above and uncomment the line below - choyj
-    # branch: "{{ _venv_openstack_service_branch_default }}"
+    branch: "{{ _venv_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/ardana/ardana-service"
 
   barbican:
