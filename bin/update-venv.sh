@@ -59,7 +59,7 @@ copy_venv_to_deployer()
 
   scp -F $ARDANA_VAGRANT_SSH_CONFIG $latest_venv $deployer:~/$latest_venv_name
   ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo cp \~/$latest_venv_name $deployer_path
-  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo mkdir $deployer_path
+  ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo mkdir -p $deployer_path
   ssh -F $ARDANA_VAGRANT_SSH_CONFIG $deployer sudo /opt/stack/service/packager/venv/bin/create_index --dir $deployer_path
 }
 
