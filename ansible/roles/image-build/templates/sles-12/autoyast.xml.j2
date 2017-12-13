@@ -172,16 +172,19 @@ rm /etc/resolv.conf
   <groups config:type="list">
     <group>
       <groupname>sudo</groupname>
+      <gid>1000</gid>
       <userlist>{{ image_build_user }}</userlist>
     </group>
     <group>
       <groupname>{{ image_build_user }}</groupname>
+      <gid>1001</gid>
       <userlist>{{ image_build_user }}</userlist>
     </group>
   </groups>
   <users config:type="list">
     <user>
       <username>{{ image_build_user }}</username>
+      <gid>1001</gid>
       <user_password>{{ image_build_password | password_hash('sha512') }}</user_password><encrypted config:type="boolean">true</encrypted>
       <home>{{ image_build_user_home }}</home>
     </user>
