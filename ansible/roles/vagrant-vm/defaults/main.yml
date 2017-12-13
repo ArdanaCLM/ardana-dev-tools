@@ -54,9 +54,6 @@ vagrant_vm_sles_extras:
       - conntrack-tools
       - dnsmasq-utils
       - elasticsearch
-      - erlang
-      - erlang-epmd
-      - erlang-sd_notify
       - haproxy
       - keepalived
       - kibana
@@ -77,9 +74,17 @@ vagrant_vm_sles_extras:
       - python-PyYAML
       - python-virtualenv
       - python-urllib3
-      - rabbitmq-server
       - zookeeper-server
     url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP3/"
+
+  - repo: cloud-openstack-pike
+    disable_gpg_check: yes
+    pkgs:
+      - erlang
+      - erlang-epmd
+      - erlang-sd_notify
+      - rabbitmq-server
+    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Pike/SLE_12_SP3/"
 
   - repo: "SUSE-OpenStack-Cloud-8-devel-staging"
     disable_gpg_check: yes
@@ -130,3 +135,8 @@ vagrant_vm_sles_extras:
       - yum-utils
     url: "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Manager31/standard"
 
+  - repo: opensuse-leap-network
+    disable_gpg_check: yes
+    pkgs:
+      - ipxe-bootimgs
+    url: "https://download.opensuse.org/repositories/network/openSUSE_Leap_42.3/"
