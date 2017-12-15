@@ -1190,6 +1190,7 @@ _services_default:
   openstackclient:
     sources:
       - certifi
+      - heatclient
       - keystoneclient
       - cinderclient
       - glanceclient
