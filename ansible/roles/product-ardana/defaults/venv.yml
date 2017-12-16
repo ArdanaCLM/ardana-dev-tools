@@ -69,7 +69,8 @@ _packages_dist:
   - storevirtual-installer
   - vsa
   - cmc
-  - installui
+  - installer-ui
+  - installer-server
   - ardana-service
   - freezer_api
   - freezer_agent
@@ -131,7 +132,7 @@ packages_external_venv:
   - ironic_deploy_images
   - vsa
   - cmc
-  - installui
+  - installer-ui
   - spark
 
 # commenting out in favor of above RHEL names
@@ -146,6 +147,7 @@ package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 _venv_service_branch_default: "{{ product_branch }}"
 _venv_openstack_service_branch_default: "hp/prerelease/newton"
 _venv_eon_branch_default: "master"
+_venv_installer_server_branch_default: "master"
 
 # ardana-build-config is used to other CI jobs to configure
 # the pypi repo. We need to use the same mirror has other
@@ -291,6 +293,10 @@ _venv_ardana_sources_default:
   heatclient:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/python-heatclient"
+
+  installer-server:
+    branch: "{{ _venv_installer_server_branch_default }}"
+    url: "{{ dev_env_git_servers.github }}/ArdanaCLM/ardana-installer-server"
 
   ironic:
     branch: "{{ _venv_openstack_service_branch_default }}"
@@ -850,10 +856,24 @@ _services_default:
   # 'artefact' matches the spelling used elsewhere to reference this url
   # as of the most recent versions, tarballs.... is an acceptable source for
   # external content
-  installui:
+  installer-ui:
     external:
-      - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20171204T172514Z-33ef71/cloudinstaller-20171204T172514Z-33ef71.tgz
-        sha256: 9056b0dff2f27a6cb8ced0362bf073c707f7a1ef8e15cb8efac3b5318bea5c21
+      - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20171214T190739Z-6c6e4a/cloudinstaller-20171214T190739Z-6c6e4a.tgz
+        sha256: 3db86b6b5a27ab3f7d75d5803831399e8f437e80e87459157cf92d3c33c74474
+    version: "{{ package_version }}"
+
+  installer-server:
+    sources:
+      - installer-server
+    pips:
+      - Flask
+      - eventlet
+      - flask-socketio
+      - flask-cors
+      - PyYAML
+      - requests
+      - socketIO-client
+      - tinydb
     version: "{{ package_version }}"
 
   ironic:
