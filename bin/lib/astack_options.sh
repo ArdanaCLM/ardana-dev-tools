@@ -20,7 +20,7 @@
 # all the option variables that control astack.sh
 #
 
-OPTIONS=help,ci,no-setup,no-build,build-hlinux-ova,rhel,rhel-compute,sles,sles-deployer,sles-control,sles-compute,guest-images,tarball:,cobble-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:
+OPTIONS=help,run-tests,ci,no-setup,no-build,build-hlinux-ova,rhel,rhel-compute,sles,sles-deployer,sles-control,sles-compute,guest-images,tarball:,cobble-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
@@ -60,6 +60,7 @@ USE_PROJECT_STACK=
 SQUASH_KIT=
 FEATURE_DIRS=
 FEATURE_PREPARE=1
+RUN_TESTS=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
@@ -68,6 +69,7 @@ BLDVM_MB=$(( (TOTMEM_GB / 4) * 1024 ))
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
+        --run-tests) RUN_TESTS=1 ; shift ;;
         --ci)
             SKIP_EXTRA_PLAYBOOKS=
             export ARDANAUSER=ardanauser

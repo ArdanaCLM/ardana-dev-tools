@@ -36,40 +36,41 @@ usage() {
     echo "the control plane from the specified project. This cloud uses"
     echo "the 'project' ardana-input-model as a bases."
     echo
-    echo "--no-setup        -- Don't run dev-env-install.yml"
-    echo "--no-build        -- Don't build venv, reuse existing packages"
-    echo "--build-hlinux-ova  -- Build hlinux ova from qcow2"
-    echo "--rhel            -- Include any rhel artifacts"
-    echo "--rhel-compute    -- Switch compute nodes to use rhel"
-    echo "--sles            -- Include any sles artifacts"
-    echo "--sles-control    -- Switch control nodes to use sles"
-    echo "--sles-compute    -- Switch compute nodes to use sles"
-    echo "--sles-deployer   -- Switch deployer node to use sles"
-    echo "--guest-images    -- Include any guest image artifacts"
-    echo "--tarball TARBALL -- Specify a prebuilt deployer tarball to use."
-    echo "--cobble-nodes nodes -- Specify a list of nodes to reimage with cobbler"
-    echo "                        before running the Ardana OpenStack deployment."
-    echo "--cobble-all-nodes   -- Cobble all but the deployer nodes"
-    echo "--no-config        -- Do not execute the config-processor"
-    echo "--no-site          -- Do not execute the site.yml playbook during"
-    echo "                      deployment"
-    echo "--update-only      -- Just update the git sources"
-    echo "--ci               -- Sets the same options for running in the CI"
-    echo "                     CDL lab."
-    echo "--disable-services -- Disable specified services"
-    echo "--project-stack    -- The stack (cloud etc) will be customized for"
-    echo "                      this project (by using files in the specified"
-    echo "                      project), eg --project-stack ardana/glance-ansible"
-    echo "--feature-dir      -- Add in an additional feature to be tested during"
-    echo "                      deployment. This may be specified multiple times."
-    echo "--no-prepare       -- Don't run the preparation steps for feature dirs"
+    echo "--no-setup            -- Don't run dev-env-install.yml"
+    echo "--no-build            -- Don't build venv, reuse existing packages"
+    echo "--build-hlinux-ova    -- Build hlinux ova from qcow2"
+    echo "--rhel                -- Include any rhel artifacts"
+    echo "--rhel-compute        -- Switch compute nodes to use rhel"
+    echo "--sles                -- Include any sles artifacts"
+    echo "--sles-control        -- Switch control nodes to use sles"
+    echo "--sles-compute        -- Switch compute nodes to use sles"
+    echo "--sles-deployer       -- Switch deployer node to use sles"
+    echo "--guest-images        -- Include any guest image artifacts"
+    echo "--tarball TARBALL     -- Specify a prebuilt deployer tarball to use."
+    echo "--cobble-nodes nodes  -- Specify a list of nodes to reimage with cobbler"
+    echo "                         before running the Ardana OpenStack deployment."
+    echo "--cobble-all-nodes    -- Cobble all but the deployer nodes"
+    echo "--no-config           -- Do not execute the config-processor"
+    echo "--no-site             -- Do not execute the site.yml playbook during"
+    echo "                         deployment"
+    echo "--update-only         -- Just update the git sources"
+    echo "--ci                  -- Sets the same options for running in the CI"
+    echo "                         CDL lab."
+    echo "--run-tests           -- Run tests after deployment"
+    echo "--disable-services    -- Disable specified services"
+    echo "--project-stack       -- The stack (cloud etc) will be customized for"
+    echo "                         this project (by using files in the specified"
+    echo "                         project), eg --project-stack ardana/glance-ansible"
+    echo "--feature-dir         -- Add in an additional feature to be tested during"
+    echo "                         deployment. This may be specified multiple times."
+    echo "--no-prepare          -- Don't run the preparation steps for feature dirs"
     echo "--restrict-by-project -- Specify a project to test. This restricts the number"
     echo "                         of services we run in the cloud based on the project"
     echo "                         we set here. CI sets this value via the environmental"
     echo "                         value 'ZUUL_PROJECT'"
-    echo "--squashkit        -- Specify a kit to compare this against for squashing. You"
-    echo "                      probable don't need to run this."
-    echo "--extra-vars       -- Pass extra vars to any locally run playbooks"
+    echo "--squashkit           -- Specify a kit to compare this against for squashing. You"
+    echo "                         probable don't need to run this."
+    echo "--extra-vars          -- Pass extra vars to any locally run playbooks"
 }
 
 ORIGINAL_ARGUMENTS=$@
@@ -454,3 +455,14 @@ popd
 
 # Finished the deployment, log success
 logsubunit --success deploy
+
+if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
+    test_args=""
+    if [ -n "$CI" ]; then
+        test_args="--ci"
+    fi
+
+    pushd "${DEVTOOLS}/ardana-vagrant-models/${CLOUDNAME}-vagrant"
+    ${SCRIPT_HOME}/run-in-deployer.sh ${SCRIPT_HOME}/deployer/run-tests.sh ${test_args} ci ${CLOUDNAME}
+    popd
+fi
