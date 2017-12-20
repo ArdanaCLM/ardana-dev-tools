@@ -758,6 +758,8 @@ _services_default:
       - keystoneclient
       - keystonemiddleware
       - freezer_api
+    pips:
+      - python-memcached
     version: "{{ package_version }}"
 
   glance:
