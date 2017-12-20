@@ -1364,7 +1364,7 @@ _services_default:
     pips:
       - ddt # neutron-vpnaas and neutron-fwaas
       - urllib3==1.16 # BUG-4232
-      - testscenarios>=0.4 # Apache-2.0/BSD from neutron-lbaas
+      - testscenarios>=0.4 # needed by neutron tempest tests
     version: "{{ package_version }}"
 
   ardana_qa_tests_example:
