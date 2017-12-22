@@ -89,7 +89,7 @@ set -x
 
 CLOUDNAME=${1:-deployerincloud}
 
-export ARDANA_PACKAGES_DIST='["packager", "ansible", "config_processor", "dayzero"]'
+export ARDANA_PACKAGES_DIST='["packager", "ansible", "config_processor"]'
 export ARDANA_PACKAGES_NONDIST='[]'
 
 source $SCRIPT_HOME/libci.sh
