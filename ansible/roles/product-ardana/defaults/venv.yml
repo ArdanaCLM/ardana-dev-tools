@@ -222,7 +222,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/designate-dashboard"
 
   designate_tempest_plugin:
-    branch: "hp/prerelease/newton"
+    branch: "master"
     url: "{{ dev_env_default_git_server }}/openstack/designate-tempest-plugin"
 
   django_openstack_auth:
@@ -284,6 +284,10 @@ _venv_ardana_sources_default:
   heatclient:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/python-heatclient"
+
+  heat_tempest_plugin:
+    branch: "master"
+    url: "{{ dev_env_git_servers.openstack }}/openstack/heat-tempest-plugin"
 
   installer-server:
     branch: "{{ _venv_installer_server_branch_default }}"
@@ -1302,7 +1306,6 @@ _services_default:
       - certifi
       - oslomessaging
       - keystoneclient
-      - cinderclient
       - swiftclient
       - glanceclient
       - novaclient
@@ -1318,10 +1321,12 @@ _services_default:
       - neutron_lbaas
       - tempest
       - designate_tempest_plugin
+      - heat_tempest_plugin
     pips:
       - ddt # neutron-vpnaas and neutron-fwaas
       - urllib3==1.16 # BUG-4232
       - testscenarios>=0.4 # needed by neutron tempest tests
+      - python-cinderclient>=3.2.0 # needed by the heat tempest plugin
     version: "{{ package_version }}"
 
   ardana_qa_tests_example:
