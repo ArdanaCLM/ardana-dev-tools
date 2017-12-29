@@ -760,6 +760,7 @@ _services_default:
       - freezer_api
     pips:
       - python-memcached
+      - pyOpenSSL
     version: "{{ package_version }}"
 
   glance:
