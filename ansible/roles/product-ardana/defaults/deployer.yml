@@ -35,9 +35,6 @@ _deployer_git_repositories_default:
   ceilometer-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ceilometer-ansible"
     branch: "{{ _deployer_branch_default }}"
-  ceph-ansible:
-    url: "{{ dev_env_default_git_server }}/ardana/ceph-ansible"
-    branch: "{{ _deployer_branch_default }}"
   cinder-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/cinder-ansible"
     branch: "{{ _deployer_branch_default }}"
@@ -133,12 +130,6 @@ _deployer_git_repositories_default:
     branch: "{{ _deployer_branch_default }}"
   tls-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/tls-ansible"
-    branch: "{{ _deployer_branch_default }}"
-  vmfactory-ansible:
-    url: "{{ dev_env_default_git_server }}/ardana/vmfactory-ansible"
-    branch: "{{ _deployer_branch_default }}"
-  vsa-ansible:
-    url: "{{ dev_env_default_git_server }}/ardana/vsa-ansible"
     branch: "{{ _deployer_branch_default }}"
   ardana-service-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-service-ansible"

@@ -249,7 +249,6 @@ restrict_services["swift"]="ardana/swift-ansible \
 
 # BUG-3744 - cinder-back depends on swift
 restrict_services["cinder-backup"]="ardana/cinder-ansible \
-    ardana/ceph-ansible \
     ardana/cinderlm \
     openstack/cinder \
     ${restrict_services['swift']}"

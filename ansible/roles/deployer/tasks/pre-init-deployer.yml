@@ -198,21 +198,6 @@
     backrefs: yes
     state: present
 
-- name: deployer | pre-iinit-deployer | mkdir stage/images for VM factory qcow2
-  file:
-     path: "/home/{{ image_build_user }}/stage/images"
-     state: directory
-  when: dev_env_use_hlinux_artifacts|bool
-
-- name: deployer | pre-init-deployer | Upload VM Factory image
-  copy:
-    src: "{{ image_build_output_dir}}/hlinux.qcow2"
-    dest: "/home/{{ image_build_user }}/stage/images/hlinux.qcow2"
-    owner: "{{ image_build_user }}"
-    group: "{{ image_build_user }}"
-    mode: 0400
-  when: dev_env_use_hlinux_artifacts|bool
-
 - name: deployer | pre-init-deployer | Upload OVA image into deployer
   become: yes
   copy:

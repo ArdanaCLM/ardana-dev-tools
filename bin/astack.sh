@@ -137,17 +137,6 @@ else
     CLOUDNAME=${1:-deployerincloud}
 fi
 
-# If in CI mode and cloud is standard-ceph then add ceph-enable
-# feature to FEATURE_DIRS if it exists, and isn't already there.
-if [ -n "$CI" -a "$CLOUDNAME" = "standard-ceph" ]; then
-    _ceph_feature=$DEVTOOLS/ardana-ci/features/ceph-enable
-    if [ -d "$_ceph_feature" ]; then
-        if ! echo "$FEATURE_DIRS" | grep -qs "/$(basename "$_ceph_feature")\>"; then
-            FEATURE_DIRS="$FEATURE_DIRS $_ceph_feature"
-        fi
-    fi
-fi
-
 # During deploy & upgrade of the standard environment in CI make one node a RHEL one
 # This will test RHEL upgrade & deployment support
 # This block is duplicated in run-upgrade also.

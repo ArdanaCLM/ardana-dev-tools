@@ -29,21 +29,18 @@ _packages_dist:
   - neutron
   - cinder
   - cinderlm
-  - cephlm
   - swift
   - swiftlm
   - horizon
   - opsconsole-server
   - ironic
   - heat
-  - eon
   - ceilometer
   - monasca_ceilometer
   - tempest
   - config_processor
   - openstackclient
   - ceilometerclient
-  - eonclient
   - cinderclient
   - glanceclient
   - glance-check
@@ -69,8 +66,6 @@ _packages_dist:
   - elasticsearch_235
   - kronos
   - storevirtual-installer
-  - vsa
-  - cmc
   - installer-ui
   - installer-server
   - ardana-service
@@ -132,8 +127,6 @@ packages_external_venv:
   - monasca
   - ops_console_content
   - ironic_deploy_images
-  - vsa
-  - cmc
   - installer-ui
   - spark
 
@@ -199,10 +192,6 @@ _venv_ardana_sources_default:
 
   ceph_common: # os specific
 
-  cephlm:
-    branch: "{{ _venv_service_branch_default }}"
-    url: "{{ dev_env_default_git_server }}/ardana/cephlm"
-
   certifi:
     # Our copy of certifi
     branch: "{{ _venv_service_branch_default }}"
@@ -243,10 +232,6 @@ _venv_ardana_sources_default:
   # NOTE: HPE references in EON repo specs here are safe to keep,
   # in rebranding terms, as they are references to HPE's opensourced
   # version of the EON code as used in previous releases
-  eon:
-    branch: "{{ _venv_eon_branch_default }}"
-    url: "{{ dev_env_git_servers.github }}/hpe-helion-os/hpe-eon"
-
   eonclient:
     branch: "{{ _venv_eon_branch_default }}"
     url: "{{ dev_env_git_servers.github }}/hpe-helion-os/python-hpeeonclient"
@@ -621,17 +606,6 @@ _services_default:
       - monasca_ceilometer
     version: "{{ package_version }}"
 
-  cephlm:
-    sources:
-      - certifi
-      - oslomessaging
-      - keystoneclient
-      - swiftclient
-      - swiftlm
-      - cephlm
-      - ceph_common
-    version: "{{ package_version }}"
-
   cinder:
     sources:
       - certifi
@@ -713,32 +687,6 @@ _services_default:
       - certifi
       - keystoneclient
       - designateclient
-    version: "{{ package_version }}"
-
-  eon:
-    sources:
-      - certifi
-      - logstash_formatter
-      - keystoneclient
-      - keystonemiddleware
-      - oslovmware
-      - oslomessaging
-      - glanceclient
-      - neutronclient
-      - novaclient
-      - networking_vsphere
-      - eon
-    deps:
-      - "{{ product_ardana_venv_deps.db_devel }}"
-    pips:
-      - MySQL-python
-    version: "{{ package_version }}"
-
-  eonclient:
-    sources:
-      - certifi
-      - keystoneclient
-      - eonclient
     version: "{{ package_version }}"
 
   freezer_agent:
@@ -1347,20 +1295,6 @@ _services_default:
     sources:
       - certifi
       - storevirtual-installer
-    version: "{{ package_version }}"
-
-  vsa:
-    external:
-      - path: /vsa/helion-vsa-11.5.01.1.0099_4.0.1.tgz
-        sha256: 6269a31cbae4d345d9b0e9f68cb8978d88feb534308b633184a94e1e486e9b1c
-    version: "{{ package_version }}"
-
-  cmc:
-    external:
-      - path: /cmc/helion-cmc-11.5.01.1.0099.1_4.0.1.tgz
-        sha256: 052beed02b6271eaa844410108974bc5cbb6d4979fd9f7a42302f153cf4db298
-      - path: /cmc/patch_for_VSA_11.5.01.0079.tgz
-        sha256: eeafd6e782239baae8615236baef8ad0fb501640f8a8b5d1bdc9c815004d7e4a
     version: "{{ package_version }}"
 
   tempest:

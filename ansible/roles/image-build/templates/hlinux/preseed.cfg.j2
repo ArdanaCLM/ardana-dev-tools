@@ -166,8 +166,6 @@ wget http://$http_server/preseed/configure_kdump; \
 cp ./configure_kdump /target/tmp;\
 in-target bash /tmp/configure_kdump ;\
 in-target rm /tmp/configure_kdump;\
-echo "deb [arch=i386] http://$http_server/ardana/cmc32 cattleprod main" >> /target/etc/apt/sources.list;\
-in-target dpkg --add-architecture i386;\
 in-target apt-get update;\
 in-target rm /etc/resolv.conf;\
 wget http://$http_server/preseed/bnx2x.conf;\

@@ -35,17 +35,6 @@ if [ -n "$ANSIBLE_FORKS" ]; then
     ANSIBLE_FORKS="-f $ANSIBLE_FORKS"
 fi
 
-# Figure out of there are Ardana Hypervisor nodes. If so, run appropriate plays.
-# TODO: See if we can incorporate this logic into the plays
-ARDANA_HYPERVISORS=`ansible -i hosts/verb_hosts ardana-hypervisors --list-hosts | wc -l`
-
-# Create any Virtual Control Plane nodes
-if [ "$ARDANA_HYPERVISORS" -gt 0 ]
-then
-    ansible-playbook ${ANSIBLE_FORKS} -i hosts/verb_hosts ardana-hypervisor-setup.yml \
-                                       | tee ${HOME}/ardana-hypervisor-setup.yml
-fi
-
 ansible-playbook ${ANSIBLE_FORKS} -i hosts/verb_hosts site.yml |
   tee ${HOME}/site.log
 
