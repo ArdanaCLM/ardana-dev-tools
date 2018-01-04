@@ -149,6 +149,7 @@ elif [ -f $SCRATCH/boot/x86_64/loader/isolinux.bin ]; then
     sudo cp -f $SLES_FILES_DIR/isolinux.cfg $SCRATCH/boot/x86_64/loader/
     sudo cp -f $SLES_FILES_DIR/sles12sp3-autoyast.xml $SCRATCH/
     sudo cp -f $SLES_FILES_DIR/add_nic.xslt $SCRATCH/
+    sudo perl -p -i.orig -e 's#^  linuxefi /boot/x86_64/loader/linux splash=silent$#  linuxefi /boot/x86_64/loader/linux splash=silent autoyast=file:///sles12sp3-autoyast.xml#' $SCRATCH/EFI/BOOT/grub.cfg
 else
     echo "ERROR: isolinux.bin not found on source ISO"
     exit 1
