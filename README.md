@@ -110,12 +110,20 @@ ARDANA_DEVELOPER=1 (or true) in your environment, and Vagrant 1.7.4 will be used
 Additionally if you need to run a newer version of Vagrant on your system for
 other reasons you can additionally set ARDANA_VAGRANT_VERSION to the desired
 version in your environment. You may need to delete ~/.vagrant.d after doing
-so to ensure you plugins are built with the correct version of Vagrant.
+so to ensure your plugins are built with the correct version of Vagrant.
 
 For example
 
     export ARDANA_DEVELOPER=true
     export ARDANA_VAGRANT_VERSION=1.8.7
+
+If you have an existing ~/.vagrant.d in your home directory that was generated
+on another system (for example, if you reinstall your machine or get a new
+one, it's a good idea to delete it prior to running the Ardana stack to ensure
+that the plugins are rebuilt with the current version of vagrant. If you've
+already installed the correct version of vagrant but aren't getting plugins,
+simply uninstall the vagrant package using the system package manager and
+rerun astack.sh.
 
 ### Ansible version
 
