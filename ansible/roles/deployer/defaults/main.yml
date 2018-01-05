@@ -65,6 +65,7 @@ deployer_sles12_venv_dir: "{{ deployer_build_dir }}/sles12-venvs"
 deployer_sles12_venv_tarball: "{{ deployer_version }}/sles12-venv.tar"
 deployer_sles_zypper_extras_tarball: "{{ deployer_version }}/{{ sles12_zypper_extras_tarball | basename }}"
 deployer_sles12_iso: "{{ sles12_iso | basename }}"
+deployer_sles12sdk_iso: "{{ sles12sdk_iso | basename }}"
 # Location on the deployer node where to find SLES repo
 zypper_loc: ardana/sles12/zypper
 zypper_dir: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ zypper_loc }}"
