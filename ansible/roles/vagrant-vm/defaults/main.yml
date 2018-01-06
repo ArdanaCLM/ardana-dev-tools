@@ -84,6 +84,8 @@ vagrant_vm_sles_extras:
       - erlang-epmd
       - erlang-sd_notify
       - rabbitmq-server
+      - cassandra
+      - cassandra-tools
     url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Pike/SLE_12_SP3/"
 
   - repo: "SUSE-OpenStack-Cloud-8-devel-staging"
