@@ -179,11 +179,11 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/python-barbicanclient"
 
   ceilometer:
-    branch: "hp/prerelease/newton"
+    branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/ceilometer"
 
   ceilometerclient:
-    branch: "hp/prerelease/newton"
+    branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/python-ceilometerclient"
 
   monasca_ceilometer:
