@@ -18,6 +18,8 @@
 # Called by CI
 #
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 export CI=yes
 source $(dirname $0)/libci.sh
 

@@ -1,0 +1,58 @@
+#!/bin/bash -eu
+
+set -eu
+set -o pipefail
+
+get_distro_family()
+{
+    if grep -qs ID_LIKE /etc/os-release
+    then
+        echo $(grep ID_LIKE /etc/os-release | cut -d= -f2)
+    elif grep -qs 'ID="sles"' /etc/os-release
+    then
+        echo suse
+    fi
+}
+
+suse_install()
+{
+    sudo zypper install --no-confirm "${0}"
+}
+
+debian_install()
+{
+    sudo apt-get install --yes "${@}"
+}
+
+distro_family=$(get_distro_family)
+ardana_cache="${HOME}/.cache-ardana"
+ansible_version=1.9.6
+bootstrap_venvs="${ardana_cache}/venvs"
+bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
+venv_cmd=/usr/bin/virtualenv
+
+# Install require package if desired virtualenv command not found
+if [[ ! -x ${venv_cmd} ]]
+then
+    ${distro_family}_install python-virtualenv 1>&2
+fi
+
+# Create the bootstrap ansible venv if it doesn't exist
+if [[ ! -d "${bootstrap_ansible}" ]]
+then
+    ${venv_cmd} --python python2.7 "${bootstrap_ansible}" 1>&2
+    ${bootstrap_ansible}/bin/pip install --upgrade pip wheel 1>&2
+fi
+
+# Install specified ansible version in the bootstrap venv if necessary
+if [[ ! -x "${bootstrap_ansible}/bin/ansible-playbook" ]];
+then
+    ${bootstrap_ansible}/bin/pip install "ansible==1.9.6" 1>&2
+fi
+
+echo "Using ansible venv '${bootstrap_ansible}'" 1>&2
+
+echo "PATH=${bootstrap_ansible}/bin:\$PATH"
+echo "export PATH"
+
+# vim:shiftwidth=4:tabstop=4:expandtab

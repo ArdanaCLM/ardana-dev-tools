@@ -20,6 +20,8 @@ set -eu
 set -o pipefail
 set -x
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 SCRIPT_NAME=$(basename $0)
 SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
