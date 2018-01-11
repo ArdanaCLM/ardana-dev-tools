@@ -89,18 +89,25 @@ all.
 
 This script enables you to set up Ardana:
 
-    ./bin/astack.sh deployerincloud
+    ./bin/astack.sh dac-min
 
-The cloud defaults to deployerincloud. You can specify the configuration after
-the command e.g. ./astack.sh standard
+The cloud defaults to dac-min. You can specify the cloud configuration to
+be used as the last argument on the command line e.g. ./astack.sh std-min
 
 Add the following parameters for more options:
 
     --no-setup             (Don't run dev-env-install.yml)
-    --no-build             (Don't build venv, reuse existing packages)
+    --no-build             (Don't build venvs, reuse existing packages)
+    --no-config            (Don't automatically compile the cloud model and
+                            prepare the scratch area after previsioning cloud;
+                            implies --no-site)
+    --no-site              (Don't run the site.yml play after previsioning cloud)
+    --run-tests            (Run the tests against cloud after a successful test)
     --tarball TARBALL      (Specify a prebuilt deployer tarball to use)
     --ci                   (Sets the same options for running in the CI CDL lab)
     --guest-images         (Builds and uploads guest images to glance)
+    --rhel                 (Builds RHEL artifacts for inclusion in product tarball)
+    --rhel-compute         (Configures compute nodes to be RHEL based)
 
 ## Getting Started
 
@@ -305,22 +312,54 @@ which represent the physical servers in an Ardana OpenStack cloud.
 
 The development environment provides a set of cloud definitions that can be used:
 
-* standard: A single region cloud
-
-    Cloud Control Plane (3 nodes: ha-proxy, Apache, MySQL, RabbitMQ, Keystone, Glance, Horizon, Nova, Neutron ) + 3 Compute Nodes
-
 * minimal: Cloud in a box
+
+    A minimal single node cloud running a reduced number of services, disabling some of the Metering, Monitoring & Logging (MML) stack using a "hack"
 
 * deployerincloud: A 3 node cloud
 
-    Cloud Control Plane (1 node: ha-proxy, Apache, MySQL, RabbitMQ, Keystone, Glance, Horizon, Nova, Neutron ) + 2 Compute Nodes
+    Cloud Control Plane (1 node: ha-proxy, Apache, MySQL, RabbitMQ, Keystone, Glance, Horizon, Nova, Neutron ) + 2 Compute Nodes, with deployer on controller node. Uses a simplified Swift ring model with EC disabled.
 
-Each variant has its own vagrant definition.  For example to get vagrant to create the VMs needed for a standard cloud use the following command:
+* deployerincloud-lite: A 3 node cloud
+
+    A cutdown version of deployerincloud using same "hack" as minimal to disable some of the MML stack.
+
+* standard: A 7 node single region cloud
+
+    Cloud Control Plane (3 nodes: ha-proxy, Apache, MySQL, RabbitMQ, Keystone, Glance, Horizon, Nova, Neutron ) + 3 Compute Nodes + 1 Deployer. Uses a more complex Swift run model with EC enabled.
+
+* std-min: A 4 node single region cloud
+
+    A cutdown version of standard cloud with 1 controller and 2 computes removed.
+
+* std-3cp: A 5 node single region cloud
+
+    A cutdown version of standard cloud with 2 computes removed.
+
+* std-3cm: A 5 node single region cloud
+
+    A cutdown version of standard cloud with 2 controllers removed, and simplified Swift ring model with EC disabled.
+
+* dac-min: A 2 node single region cloud
+
+    A cutdown version of std-3cm with just 1 compute and deployer at controller (dac).
+
+* std-split: A 5 node single region multi-control plane cloud
+
+    Based on the standard cloud with 2 compute removed, using 3 single node control planes, 1 for core openstack services, 1 for DB & RabbitMQ, and 1 for MML stack, though Swift services are shared among all 3 to allow for a complete Swift ring model with EC disabled. Control node sizing are minimised to match running service requirements.
+
+* mid-size: A multi-control plane, multi region cloud
+
+* multi-cp: A more complex multi-control plane multi-region cloud
+
+WARNING : The std-split, mid-size & multi-cp models may not be stable/functional right now.
+
+Each variant has its own vagrant definition, under the ardana-vagrant-models directory, and associated cloud model defined in the ardana-input-model repo, under the 2.0/ardana-ci directory.
+
+For example to get vagrant to create the VMs needed for a standard cloud with default node distro setting use the following command:
 
     cd ../ardana-vagrant-models/standard-vagrant
     vagrant up
-
-WARNING : currently only the standard cloud is known to work - the others are work in progress.
 
 NOTE : vagrant up provisions all the nodes in your cloud. During the provisioning of the deployer node we
 create a tarball of all the ansible deployment code, and all the venvs we built earlier. The provisioning

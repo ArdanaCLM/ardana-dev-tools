@@ -5,14 +5,18 @@ Continuous Integration
 Integration jobs
 ----------------
 
-We have a basic integration job. This jobs bring up the associated cloud
+We have some basic integration jobs. These jobs bring up the associated cloud
 in *ardana-input-model/2.0/ardana-ci* and are deployed via the ``astack.sh``
 script. They are:
 
-- ardana-standard-vagrant-integration-test
-- ardana-mid-size-vagrant-integration-test
-- ardana-mid-size-vagrant-rhel-integration-test
-- ardana-standard-vagrant-upgrade-test
+- ardana-std-min-vagrant-integration-test-sles (voting)
+  Creates a std-min cloud fully SLES based
+- ardana-project-stack-vagrant-integration-test (non-voting)
+  Creates a project-stack cloud based on settings defined in
+  repo's ardana-ci directory, if it exists.
+- ardana-standard-vagrant-cobbler-test (non-voting)
+  Creates a standard cloud with limited components and uses
+  cobbler to re-image all nodes other than the deployer.
 
 
 These jobs can run all services defined in the input model for the cloud.

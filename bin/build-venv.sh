@@ -77,8 +77,7 @@ done
 # select a default distro if none specified
 if [ -z "${ARDANA_HLINUX_ARTIFACTS:-}" -a -z "${ARDANA_RHEL_ARTIFACTS:-}" -a \
      -z "${ARDANA_SLES_ARTIFACTS:-}" ]; then
-    # TODO(fergal): Switch to SLES
-    export ARDANA_HLINUX_ARTIFACTS=1
+    export ARDANA_SLES_ARTIFACTS=1
 fi
 
 source "$(dirname $0)/libci.sh"

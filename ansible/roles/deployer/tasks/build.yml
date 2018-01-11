@@ -20,7 +20,7 @@
 - name: deployer | build | Evaluate directory holding nondist packages
   set_fact:
       packages_nondist_dir:
-        "{{ dev_env_use_sles12_deployer|bool|ternary(venv_cache_dir_suse, venv_cache_dir_debian)  }}"
+        "{{ dev_env_use_hlinux_deployer|bool|ternary(venv_cache_dir_debian, venv_cache_dir_suse)  }}"
 
 - name: deployer | build | Print directory holding nondist packages
   debug: var=packages_nondist_dir

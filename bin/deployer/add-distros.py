@@ -54,22 +54,27 @@ class InvalidServersPathError(StandardError):
 
 class Servers(object):
 
-    _DISTRO_ID_MAP = dict(sles12="sles12sp3-x86_64",
-                          rhel7="rhel72-x86_64")
+    _DISTRO_ID_MAP = dict(sles="sles12sp3-x86_64",
+                          hlinux="hlinux-x86_64",
+                          rhel="rhel72-x86_64")
 
-    def __init__(self, cloud=None, hpci_base=None):
+    @classmethod
+    def supported_distros(cls):
+        return list(cls._DISTRO_ID_MAP.keys())
+
+    def __init__(self, cloud=None, ci_base=None, distro=None):
         if cloud is None:
             raise NoCloudNameError("No cloud name specified when creating "
                                    "%s object" % (self.__class__.__name__))
 
-        if hpci_base is None:
-            hpci_base = os.path.join(os.environ["HOME"], "ardana-ci")
+        if ci_base is None:
+            ci_base = os.path.join(os.environ["HOME"], "ardana-ci")
 
-        if not os.path.exists(hpci_base):
+        if not os.path.exists(ci_base):
             raise InvalidHPCIBasePathError("Invalid ardana-ci directory: '%s'" %
-                                           hpci_base)
+                                           ci_base)
 
-        cloud_base = os.path.join(hpci_base, cloud)
+        cloud_base = os.path.join(ci_base, cloud)
         if not os.path.exists(cloud_base):
             raise InvalidHPCICloudPathError("Specified ardana-ci cloud directory "
                                             "doesn't exist: '%s'" %
@@ -80,8 +85,12 @@ class Servers(object):
             raise InvalidHPCICloudPathError("Specified servers file doesn't "
                                             "exist: '%s'" % servers_file)
 
+        if distro is None:
+            distro = "sles12"
+
         self._cloud = cloud
-        self._hpci_base = hpci_base
+        self._distro = distro
+        self._ci_base = ci_base
         self._cloud_base = cloud_base
         self._servers_file = servers_file
         self._servers_data = None
@@ -92,8 +101,12 @@ class Servers(object):
         return self._cloud
 
     @property
-    def hpci_base(self):
-        return self._hpci_base
+    def distro(self):
+        return self._distro
+
+    @property
+    def ci_base(self):
+        return self._ci_base
 
     @property
     def cloud_base(self):
@@ -134,11 +147,31 @@ class Servers(object):
         else:
             logger.info('Server state did not change, not saving')
 
-    def set_distro_id(self, server, distro="hlinux"):
+    def set_distro_id(self, server, distro=None):
+        if distro is None:
+            distro = self.distro
+
+        logger.info("Setting distro for node '%s' (role '%s') to '%s'" %
+                    (server['id'], server['role'], distro))
+
         distro_id = self._DISTRO_ID_MAP.get(distro, None)
 
-        # if an entry exists in distro ids map
-        if distro_id:
+        # if no matching distro is found, or the distro is the default
+        if distro_id is None or distro == self.distro:
+            # want to use implict distro-id, so remove
+            # any existing distro-id entry in server
+            if "distro-id" in server:
+                logger.info('Distro id %s for server %s is not default, '
+                            ' removing' % (server["distro-id"], server['id']))
+                del server["distro-id"]
+
+                # mark servers object as dirty
+                self._dirty = True
+            else:
+                logger.info('Default distro id for server %s unchanged' %
+                            (server['id']))
+        # an entry exists in distro ids map
+        else:
             # if existing distro-id is not required value
             if server.get("distro-id") != distro_id:
                 logger.info('Distro id %s for server %s does not match %s, '
@@ -152,79 +185,101 @@ class Servers(object):
             else:
                 logger.info('Distro id %s for server %s unchanged' %
                             (distro_id, server['id']))
-        else:
-            # no entry in map means use implict distro-id, so remove
-            # any existing distro-id entry in server
-            if "distro-id" in server:
-                logger.info('Distro id %s for server %s is not default, '
-                            ' removing' % (server["distro-id"], server['id']))
-                del server["distro-id"]
-
-                # mark servers object as dirty
-                self._dirty = True
-            else:
-                logger.info('Default distro id for server %s unchanged' %
-                            (server['id']))
 
 
 def main():
 
-    def str2bool(arg):
-        return arg.lower() in ("yes", "true", "1")
-
     parser = argparse.ArgumentParser(description='Configure compute distros')
     parser.add_argument('cloud',
                         help='Name of cloud being deployed')
-    parser.add_argument('--sles-deployer', dest='sles_deployer',
-                        help='Configure deployer to run on SLES')
-    parser.add_argument('--sles-compute', dest='sles_compute',
-                        help='Configure all compute nodes to run on SLES')
-    parser.add_argument('--sles-compute-nodes', dest='sles_compute_nodes',
-                        help='Configure selected compute nodes to run on SLES'
-                        '(colon-separated list)')
-    parser.add_argument('--sles-control', dest='sles_control',
-                        help='Configure all control nodes to run on SLES')
-    parser.add_argument('--sles-control-nodes', dest='sles_control_nodes',
-                        help='Configure selected control nodes to run on SLES'
-                        '(colon-separated list)')
-    parser.add_argument('--rhel-compute', dest='rhel_compute',
-                        help='Configure all compute nodes to run on RHEL')
-    parser.add_argument('--rhel-compute-nodes', dest='rhel_compute_nodes',
-                        help='Configure selected compute nodes to run on RHEL'
-                        '(colon-separated list)')
+    parser.add_argument('--default-distro', dest='default_distro',
+                        type=str, choices=Servers.supported_distros(),
+                        default=Servers.supported_distros()[0],
+                        help='Default linux distribution')
+
+    # limit set of nodes to be cobbled
+    parser.add_argument('--nodes', dest='cobble_nodes', default='',
+                        help='Only re-image this subset of nodes '
+                        '(colon separated list)')
+
+    # specific node distro selections
+    parser.add_argument('--hlinux-nodes', dest='hlinux_nodes', default='',
+                        help='Configure selected nodes to re-image as hLinux '
+                        '(colon separated list)')
+    parser.add_argument('--rhel-nodes', dest='rhel_nodes', default='',
+                        help='Configure selected nodes to re-image as RHEL '
+                        '(colon separated list)')
+    parser.add_argument('--sles-nodes', dest='sles_nodes', default='',
+                        help='Configure selected nodes to re-image as SLES '
+                        '(colon separated list)')
+
+    # control plane distro selection
+    parser.add_argument('--hlinux-control', action="store_true",
+                        help='Configure control nodes to be re-imaged as '
+                        'hLinux')
+    parser.add_argument('--sles-control', action="store_true",
+                        help='Configure control nodes to be re-imaged as '
+                        'SLES')
+
+    # compute node distro selection
+    parser.add_argument('--hlinux-compute', action="store_true",
+                        help='Configure compute nodes to be re-image as '
+                        'hLinux')
+    parser.add_argument('--rhel-compute', action="store_true",
+                        help='Configure compute nodes to be re-image as '
+                        'RHEL')
+    parser.add_argument('--sles-compute', action="store_true",
+                        help='Configure compute nodes to be re-image as '
+                        'SLES')
 
     args = parser.parse_args()
-    servers = Servers(args.cloud)
+    servers = Servers(args.cloud, distro=args.default_distro)
 
-    sles_compute_node_ids = args.sles_compute_nodes.split(':')
-    sles_control_node_ids = args.sles_control_nodes.split(':')
-    rhel_compute_node_ids = args.rhel_compute_nodes.split(':')
+    if not args.cobble_nodes:
+        cobble_nodes = []
+    else:
+        cobble_nodes = set(args.cobble_nodes.split(':'))
 
-    for i, server in enumerate(servers.servers):
-        if "COMPUTE" in server['role']:
-            if str2bool(args.sles_compute) or \
-                    server['id'] in sles_compute_node_ids:
-                servers.set_distro_id(server, 'sles12')
-            elif str2bool(args.rhel_compute) or \
-                    server['id'] in rhel_compute_node_ids:
-                servers.set_distro_id(server, 'rhel7')
-            else:
-                servers.set_distro_id(server, 'hlinux')
-        elif "CONTROL" in server['role']:
-            if str2bool(args.sles_control) or \
-                    server['id'] in sles_control_node_ids:
-                servers.set_distro_id(server, 'sles12')
-            else:
-                servers.set_distro_id(server, 'hlinux')
-        # Treat 1st server in the list as deployer
-        elif i == 0 and "CONTROL" not in server['role']:
-            if str2bool(args.sles_deployer):
-                servers.set_distro_id(server, 'sles12')
-            else:
-                servers.set_distro_id(server, 'hlinux')
-        else:
-            logger.info('Unrecognized node type %s, not changing distro' %
-                        server['role'])
+    hlinux_node_ids = set(args.hlinux_nodes.split(':'))
+    rhel_node_ids = set(args.rhel_nodes.split(':'))
+    sles_node_ids = set(args.sles_nodes.split(':'))
+
+    for server in servers.servers:
+        server_distro = None
+
+        if cobble_nodes and server['id'] not in cobble_nodes:
+            logger.info("Skipping node '%s' as not in set of nodes to be "
+                        "cobbled" % (server['id']))
+            continue
+
+        # first check for specific node distro selections
+        if server['id'] in sles_node_ids:
+            server_distro = 'sles'
+        elif server['id'] in rhel_node_ids:
+            server_distro = 'rhel'
+        elif server['id'] in hlinux_node_ids:
+            server_distro = 'hlinux'
+
+        if (server_distro is None) and ("COMPUTE" in server['role']):
+            # check for blanket all compute setting
+            if args.sles_compute:
+                server_distro = 'sles'
+            elif args.rhel_compute:
+                server_distro = 'rhel'
+            elif args.hlinux_compute:
+                server_distro = 'hlinux'
+
+        if (server_distro is None) and ("CONTROLLER" in server['role']):
+            # check first for blanket all control setting
+            if args.sles_control:
+                server_distro = 'sles'
+            elif args.hlinux_control:
+                server_distro = 'hlinux'
+
+        if server_distro is None:
+            server_distro = args.default_distro
+
+        servers.set_distro_id(server, server_distro)
 
     # write out changes if necessary
     servers.commit()
@@ -232,3 +287,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+# vim:shiftwidth=4:tabstop=4:expandtab

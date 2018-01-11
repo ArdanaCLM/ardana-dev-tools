@@ -23,42 +23,42 @@
 
 - name: apt-repos | _get_artifacts | Create artefacts directory
   file:
-    path: "{{ hlinux_artefacts_dir }}"
+    path: "{{ ardana_images_dir }}"
     state: directory
 
 - name: artifacts | _get_artifacts | Get SHA256
   get_url:
     url: "{{ artifact_base_url }}/{{ artifact }}.sha256"
-    dest: "{{ hlinux_artefacts_dir }}/{{ filename }}.sha256"
+    dest: "{{ ardana_images_dir }}/{{ filename }}.sha256"
     use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
     force: yes
     timeout: 20
 
 - name: artifacts | _get_artifacts | Get artifact SHA256
   shell: |
-    awk '/ {{ artifact_alias }}/ { print $1 }' {{ hlinux_artefacts_dir }}/{{ filename }}.sha256
+    awk '/ {{ artifact_alias }}/ { print $1 }' {{ ardana_images_dir }}/{{ filename }}.sha256
   register: _artifact_sha256_result
   failed_when: _artifact_sha256_result.stdout == ""
 
 - name: artifacts | _get_artifacts | Artifact manifest
   shell: |
-    echo "{{ artifact_base_url }}/{{ artifact }}" > {{ hlinux_artefacts_dir }}/{{ filename }}.manifest
+    echo "{{ artifact_base_url }}/{{ artifact }}" > {{ ardana_images_dir }}/{{ filename }}.manifest
 
 - name: artifacts | _get_artifacts | Check artifact manifest
   shell: |
     set -eu
 
-    sha256sum -c --strict "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
-        test -e "{{ hlinux_artefacts_dir }}/{{ filename }}"
+    sha256sum -c --strict "{{ ardana_images_dir }}/{{ filename }}.manifest.sha256" &&
+        test -e "{{ ardana_images_dir }}/{{ filename }}"
   args:
-    chdir: "{{ hlinux_artefacts_dir }}"
+    chdir: "{{ ardana_images_dir }}"
   register: _manifest_check_result
   ignore_errors: true
 
 - name: artifacts | _get_artifacts | Download artifact
   get_url:
     url: "{{ artifact_base_url }}/{{ artifact }}"
-    dest: "{{ hlinux_artefacts_dir }}/{{ filename }}.tmp"
+    dest: "{{ ardana_images_dir }}/{{ filename }}.tmp"
     sha256sum: "{{ _artifact_sha256_result.stdout }}"
     force: yes
     use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
@@ -68,11 +68,11 @@
 - name: artifacts | _get_artifacts | Move tmp file to get around filename permissions
   become: yes
   shell: |
-    mv {{ hlinux_artefacts_dir }}/{{ filename }}.tmp {{ hlinux_artefacts_dir }}/{{ filename }}
+    mv {{ ardana_images_dir }}/{{ filename }}.tmp {{ ardana_images_dir }}/{{ filename }}
   when: _manifest_check_result | failed
 
 - name: artifacts | _get_artifacts | Create manifest
   shell: |
-    sha256sum "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest" > "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
-        sha256sum "{{ hlinux_artefacts_dir }}/{{ filename }}.sha256" >> "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256" &&
-        echo "{{ _artifact_sha256_result.stdout }}  {{ filename }}" >> "{{ hlinux_artefacts_dir }}/{{ filename }}.manifest.sha256"
+    sha256sum "{{ ardana_images_dir }}/{{ filename }}.manifest" > "{{ ardana_images_dir }}/{{ filename }}.manifest.sha256" &&
+        sha256sum "{{ ardana_images_dir }}/{{ filename }}.sha256" >> "{{ ardana_images_dir }}/{{ filename }}.manifest.sha256" &&
+        echo "{{ _artifact_sha256_result.stdout }}  {{ filename }}" >> "{{ ardana_images_dir }}/{{ filename }}.manifest.sha256"

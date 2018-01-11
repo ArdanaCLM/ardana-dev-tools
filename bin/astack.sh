@@ -30,7 +30,7 @@ usage() {
     set +x
     echo "$SCRIPT_NAME [--ci] [--no-setup] [--no-build] [cloud]"
     echo
-    echo "cloud defaults to deployerincloud"
+    echo "NOTE: cloud defaults to dac-min"
     echo
     echo "Note that if the --project-stack is specified then the concept of"
     echo "the cloud changes. By default we pull the input model from"
@@ -40,17 +40,50 @@ usage() {
     echo
     echo "--no-setup            -- Don't run dev-env-install.yml"
     echo "--no-build            -- Don't build venv, reuse existing packages"
+    echo "--no-git-update       -- Don't update git cached sources"
     echo "--build-hlinux-ova    -- Build hlinux ova from qcow2"
-    echo "--rhel                -- Include any rhel artifacts"
+    echo "--hlinux              -- Include any hLinux artifacts"
+    echo "--hlinux-control      -- Switch control nodes to use hLinux"
+    echo "--hlinux-control-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as hLinux controllers. (repeatable)"
+    echo "--hlinux-compute      -- Switch compute nodes to use hLinux"
+    echo "--hlinux-compute-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as hLinux computes. (repeatable)"
+    echo "--hlinux-deployer     -- Switch deployer node to use hLinux"
+    echo "                         (deprecated - deployer will use whichever"
+    echo "                         distro is used for control plane."
+    echo "--rhel                -- Include any RHEL artifacts"
     echo "--rhel-compute        -- Switch compute nodes to use rhel"
-    echo "--sles                -- Include any sles artifacts"
+    echo "--rhel-compute-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as RHEL computes. (repeatable)"
+    echo "--sles                -- Include any SLES artifacts"
     echo "--sles-control        -- Switch control nodes to use sles"
+    echo "--sles-control-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as SLES controllers. (repeatable)"
     echo "--sles-compute        -- Switch compute nodes to use sles"
+    echo "--sles-compute-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as SLES computes. (repeatable)"
     echo "--sles-deployer       -- Switch deployer node to use sles"
+    echo "                         (deprecated - deployer will use whichever"
+    echo "                         distro is used for control plane."
     echo "--guest-images        -- Include any guest image artifacts"
     echo "--tarball TARBALL     -- Specify a prebuilt deployer tarball to use."
-    echo "--cobble-nodes nodes  -- Specify a list of nodes to reimage with cobbler"
+    echo "--cobble-nodes nodes  -- Specify a list of nodes to re-image with cobbler"
     echo "                         before running the Ardana OpenStack deployment."
+    echo "--cobble-hlinux-nodes nodes"
+    echo "                      -- Specify a list of nodes to configured as hLinux"
+    echo "                         if being re-imaged by cobbler."
+    echo "--cobble-rhel-nodes nodes"
+    echo "                      -- Specify a list of nodes to configured as RHEL"
+    echo "                         if being re-imaged by cobbler."
+    echo "--cobble-sles-nodes nodes"
+    echo "                      -- Specify a list of nodes to configured as SLES"
+    echo "                         if being re-imaged by cobbler."
     echo "--cobble-all-nodes    -- Cobble all but the deployer nodes"
     echo "--no-config           -- Do not execute the config-processor"
     echo "--no-site             -- Do not execute the site.yml playbook during"
@@ -61,9 +94,10 @@ usage() {
     echo "--run-tests           -- Run tests after deployment"
     echo "--disable-services    -- Disable specified services"
     echo "--project-stack       -- The stack (cloud etc) will be customized for"
-    echo "                         this project (by using files in the specified"
-    echo "                         project), eg --project-stack ardana/glance-ansible"
-    echo "--feature-dir         -- Add in an additional feature to be tested during"
+    echo "                         this project, using files in the specified"
+    echo "                         project's ardana-ci directory, e.g."
+    echo "                         --project-stack ardana/glance-ansible"
+    echo "--feature-dir dir     -- Add in an additional feature to be tested during"
     echo "                         deployment. This may be specified multiple times."
     echo "--no-prepare          -- Don't run the preparation steps for feature dirs"
     echo "--restrict-by-project -- Specify a project to test. This restricts the number"
@@ -134,27 +168,33 @@ if [ -n "$USE_PROJECT_STACK" ]; then
     CLOUDNAME=project
     PROJECT_CLOUD=${1:-project}
 else
-    CLOUDNAME=${1:-deployerincloud}
+    CLOUDNAME=${1:-dac-min}
 fi
 
-# During deploy & upgrade of the standard environment in CI make one node a RHEL one
-# This will test RHEL upgrade & deployment support
-# This block is duplicated in run-upgrade also.
-# We also make another SLES compute node in CI mode
-# This is under testing so the change is commented out.
+# For a CI run of the "standard" cloud we ensure that the
+# third compute is RHEL.
 if [ -n "$CI" -a "$CLOUDNAME" = "standard" ]; then
-    # Test SLES deloy & upgrade
-    export ARDANA_SLES_ARTIFACTS=1
-    # TODO(fergal) - uncomment when all sles bits are in.
-    #export ARDANA_SLES_DEPLOYER=1
-    #export ARDANA_SLES_CONTROL=1
-    export ARDANA_SLES_COMPUTE_NODES=COMPUTE-0002
-    # Test RHEL deploy & upgrade
+    # Ensure we build RHEL artifacts
     export ARDANA_RHEL_ARTIFACTS=1
-    export ARDANA_RHEL_COMPUTE_NODES=COMPUTE-0003
+
+    if [[ -n "${COBBLER_ENABLED:-}" ]]; then
+        # Test cobbler re-imaging of the 3rd compute
+        COBBLER_RHEL_NODES="${COBBLER_RHEL_NODES:+${COBBLER_RHEL_NODES}:}COMPUTE-0003"
+    else
+        # Test RHEL compute deploy & upgrade
+        export ARDANA_RHEL_COMPUTE_NODES="${ARDANA_RHEL_COMPUTE_NODES:+${ARDANA_RHEL_COMPUTE_NODES}:}COMPUTE-0003"
+    fi
 fi
 
-# Check for upgrade flags disabling RHEL or SLES support
+# Check for upgrade flags disabling hLinux, RHEL or SLES support
+if [[ -n "$ARDANA_UPGRADE_NO_HLINUX" ]]
+then
+    unset ARDANA_HLINUX_ARTIFACTS
+    unset ARDANA_HLINUX_CONTROL
+    unset ARDANA_HLINUX_CONTROL_NODES
+    unset ARDANA_HLINUX_COMPUTE
+    unset ARDANA_HLINUX_COMPUTE_NODES
+fi
 if [[ -n "$ARDANA_UPGRADE_NO_RHEL" ]]
 then
     unset ARDANA_RHEL_ARTIFACTS
@@ -164,25 +204,11 @@ fi
 if [[ -n "$ARDANA_UPGRADE_NO_SLES" ]]
 then
     unset ARDANA_SLES_ARTIFACTS
-    unset ARDANA_SLES_COMPUTE
-    unset ARDANA_SLES_COMPUTE_NODES
     unset ARDANA_SLES_CONTROL
     unset ARDANA_SLES_CONTROL_NODES
-    unset ARDANA_SLES_DEPLOYER
+    unset ARDANA_SLES_COMPUTE
+    unset ARDANA_SLES_COMPUTE_NODES
 fi
-
-# Do not build HLinux artifacts, if deployer, control plane and computes
-# are all SLES or RHEL.
-if [[ -n "${ARDANA_SLES_DEPLOYER:-}" && \
-      -n "${ARDANA_SLES_CONTROL:-}" && \
-      ( -n "${ARDANA_SLES_COMPUTE:-} || \
-        -n "${ARDANA_RHEL_COMPUTE:-} ) ]]; then
-    unset ARDANA_HLINUX_ARTIFACTS
-fi
-
-    unset ARDANA_RHEL_ARTIFACTS
-    unset ARDANA_RHEL_COMPUTE
-    unset ARDANA_RHEL_COMPUTE_NODES
 
 installsubunit
 logsubunit --inprogress total
@@ -304,13 +330,16 @@ if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
     $SCRIPT_HOME/run-in-deployer.sh \
         $SCRIPT_HOME/deployer/add-distros.py \
             -- \
-            --sles-deployer=${ARDANA_SLES_DEPLOYER:-} \
-            --sles-compute=${ARDANA_SLES_COMPUTE:-} \
-            --sles-compute-nodes=${ARDANA_SLES_COMPUTE_NODES:-} \
-            --sles-control=${ARDANA_SLES_CONTROL:-} \
-            --sles-control-nodes=${ARDANA_SLES_CONTROL_NODES:-} \
-            --rhel-compute=${ARDANA_RHEL_COMPUTE:-} \
-            --rhel-compute-nodes=${ARDANA_RHEL_COMPUTE_NODES:-} \
+            --default-distro=sles \
+            ${COBBLER_NODES:+--nodes="${COBBLER_NODES:-}"} \
+            ${COBBLER_HLINUX_NODES:+--hlinux-nodes=${COBBLER_HLINUX_NODES:-}} \
+            ${COBBLER_RHEL_NODES:+--rhel-nodes=${COBBLER_RHEL_NODES:-}} \
+            ${COBBLER_SLES_NODES:+--sles-nodes=${COBBLER_SLES_NODES:-}} \
+            ${COBBLER_HLINUX_COMPUTE:+--hlinux-compute} \
+            ${COBBLER_HLINUX_CONTROL:+--hlinux-control} \
+            ${COBBLER_RHEL_COMPUTE:+--rhel-compute} \
+            ${COBBLER_SLES_COMPUTE:+--sles-compute} \
+            ${COBBLER_SLES_CONTROL:+--sles-control} \
             $CLOUDNAME
 fi
 
@@ -459,3 +488,5 @@ if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
     ${SCRIPT_HOME}/run-in-deployer.sh ${SCRIPT_HOME}/deployer/run-tests.sh ${test_args} ci ${CLOUDNAME}
     popd
 fi
+
+# vim:shiftwidth=4:tabstop=4:expandtab

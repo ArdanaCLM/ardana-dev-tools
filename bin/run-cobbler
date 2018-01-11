@@ -34,24 +34,26 @@ usage() {
     echo
     echo "cloud defaults to deployerincloud"
     echo
-    echo "--ci           -- Set options for running in the cdl"
-    echo "--no-setup     -- Don't run dev-env-install.yml"
-    echo "--no-build     -- Don't build venv, reuse existing packages"
-    echo "--opt-hlinux   -- Don't require hlinux compute re-imaging."
-    echo "--enable-rhel  -- Enable RHEL compute re-imaging."
-    echo "--enable-sles  -- Enable SLES compute re-imaging."
+    echo "--ci                -- Set options for running in the CI mode"
+    echo "--no-setup          -- Don't run dev-env-install.yml"
+    echo "--no-build          -- Don't build venvs, reuse existing packages"
+    echo "--tarball <tarball> -- Use the specified deployer tarball"
+    echo "--hlinux-control    -- Enable hLinux control re-imaging."
+    echo "--hlinux-compute    -- Enable hLinux compute re-imaging."
+    echo "--rhel-compute      -- Enable RHEL compute re-imaging."
+    echo "--sles-control      -- Enable SLES control re-imaging."
+    echo "--sles-compute      -- Enable SLES compute re-imaging."
 }
 
-TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,opt-hlinux,enable-rhel,enable-sles -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,hlinux-compute,hlinux-control,rhel-compute,sles-compute,sles-control -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
 
-args=
-CI=
-RHEL=
-SLES=
-OPT_HLINUX=
+args=(
+    --no-config
+    --no-site
+)
 
 while true ; do
     case "$1" in
@@ -59,37 +61,44 @@ while true ; do
         --ci)
             # Needed for verify-bm-install
             export ARDANAUSER=ardanauser
-            CI=1
-            args="$args $1"
+            args+=( $1 )
             shift ;;
-        --enable-rhel)
-            RHEL=1
+        --hlinux-control)
+            args+=( --cobble-hlinux-control )
             shift ;;
-        --enable-sles)
-            SLES=1
+        --hlinux-compute)
+            args+=( --cobble-hlinux-compute )
             shift ;;
-        --opt-hlinux)
-            OPT_HLINUX=1
+        --rhel-compute)
+            args+=( --cobble-rhel-compute )
+            shift ;;
+        --sles-control)
+            args+=( --cobble-sles-control )
+            shift ;;
+        --sles-compute)
+            args+=( --cobble-sles-compute )
             shift ;;
         --no-setup|--no-build)
-            args="$args $1"
+            args+=( $1 )
             shift ;;
         --tarball)
-            args="$args $1 $2"
+            args+=( $1 $2 )
             shift 2;;
         --) shift ; break;;
         *) break ;;
     esac
 done
 
-if [[ -z "${RHEL}" ]] && [[ -z "${SLES}" ]]
-then
-    RHEL=1
-fi
+args+=(
+    --skip-extra-playbooks
+    --cobble-all-nodes
+)
 
 set -x
 
 CLOUDNAME=${1:-deployerincloud}
+args+=( $CLOUDNAME )
+
 
 export ARDANA_PACKAGES_DIST='["packager", "ansible", "ardana-service", "config_processor", "installer-server", "installer-ui"]'
 export ARDANA_PACKAGES_NONDIST='[]'
@@ -99,15 +108,8 @@ source $SCRIPT_HOME/libci.sh
 pushd $DEVTOOLS/ardana-vagrant-models/${CLOUDNAME}-vagrant
 
 # Bring up the system
-$SCRIPT_HOME/astack.sh \
-    --no-config \
-    --no-site \
-    $args \
-    ${CI:+--ci} \
-    ${RHEL:+--rhel} \
-    ${SLES:+--sles} \
-    --skip-extra-playbooks \
-    --cobble-all-nodes \
-    $CLOUDNAME
+$SCRIPT_HOME/astack.sh "${args[@]}"
 
 $SCRIPT_HOME/verify-bm-install $CLOUDNAME
+
+# vim:shiftwidth=4:tabstop=4:expandtab

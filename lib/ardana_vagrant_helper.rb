@@ -220,14 +220,6 @@ module Ardana
       return get_product_branch_cache() + "/artifacts"
     end
 
-    def get_deployer_os()
-      deployer_os = "hlinux"
-      if ENV.fetch("ARDANA_SLES_DEPLOYER", "") == "1"
-        deployer_os = "sles12"
-      end
-      return deployer_os
-    end
-
     def initialize_baremetal(cloud_name)
       if !!ENV["ARDANA_SERVERS"]
         metal_cfg = ENV["ARDANA_SERVERS"]
@@ -252,11 +244,66 @@ module Ardana
       # We skip any Virtual Control Plane VMs.
       server_details.delete_if { |serverInfo| serverInfo.key?('hypervisor-id') }
 
+      # blanket node class directives
+      rhel_compute_all = ENV.fetch("ARDANA_RHEL_COMPUTE", "") == "1"
+      sles_control_all = ENV.fetch("ARDANA_SLES_CONTROL", "") == "1"
+      sles_compute_all = ENV.fetch("ARDANA_SLES_COMPUTE", "") == "1"
+      hlinux_control_all = ENV.fetch("ARDANA_HLINUX_CONTROL", "") == "1"
+      hlinux_compute_all = ENV.fetch("ARDANA_HLINUX_COMPUTE", "") == "1"
+
+      # identify potential node specific overrides
+      rhel_nodes = ENV.fetch("ARDANA_RHEL_COMPUTE_NODES", "").split(":")
+      sles_control_nodes = ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":")
+      sles_compute_nodes = ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":")
+      sles_nodes = sles_control_nodes + sles_compute_nodes
+      hlinux_control_nodes = ENV.fetch("ARDANA_HLINUX_CONTROL_NODES", "").split(":")
+      hlinux_compute_nodes = ENV.fetch("ARDANA_HLINUX_COMPUTE_NODES", "").split(":")
+      hlinux_nodes = hlinux_control_nodes + hlinux_compute_nodes
+
       # setup unique VNC ports for each server
       vnc_base = 5910  # 590{1..9} range wil be used for build VMs
       server_details.each_with_index do |serverInfo, i|
         if !serverInfo.key?("graphics_port")
           serverInfo["graphics_port"] = vnc_base + i
+        end
+
+        # if no os-dist is set, and an override exists, initialise it
+        if !serverInfo.key?("os-dist")
+          distro = ""
+
+          if serverInfo["role"].match("CONTROLLER")
+            # check for blanket controller settings
+            if sles_control_all
+              distro = "sles12"
+            elsif hlinux_control_all
+              distro = "hlinux"
+            end
+          elsif serverInfo["role"].match("COMPUTE")
+            # check for blanket compute settings
+            if sles_compute_all
+              distro = "sles12"
+            elsif rhel_compute_all
+              distro = "rhel7"
+            elsif hlinux_compute_all
+              distro = "hlinux"
+            end
+          end
+
+          # check for specific node distro directives
+          if ( sles_nodes.include? serverInfo["id"] )
+            distro = "sles12"
+          elsif ( rhel_nodes.include? serverInfo["id"] )
+            distro = "rhel7"
+          elsif ( hlinux_nodes.include? serverInfo["id"] )
+            distro = "hlinux"
+          end
+
+          # default to SLES if no distro selected
+          if distro == ""
+            distro = "sles12"
+          end
+
+          serverInfo["os-dist"] = distro
         end
       end
       return metal_cfg
@@ -307,10 +354,10 @@ module Ardana
       # /dev/sr0 - last release, or bare HLinux, or bare SLES
       if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
         set_release(iso_files)
-      elsif names.include?("hlinux")
-        set_hlinux(iso_files)
       elsif names.include?("sles12")
         set_sles(iso_files)
+      elsif names.include?("hlinux")
+        set_hlinux(iso_files)
       end
 
       # HLinux control plane with SLES computes
@@ -362,19 +409,8 @@ module Ardana
       ip_offset = 1
       prev_node_type = ""
 
-      rhel_compute_nodes = ENV.fetch("ARDANA_RHEL_COMPUTE_NODES", "").split(":")
-      rhel_compute_all = ENV.fetch("ARDANA_RHEL_COMPUTE", "") == "1"
-      sles_control_nodes = ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":")
-      sles_control_all = ENV.fetch("ARDANA_SLES_CONTROL", "") == "1"
-      sles_compute_nodes = ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":")
-      sles_compute_all = ENV.fetch("ARDANA_SLES_COMPUTE", "") == "1"
-
       deployer_info = server_details.find { |server| server["id"] == deployer_node }
-      deployer_os = get_deployer_os()
-      distributions = server_details.map { |server| server["os-dist"] || deployer_os }.uniq
-      distributions = distributions | ["rhel7"] if ! rhel_compute_nodes.empty? || rhel_compute_all
-      distributions = distributions | ["sles12"] if ! sles_control_nodes.empty? || sles_control_all
-      distributions = distributions | ["sles12"] if ! sles_compute_nodes.empty? || sles_compute_all
+      distributions = server_details.map { |server| server["os-dist"] }.uniq
 
       server_details.each do |serverInfo|
         use_release_artifact = !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
@@ -390,15 +426,6 @@ module Ardana
             node_type=DAC_COMP_NODE
           else
             node_type=COMPUTE_NODE
-          end
-          if ( rhel_compute_nodes.include? serverInfo["id"] ) || rhel_compute_all
-            serverInfo["os-dist"] = "rhel7"
-            # RHEL support doesn't yet support booting of a release RHEL image.
-            use_release_artifact = false
-          end
-          if ( sles_compute_nodes.include? serverInfo["id"] ) || sles_compute_all
-            serverInfo["os-dist"] = "sles12"
-            use_release_artifact = false
           end
         elsif map_role.match("VMFACTORY")
           node_type=VMFACTORY_NODE
@@ -422,10 +449,6 @@ module Ardana
           else
             node_type=CONTROL_NODE
           end
-          if ( sles_control_nodes.include? serverInfo["id"] ) || sles_control_all
-            serverInfo["os-dist"] = "sles12"
-            use_release_artifact = false
-          end
         elsif map_role.match("OSD")
           node_type=OSD_NODE
         elsif map_role.match("VSA")
@@ -447,8 +470,13 @@ module Ardana
           node_type=MIDCONTROL_NODE
         end
 
+        if serverInfo["os-dist"] == "sles12" || serverInfo["os-dist"] == "rhel7"
+          # RHEL & SLES support don't yet support booting from a release image.
+          use_release_artifact = false
+        end
+
         server_name = serverInfo["id"]
-        box_name = (serverInfo["os-dist"] || deployer_os) +  "box"
+        box_name = serverInfo["os-dist"] + "box"
 
         @config.vm.define server_name do |server|
           set_vm_box(vm: server.vm,
@@ -510,27 +538,33 @@ module Ardana
     end
 
     def add_build
-      machines = []
-      gfx_ports = {
-        "build-sles12" => 5901,
-        "build-rhel7" => 5902,
-        "build-hlinux" => 5903
+      distros_info = {
+        "hlinux" => { :name => "build-hlinux",
+                     :env_var => "ARDANA_HLINUX_ARTIFACTS",
+                     :gfx_port => "5903" },
+        "rhel7" => { :name => "build-rhel7",
+                    :env_var => "ARDANA_RHEL_ARTIFACTS",
+                    :gfx_port => "5902" },
+        "sles12" => { :name => "build-sles12",
+                     :env_var => "ARDANA_SLES_ARTIFACTS",
+                     :gfx_port => "5901" }
       }
+      machines = []
 
       # dirty hack to be able to have vagrant tell us what it knows about already
       active_machines = ObjectSpace.each_object(Vagrant::Environment).first.active_machines
-      if !ENV.fetch("ARDANA_HLINUX_ARTIFACTS", "").empty? or
-          active_machines.map { |machine, _| machine.to_s == "build-hlinux" }.any?
-        machines << "build-hlinux"
+      distros_info.each do |dist, dist_info|
+        if !ENV.fetch(dist_info[:env_var], "").empty? or
+           active_machines.map { |machine, _| machine.to_s == dist_info[:name] }.any?
+          machines << dist_info[:name]
+        end
       end
-      if !ENV.fetch("ARDANA_RHEL_ARTIFACTS", "").empty? or
-          active_machines.map { |machine, _| machine.to_s == "build-rhel7" }.any?
-        machines << "build-rhel7"
+
+      if machines.empty?
+        machines << distros_info["sles12"][:name]
       end
-      if !ENV.fetch("ARDANA_SLES_ARTIFACTS", "").empty? or
-          active_machines.map { |machine, _| machine.to_s == "build-sles12" }.any?
-        machines << "build-sles12"
-      end
+
+      STDERR.puts "machines: #{machines.inspect}"
 
       machines.each do |machine|
         @config.vm.define machine do |build|
@@ -548,7 +582,8 @@ module Ardana
           setup_vm(vm: build.vm, name: machine, playbook: "vagrant-setup-build-vm",
                    extra_vars: {"persistent_cache_qcow2" => ccache_path} )
 
-          set_vm_hardware(vm: build.vm, type: 'build', graphics_port: gfx_ports[machine])
+          set_vm_hardware(vm: build.vm, type: 'build',
+                          graphics_port: distros_info[distro][:gfx_port])
 
           build.vm.provider :libvirt do |libvirt, override|
             libvirt.storage :file, :path => ccache_path, :allow_existing => true, :size => '50G'

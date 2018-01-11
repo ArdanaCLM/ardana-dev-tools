@@ -27,6 +27,7 @@ libvirt_zypp_packages_default:
     kvm:
     libvirt:
     libvirt-devel:
+    libvirt-python:
     libxml2-devel:
     libxslt-devel:
 

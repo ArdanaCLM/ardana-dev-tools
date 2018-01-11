@@ -26,7 +26,7 @@
     - apt-repos
     - dev-env
   vars:
-    image_build_output_dir: "{{ hlinux_artefacts_dir }}/ova"
+    image_build_output_dir: "{{ ardana_images_dir }}/ova"
   tasks:
     - include: roles/image-build/tasks/build-packer-qcow2.yml
       vars:

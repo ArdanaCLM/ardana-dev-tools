@@ -34,7 +34,7 @@
 
 - name: deployer | pre-init-deployer | Upload Guest Images
   copy:
-    src: "{{ hlinux_artefacts_dir }}/{{ guest_images_archive[item].filename }}"
+    src: "{{ ardana_images_dir }}/{{ guest_images_archive[item].filename }}"
     dest: "/home/{{ image_build_user }}/{{ guest_images_archive[item].filename }}"
     owner: "{{ image_build_user }}"
     group: "{{ image_build_user }}"

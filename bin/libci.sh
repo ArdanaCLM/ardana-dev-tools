@@ -84,9 +84,15 @@ reporttimeout() {
 
 installsubunit() {
     if [ -n "$CI" ]; then
-        virtualenv $ARDANA_SUBUNIT_VENV
-        timeout 2m $ARDANA_SUBUNIT_VENV/bin/pip install "setuptools<34.0.0" || reporttimeout "pip install setuptools<34.0.0"
-        timeout 2m $ARDANA_SUBUNIT_VENV/bin/pip install python-subunit || reporttimeout "pip install python-subunit"
+        if [ ! -d $ARDANA_SUBUNIT_VENV ]; then
+            virtualenv $ARDANA_SUBUNIT_VENV
+            timeout 2m $ARDANA_SUBUNIT_VENV/bin/pip install --upgrade pip wheel || reporttimeout "pip install --upgrade pip wheel"
+            timeout 2m $ARDANA_SUBUNIT_VENV/bin/pip install "setuptools<34.0.0" || reporttimeout "pip install setuptools<34.0.0"
+        fi
+
+        if [ ! -x $ARDANA_SUBUNIT_VENV/bin/subunit-output ]; then
+            timeout 2m $ARDANA_SUBUNIT_VENV/bin/pip install python-subunit || reporttimeout "pip install python-subunit"
+        fi
 
         mkdir -p $(dirname $ARDANA_RUN_SUBUNIT_OUTPUT)
         rm -f $ARDANA_RUN_SUBUNIT_OUTPUT
@@ -245,3 +251,5 @@ vagrant_data_on_error() {
         gather_data_on_error "$cmd" "${VAGRANT_LOG_DIR}/deploy-vagrant-setup-fail.log"
     fi
 }
+
+# vim:shiftwidth=4:tabstop=4:expandtab

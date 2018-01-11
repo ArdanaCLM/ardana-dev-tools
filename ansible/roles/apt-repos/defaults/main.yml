@@ -16,23 +16,23 @@
 #
 ---
 
-hlinux_artefacts_dir: "{{ product_cache_directory }}/images"
+ardana_images_dir: "{{ product_cache_directory }}/images"
 
-hlinux_iso: "{{ hlinux_artefacts_dir }}/hlinux.iso"
+hlinux_iso: "{{ ardana_images_dir }}/hlinux.iso"
 
 ironic_deploy_image_filename: "ironic-deploy-20160609_103319.tgz"
 
 # Optional RHEL support.
 # Location on build host where to find the yum tarball containing the extras repo.
-rhel7_yum_extras_tarball: "{{ hlinux_artefacts_dir }}/rhel7-yum{{ yum_extras_archive.path | splitext | last }}"
+rhel7_yum_extras_tarball: "{{ ardana_images_dir }}/rhel7-yum{{ yum_extras_archive.path | splitext | last }}"
 
 # Optional RHEL ISO - location on build host
-rhel7_iso: "{{ hlinux_artefacts_dir }}/rhel7.iso"
+rhel7_iso: "{{ ardana_images_dir }}/rhel7.iso"
 
 # Optional SLES support.
 # Location on build host where to find the SLES tarball containing the extras repo.
-sles12_zypper_extras_tarball: "{{ hlinux_artefacts_dir }}/sles12-zypper{{ sles_extras_archive.path | splitext | last }}"
+sles12_zypper_extras_tarball: "{{ ardana_images_dir }}/sles12-zypper{{ sles_extras_archive.path | splitext | last }}"
 
 # Optional SLES ISO - location on build host
-sles12_iso: "{{ hlinux_artefacts_dir }}/sles12sp3.iso"
-sles12sdk_iso: "{{ hlinux_artefacts_dir }}/sles12sp3sdk.iso"
+sles12_iso: "{{ ardana_images_dir }}/sles12sp3.iso"
+sles12sdk_iso: "{{ ardana_images_dir }}/sles12sp3sdk.iso"

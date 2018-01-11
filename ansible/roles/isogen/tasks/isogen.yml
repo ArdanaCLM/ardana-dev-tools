@@ -47,8 +47,8 @@
       -d {{ deployer_tarball }} \
       -o {{ output_iso }} \
       {{ input_iso }} \
-      {{ hlinux_artefacts_dir }}/ova/hlinux.ova \
-      {{ hlinux_artefacts_dir }}/hlinux.qcow2
+      {{ ardana_images_dir }}/ova/hlinux.ova \
+      {{ ardana_images_dir }}/hlinux.qcow2
   args:
     chdir: "{{ isogen_working_dir }}"
 

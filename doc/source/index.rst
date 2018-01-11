@@ -28,6 +28,7 @@ This will checkout all the repositories that we need, download any
 artifacts that we need, build all venv packages that we need using
 vagrant managed build VMs, and then it will use vagrant to bring a
 number of virtual machines on which we will deploy the Ardana cloud.
+The default cloud is ``dac-min``.
 
 Clouds
 ------
@@ -38,12 +39,18 @@ ardana-input-model. The directory *ardana-input-model/2.0/ardana-ci*
 defines others clouds which differ in their topology and which we
 can use by passing their name as a positional argument to ``astack.sh``.
 
-1. standard
-2. mid-size
-3. deployerincloud
-4. multi-cp
+1. dac-min
+2. deployerincloud
+3. deployerincloud-lite
+4. standard
+5. std-min
+6. std-3cp
+7. std-3cm
+8. std-split
+9. mid-size
+10. multi-cp
 
-To bring up standard cloud we run
+To bring up a standard cloud we run
 
 .. code-block:: bash
 
@@ -138,8 +145,9 @@ packages regularly.
 Git performance
 ~~~~~~~~~~~~~~~
 
-For normal operations we can turn off checking and updating the local git
-caches.
+For normal operations we can turn off checking and updating of the local git
+caches by setting the ARDANA_GIT_UPDATE env var, or by specifying the
+``--no-git-update`` when running ``astack.sh``.
 
 .. code-block:: bash
 
@@ -198,8 +206,8 @@ readying the deployer by passing the ``--no-config`` argument to
 Building individual venv packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are working on a service and just wish to rebuild a single package
-then you can run the following command.
+If you are working on one or more services and just wish to rebuild the packages
+for those services then you can run a command like the following:
 
 .. code-block:: bash
 
@@ -212,14 +220,14 @@ and not to try and checkout the packages.
 
     $ ./bin/build-venv.sh --no-artifacts --no-checkout nova
 
-We no packages specified `build-venv.sh` will build every package.
+If no packages are specified then `build-venv.sh` will build every package.
 
 Updating / upgrading individual venv packages
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: bash
 
-    $ cd ardana-dev-tools/ardana-vagrant-models/mid-size-vagrant
+    $ cd ardana-dev-tools/ardana-vagrant-models/std-min-vagrant
     $ ../../bin/update-venv.sh --no-artifacts --no-checkout nova nova-upgrade.yml
 
 

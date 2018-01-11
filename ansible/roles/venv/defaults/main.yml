@@ -57,7 +57,7 @@ venv_sshd_config_settings:
 
 # For legacy we don't include distro info in the directory
 # name. The default is hlinux
-venv_cache_dir_debian: "{{ dev_env_scratch_dir }}"
+venv_cache_dir_debian: "{{ dev_env_scratch_dir }}/debian"
 venv_cache_dir_redhat: "{{ dev_env_scratch_dir }}/redhat"
 venv_cache_dir_suse : "{{ dev_env_scratch_dir }}/suse"
 

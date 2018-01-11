@@ -23,7 +23,7 @@ IPA_OUTPUT_DIR="${IPA_OUTPUT_DIR:-$HOME/.cache/ardana/images}"
 
 pushd $DEVTOOLS_DIR/ansible
 ansible-playbook -i hosts/localhost get-hlinux-iso.yml \
-                 -e hlinux_artefacts_dir="$IPA_OUTPUT_DIR"
+                 -e ardana_images_dir="$IPA_OUTPUT_DIR"
 ansible-playbook -i hosts/localhost ironic-deploy-image-build.yml \
                  -e image_build_output_dir="$IPA_OUTPUT_DIR" \
                  -e ironic_deploy_image_name="$IPA_IMAGE_NAME"

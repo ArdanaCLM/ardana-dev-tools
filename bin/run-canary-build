@@ -33,7 +33,6 @@ devenvinstall
 $SCRIPT_HOME/astack.sh --no-setup --build-hlinux-ova \
   --rhel \
   --sles \
-  --sles-deployer \
   --sles-control \
   --sles-compute \
   $*

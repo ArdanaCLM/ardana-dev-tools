@@ -22,5 +22,5 @@
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}"
     artifact: "{{ hlinux_ova_archive.path }}"
     artifact_alias: "{{ artifact | basename }}"
-    hlinux_artefacts_dir: "{{ product_cache_directory }}/images/ova"
+    ardana_images_dir: "{{ product_cache_directory }}/images/ova"
     filename: "hlinux.ova"
