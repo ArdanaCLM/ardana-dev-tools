@@ -20,6 +20,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 ## VMware-vix and ovftools to build ova from qcow2
 export VMWARE_TOOLS_REPO="${VMWARE_TOOLS_REPO:-http://hpsoft.suse.provo.cloud}"
 export VMWARE_OVFTOOL="${VMWARE_OVFTOOL:-VMware-ovftool-4.0.0-2189843-lin.x86_64.bundle}"

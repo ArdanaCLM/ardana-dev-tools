@@ -43,6 +43,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 # Source library module.
 # Note that it sets DEVTOOLS, used below.
 source $(dirname $0)/libci.sh

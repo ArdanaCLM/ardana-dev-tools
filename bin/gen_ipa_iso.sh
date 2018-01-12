@@ -3,6 +3,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 TMP_IMAGE_DIR=$(mktemp -d /tmp/create_iso.XXXX)
 SCRIPTNAME=`basename $0`
 

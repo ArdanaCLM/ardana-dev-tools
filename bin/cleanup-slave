@@ -19,6 +19,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 export ARDANA_CLEANUP_CI=1
 
 SCRIPT_NAME=$(basename $0)

@@ -24,6 +24,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 source $(dirname $0)/libci.sh
 
 if [ -z "$WORKSPACE" ] ; then

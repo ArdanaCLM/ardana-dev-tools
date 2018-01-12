@@ -281,7 +281,7 @@ ansible-playbook -i hosts/localhost dev-env-install.yml
 
 1. sudo apt install virtualenv
 2. mkdir ~/[your-venv-folder];
-3. virtualenv ~/[your-venv-folder]/ansible
+3. virtualenv --python python2.7 ~/[your-venv-folder]/ansible
 4. Activate the ansible venv with:
    . ~/[your-venv-folder]/ansible/bin/activate
 5. pip install -r ardana-dev-tools/requirements.txt

@@ -20,6 +20,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 DEVTOOLS_DIR=$(cd $(dirname "$0")/.. && pwd)
 
 ## Needed to create ansible venv

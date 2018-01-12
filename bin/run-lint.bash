@@ -21,6 +21,8 @@
 set -eux
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 SCRIPT_DIR=$(readlink -e $(dirname $0))
 source ${SCRIPT_DIR}/libci.sh
 

@@ -57,16 +57,27 @@ so to ensure you plugins are built with the correct version of Vagrant.
 
 For example
 
-export ARDANA_DEVELOPER=true
-export ARDANA_VAGRANT_VERSION=1.8.7
+    export ARDANA_DEVELOPER=true
+    export ARDANA_VAGRANT_VERSION=1.8.7
 
 ### Ansible version
 
 The Ardana OpenStack ansible playbooks, especially those in
 ardana/ardana-dev-tools.git, have not been updated to work with Ansible 2.x,
-and will only work with Ansible 1.9. See the section on installing Ansible in
-a Python virtual environment in the [Trouble-shooting](doc/troubleshooting.md)
-for help getting around this.
+and will only work with Ansible 1.9.
+
+A utility, ardana-env, is provided in the ardana/ardana-dev-tools.git
+repo's bin directory, which will setup the runtime environment with an
+appropriate version of ansible installed in a persistent virtualenv
+under the ~/.cache-ardana area.  To use it, eval the output of the
+command, as follows:
+
+    eval "$(ardana-dev-tools/bin/ardana-env)"
+
+Alternatively if you want to do this manually, see the section
+on installing Ansible in a Python virtual environment in the
+[Trouble-shooting](doc/troubleshooting.md) for help getting around
+this limitation.
 
 ## Run Ardana Stack
 
