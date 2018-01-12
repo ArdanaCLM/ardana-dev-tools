@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -34,6 +34,8 @@
         - pluginA
         - serviceA
         - serviceB
+# debian package build is only needed for CI debian host
+# and can be removed later once switch to SLES deployer is done
     - name: Create the debian packages
       shell: |
         set -ex
@@ -48,5 +50,35 @@
             {{ playbook_dir }}/files/third-party/myservice/pkgs/debian
       args:
         chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}/build"
+      with_items:
+        - { dir: myservice-client, name: myservice-client, version: 1.0.0 }
+      when: ansible_os_family | lower == 'debian'
+
+# rpmbuild needs to be installed only for debian host as SLES and RHEL already has
+# this tool installed
+    - name: Install rpmbuild package in debian env
+      become: yes
+      apt:
+        name: rpm
+        state: present
+      ignore_errors: true
+      when: ansible_os_family | lower == 'debian'
+# Built rpm package for all OS hosts (debian or SLES)
+    - name: Create the rpm package
+      shell: |
+        set -ex
+        rm -rf {{ item.name }}-{{ item.version }}
+        tar zcvf {{ item.name }}_{{ item.version }}.orig.tar.gz -C src {{ item.dir }}-{{ item.version }}
+        tar xvf {{ item.name }}_{{ item.version }}.orig.tar.gz
+        cp suse/* {{ item.name }}-{{ item.version }}
+        (
+            cd {{ item.name }}-{{ item.version }}
+            mv rpmmacros .rpmmacros
+            HOME=$(echo $PWD) rpmbuild -vv -bb myservice-client.spec
+            cp rpms/x86_64/{{ item.name }}-1.0-0.x86_64.rpm \
+                {{ playbook_dir }}/files/third-party/myservice/pkgs/suse
+        )
+      args:
+        chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}"
       with_items:
         - { dir: myservice-client, name: myservice-client, version: 1.0.0 }

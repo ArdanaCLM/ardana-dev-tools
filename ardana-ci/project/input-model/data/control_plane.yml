@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -39,9 +39,18 @@
           allocation-policy: strict
           service-components:
             - lifecycle-manager
-
+            - ntp-server
             - mysql
             - rabbitmq
             - keystone-api
             - ip-cluster
             - tempest
+
+      resources:
+        - name: resource
+          resource-prefix: res
+          server-role:
+            - SERVER1-ROLE
+          allocation-policy: any
+          service-components:
+            - ntp-client

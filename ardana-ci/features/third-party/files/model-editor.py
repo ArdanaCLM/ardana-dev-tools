@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -65,9 +65,9 @@ def massage(content):
         for cluster in cp['clusters']:
             if 'keystone-api' in cluster['service-components']:
                 cluster['service-components'] += [
-                    'myservice-server', 'myservice-plugin']
+                    'myservice-server', 'myservice-plugin', 'myservice-client']
 
-        for resource in cp['resources']:
+        for resource in cp.get('resources', {}):
             resource['service-components'] += ['myservice-client']
 
     return content
