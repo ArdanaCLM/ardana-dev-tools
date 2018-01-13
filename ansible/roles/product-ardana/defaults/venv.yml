@@ -473,7 +473,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/monasca-agent"
 
   monascaclient:
-    branch: "stable/ocata"
+    branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/python-monascaclient"
 
   monasca_common:
