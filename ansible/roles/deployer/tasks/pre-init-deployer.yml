@@ -202,6 +202,7 @@
   file:
      path: "/home/{{ image_build_user }}/stage/images"
      state: directory
+  when: dev_env_use_hlinux_artifacts|bool
 
 - name: deployer | pre-init-deployer | Upload VM Factory image
   copy:
@@ -210,6 +211,7 @@
     owner: "{{ image_build_user }}"
     group: "{{ image_build_user }}"
     mode: 0400
+  when: dev_env_use_hlinux_artifacts|bool
 
 - name: deployer | pre-init-deployer | Upload OVA image into deployer
   become: yes
