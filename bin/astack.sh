@@ -360,13 +360,15 @@ feature_ansible post-commit.yml
 if [ -z "$USE_PROJECT_STACK" ]; then
     # This script modifies and exports the ARDANA_DISABLE_SERVICES variable
     # if appropriate.
-    source $SCRIPT_HOME/lib/restrict-services.sh
+    # TODO(fergal) - re-enable restrict-services.sh once dependency chains
+    #                have been revised.
+    #source $SCRIPT_HOME/lib/restrict-services.sh
 
     if [ -n "${ARDANA_DISABLE_SERVICES:-}" ]; then
         # Takes the services to disable as arguments
         $SCRIPT_HOME/run-in-deployer.sh \
             "$SCRIPT_HOME/deployer/disable-services.sh" \
-            "$ARDANA_DISABLE_SERVICES" || logfail deploy
+            "${ARDANA_DISABLE_SERVICES:-}" || logfail deploy
     fi
 fi
 

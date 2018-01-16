@@ -45,6 +45,7 @@ export ARDANA_SLES_CONTROL_NODES=${ARDANA_SLES_CONTROL_NODES:-}
 export ARDANA_SLES_COMPUTE=${ARDANA_SLES_COMPUTE:-}
 export ARDANA_SLES_COMPUTE_NODES=${ARDANA_SLES_COMPUTE_NODES:-}
 export ARDANA_GUEST_IMAGE_ARTIFACTS=${ARDANA_GUEST_IMAGE_ARTIFACTS:-}
+export ARDANA_DISABLE_SERVICES=${ARDANA_DISABLE_SERVICES:-}
 export EXTRA_VARS=${EXTRA_VARS:-}
 # By default don't run the extra playbooks that we run during CI
 # Override this if we declare that we in the CI system with --ci

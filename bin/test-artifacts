@@ -61,11 +61,13 @@ fi
 
 # BUG-4695 - we need to treat the tests differently when ironic is not
 # present in the cloud model.
-source $SCRIPT_HOME/lib/restrict-services.sh
+# TODO(fergal) - re-enable restrict-services.sh once dependency chains
+#                have been revised.
+#source $SCRIPT_HOME/lib/restrict-services.sh
 
 NO_IRONIC=
-if [ -n "$ARDANA_DISABLE_SERVICES" ]; then
-    if echo $ARDANA_DISABLE_SERVICES | grep -q "ironic-api" ; then
+if [ -n "${ARDANA_DISABLE_SERVICES:-}" ]; then
+    if echo ${ARDANA_DISABLE_SERVICES:-} | grep -q "ironic-api" ; then
         NO_IRONIC=1
     fi
 fi
