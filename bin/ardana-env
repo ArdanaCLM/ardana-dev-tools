@@ -14,6 +14,11 @@ get_distro_family()
     fi
 }
 
+is_trusty()
+{
+    [[ ( -x /usr/bin/lsb_release ) -a ( "$(lsb_release -cs)" == "trusty" ) ]]
+}
+
 suse_install()
 {
     sudo zypper install --no-confirm "${0}"
@@ -29,7 +34,14 @@ ardana_cache="${HOME}/.cache-ardana"
 ansible_version=1.9.6
 bootstrap_venvs="${ardana_cache}/venvs"
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
-venv_cmd=/usr/bin/virtualenv
+
+# For Trusty CI nodes virtualenv is installed to /usr/local/bin
+if is_trusty
+then
+    venv_cmd=/usr/local/bin/virtualenv
+else
+    venv_cmd=/usr/bin/virtualenv
+fi
 
 # Install require package if desired virtualenv command not found
 if [[ ! -x ${venv_cmd} ]]
