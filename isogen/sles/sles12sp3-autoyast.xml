@@ -174,7 +174,7 @@
           <filesystem config:type="symbol">ext4</filesystem>
           <lv_name>root</lv_name>
           <mount>/</mount>
-          <size>30G</size>
+          <size>50G</size>
         </partition>
       </partitions>
       <type config:type="symbol">CT_LVM</type>
