@@ -46,99 +46,67 @@ vagrant_cobbler_nodes: "{{ lookup('env', 'ARDANA_COBBLER_NODES') }}"
 
 vagrant_vm_sles_extras_build_repos_dir: /var/cache/sles_extras
 vagrant_vm_sles_extras:
-  - repo: cloud-openstack-newton
+  - repo: "SUSE-OpenStack-Cloud-8-devel"
     disable_gpg_check: yes
     pkgs:
       - apache2-mod_wsgi
+      - cassandra
+      - cassandra-tools
+      - cobbler
       - collectl
       - conntrack-tools
       - dnsmasq-utils
       - elasticsearch
+      - erlang
+      - erlang-epmd
+      - erlang-sd_notify
+      - galera-3-wsrep-provider
       - haproxy
       - keepalived
       - kibana
       - liberasurecode1
-      - liberasurecode-devel
+      - libsodium23
       - logstash
+      - mariadb
+      - mariadb-galera
       - novnc
+      - pdns
+      - pdns-backend-mysql
+      - pdns-common
       - python-cssselect
       - python-elasticsearch-curator
-      - python-functools32
+      - python-gpgme
       - python-httplib2
+      - python-iniparse
       - python-ipaddress
       - python-jsonschema
       - python-passlib
       - python-pexpect
       - python-pika
-      - python-ptyprocess
-      - python-PyYAML
-      - python-virtualenv
-      - python-urllib3
-      - zookeeper-server
-    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Newton/SLE_12_SP3/"
-
-  - repo: cloud-openstack-pike
-    disable_gpg_check: yes
-    pkgs:
-      - erlang
-      - erlang-epmd
-      - erlang-sd_notify
-      - rabbitmq-server
-      - cassandra
-      - cassandra-tools
-    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Pike/SLE_12_SP3/"
-
-  - repo: "SUSE-OpenStack-Cloud-8-devel-staging"
-    disable_gpg_check: yes
-    pkgs:
-      - galera-3-wsrep-provider
-      - mariadb
       - python-PyMySQL
-      - ruby2.1-rubygem-mysql2
-      - xtrabackup
-    url: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/suse/"
-
-  - repo: vertica
-    disable_gpg_check: yes
-    pkgs:
-      - vertica
-    url: "http://ardana.suse.provo.cloud/rpm_repositories/vertica/vertica_9_20171004112240/"
-
-  - repo: powerdns
-    disable_gpg_check: yes
-    pkgs:
-      - libsodium23
-      - pdns
-      - pdns-backend-mysql
-      - pdns-common
-    url: "https://download.opensuse.org/repositories/server:/dns:/powerdns/SLE_12/"
-
-  - repo: sle-12-ga-standard
-    disable_gpg_check: yes
-    pkgs:
-      - fence-agents
-      - python-gpgme
-      - python-iniparse
-    url: "http://download.suse.de/ibs/SUSE:/SLE-12:/GA/standard/"
-
-  - repo: sle-12-update-standard
-    disable_gpg_check: yes
-    pkgs:
-      - cobbler
+      - python-PyYAML
       - python-requests
       - python-simplejson
+      - python-urllib3
+      - python-virtualenv
+      - rabbitmq-server
       - wallpaper-branding-SLE
+      - xtrabackup
       - yum
-    url: "http://download.suse.de/ibs/SUSE:/SLE-12:/Update/standard"
+      - yum-utils
+      - zookeeper-server
+    #url: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
+    url: "http://10.84.207.240/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
 
-  - repo: sle-12-sp2-update-products-manager31-standard
+  - repo: "cloud-openstack-pike"
     disable_gpg_check: yes
     pkgs:
-      - yum-utils
-    url: "http://download.suse.de/ibs/SUSE:/SLE-12-SP2:/Update:/Products:/Manager31/standard"
+      - liberasurecode1
+      - liberasurecode-devel
+    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Pike/SLE_12_SP3/"
 
-  - repo: opensuse-leap-network
+  - repo: "SLE_12_SP3-network"
     disable_gpg_check: yes
     pkgs:
       - ipxe-bootimgs
-    url: "https://download.opensuse.org/repositories/network/openSUSE_Leap_42.3/"
+    url: "https://download.opensuse.org/repositories/network/SLE_12_SP3/"
