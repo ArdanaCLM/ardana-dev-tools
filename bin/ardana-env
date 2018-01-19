@@ -16,7 +16,7 @@ get_distro_family()
 
 is_trusty()
 {
-    [[ ( -x /usr/bin/lsb_release ) -a ( "$(lsb_release -cs)" == "trusty" ) ]]
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "trusty" ) ]]
 }
 
 suse_install()
@@ -41,6 +41,27 @@ then
     venv_cmd=/usr/local/bin/virtualenv
 else
     venv_cmd=/usr/bin/virtualenv
+fi
+
+# Need some minimal packages to be able to create an ansible venv
+req_pkgs=(
+    gcc
+)
+
+# debian and suse use different names for Python development package
+case "${distro_family}" in
+(debian)
+    req_pkgs+=( python-dev )
+    ;;
+(suse)
+    req_pkgs+=( python-devel )
+    ;;
+esac
+
+# install required packaged if needed
+if [[ ( ! -x /usr/bin/gcc ) || ( ! -e /usr/include/python2.7/Python.h ) ]]
+then
+    ${distro_family}_install "${req_pkgs[@]}" 1>&2
 fi
 
 # Install require package if desired virtualenv command not found
