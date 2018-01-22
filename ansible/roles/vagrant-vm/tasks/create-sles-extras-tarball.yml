@@ -22,7 +22,7 @@
       repo_state: present
 
 - name: vagrant-vm | create-sles-extras-tarball | install inst-source-utils prerequisite
-  sudo: yes
+  become: yes
   zypper:
     name: inst-source-utils
     state: present

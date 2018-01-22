@@ -23,7 +23,7 @@
     pids=$(echo $pids)
     test -n "$pids" && ps -fp "$pids"
     true
-  sudo: yes
+  become: yes
   register: aptprocs_result
 
 - name: libvirt | _debug_apt_lock | Scan logfile for apt processes starting

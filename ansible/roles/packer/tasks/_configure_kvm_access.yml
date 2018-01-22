@@ -28,7 +28,7 @@
 # only add the user to the kvm group if not already being granted access to
 # /dev/kvm, which is done by systemd automatically on some distros
 - name: packer | _configure_kvm_access | Add user to kvm group
-  sudo: yes
+  become: yes
   user:
     name: "{{ ansible_user_id }}"
     append: yes
@@ -37,6 +37,6 @@
 
 # add after group permissions are updated to ensure have immediate access
 - name: packer | _configure_kvm_access | Add user to kvm device
-  sudo: yes
+  become: yes
   command: setfacl -m "u:{{ ansible_user_id }}:rw-" /dev/kvm
   when: _packer_kvm_facls_required

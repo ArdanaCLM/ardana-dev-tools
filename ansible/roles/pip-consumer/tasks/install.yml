@@ -44,7 +44,7 @@
     mode: "0644"
 
 - name: pip-consumer | install | Ensure we have got pip and virtualenv available
-  sudo: yes
+  become: yes
   apt:
     name: "{{ item }}"
     state: present
@@ -52,7 +52,7 @@
   when: ansible_os_family | lower == 'debian'
 
 - name: pip-consumer | install | Ensure we have got pip and virtualenv available
-  sudo: yes
+  become: yes
   yum:
     name: "{{ item }}"
     state: present
@@ -60,7 +60,7 @@
   when: ansible_os_family | lower == 'redhat'
 
 - name: pip-consumer | install | Ensure we have got pip and virtualenv available
-  sudo: yes
+  become: yes
   zypper:
     name: "{{ item }}"
     state: present

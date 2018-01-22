@@ -33,14 +33,14 @@
     msg: "user = {{ lookup('env','USER') }}"
 
 - name: libvirt | _add_group | add user to libvirt group
-  sudo: yes
+  become: yes
   user:
     name: "{{ lookup('env','USER') }}"
     groups: "{{ _libvirt_group }}"
     append: yes
 
 - name: libvirt | _add_group | ensure libvirtd.conf settings are correct
-  sudo: yes
+  become: yes
   lineinfile:
     dest: /etc/libvirt/libvirtd.conf
     line: '{{ item }}'
@@ -51,20 +51,20 @@
   register: _libvirtd_conf_result
 
 - name: libvirt | _add_group | ensure libvirtd service enabled
-  sudo: yes
+  become: yes
   service:
     name: "{{ _libvirt_service }}"
     enabled: yes
 
 - name: libvirt | _add_group | restart libvirtd service if needed
-  sudo: yes
+  become: yes
   service:
     name: "{{ _libvirt_service }}"
     state: restarted
   when: _libvirtd_conf_result | changed
 
 - name: libvirt | _add_group | ensure libvirtd service started
-  sudo: yes
+  become: yes
   service:
     name: "{{ _libvirt_service }}"
     state: started

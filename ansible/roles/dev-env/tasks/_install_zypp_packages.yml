@@ -20,5 +20,5 @@
 # Package prerequisites
 - name: dev-env | _install_zypp_packages | Install required OS packages
   zypper: state=present name={{ item }}
-  sudo: yes
+  become: yes
   with_items: "{{ dev_env_zypp_packages.keys() }}"

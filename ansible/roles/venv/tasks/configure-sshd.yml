@@ -18,7 +18,7 @@
 ---
 
 - name: venv | configure_sshd | Update settings for multiple connections
-  sudo: yes
+  become: yes
   lineinfile:
     dest: /etc/ssh/sshd_config
     regexp: "{{ item.regexp }}"
@@ -29,7 +29,7 @@
   register: _venv_sshd_config_updated
 
 - name: venv | configure_sshd | restart sshd
-  sudo: yes
+  become: yes
   service:
     name: sshd
     state: restarted

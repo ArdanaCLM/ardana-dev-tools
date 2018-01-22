@@ -24,7 +24,7 @@
   changed_when: _packer_install_needed.stdout != "{{ packer_version }}"
 
 - name: packer | _install_package.yml | Install for dependencies
-  sudo: yes
+  become: yes
   apt:
     name: "{{ item }}"
     state: present
@@ -32,7 +32,7 @@
   when: ansible_os_family | lower == "debian"
 
 - name: packer | _install_package.yml | Install for dependencies
-  sudo: yes
+  become: yes
   zypper:
     name: "{{ item }}"
     state: present
@@ -47,14 +47,14 @@
   when: _packer_install_needed | changed
 
 - name: packer | _install_package | Remove legacy packer directory if exists
-  sudo: yes
+  become: yes
   file:
     path: "{{ packer_path }}"
     state: absent
   when: _packer_install_needed | changed
 
 - name: packer | _install_package | Create target directory
-  sudo: yes
+  become: yes
   file:
     path: "{{ packer_path }}"
     state: directory
@@ -62,7 +62,7 @@
   when: _packer_install_needed | changed
 
 - name: packer | _install_package | Install packer
-  sudo: yes
+  become: yes
   unarchive:
     copy: no
     src: "/tmp/{{ packer_archive }}"
@@ -70,7 +70,7 @@
   when: _packer_install_needed | changed
 
 - name: packer | _install_package | Remove stale packer plugins if they exist
-  sudo: yes
+  become: yes
   file:
     path: "{{ item }}"
     state: absent

@@ -561,21 +561,21 @@ each of the nova service components:
 
     ---
     - hosts: "{{ target_hosts | default('all') }}:&NOV-CND"
-      sudo: yes
+      become: yes
       roles:
       - NOV-CND
       tasks:
       - include: roles/NOV-CND/tasks/configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - NOV-API
       tasks:
       - include: roles/NOV-API/tasks/configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-SCH"
-      sudo: yes
+      become: yes
       roles:
       - NOV-SCH
       tasks:

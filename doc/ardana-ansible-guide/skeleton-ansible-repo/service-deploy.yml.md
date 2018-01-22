@@ -71,7 +71,7 @@ The layout of a deploy playbook for a typical Openstack service is as follows:
 it (without starting it), e.g.:
 
         - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-          sudo: yes
+          become: yes
           roles:
           - NOV-API
           tasks:
@@ -97,7 +97,7 @@ require additional service-specific tasks to be run the before set of services
 can be started. An example post-configure play is as follows:
 
             - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-              sudo: yes
+              become: yes
               roles:
               - nova-post-configure
               # All these tasks should be set to run-once
@@ -135,7 +135,7 @@ node. An example nova-post-configure play that targets a node with the
 keystone client is as follows:
 
         - hosts: "{{ target_hosts | default('all') }}:&KEY-CLI"
-          sudo: yes
+          become: yes
           roles:
             - nova-post-configure
           # This task should be set to run-once
@@ -161,7 +161,7 @@ to start each service component, e.g.:
 A sample Nova deploy playbook is as follows:
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-CND"
-      sudo: yes
+      become: yes
       roles:
       - NOV-CND
       tasks:
@@ -170,7 +170,7 @@ A sample Nova deploy playbook is as follows:
       - include: roles/NOV-CND/tasks/configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - NOV-API
       tasks:
@@ -183,7 +183,7 @@ A sample Nova deploy playbook is as follows:
 
     # TODO this will be something like &NOV-ALL when supported by CP.
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - nova-post-configure
       # All these tasks should be set to run-once
@@ -207,21 +207,21 @@ operation playbooks, e.g. \_nova-configure.yml:
 
     ---
     - hosts: "{{ target_hosts | default('all') }}:&NOV-CND"
-      sudo: yes
+      become: yes
       roles:
       - NOV-CND
       tasks:
       - include: roles/NOV-CND/tasks/configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - NOV-API
       tasks:
       - include: roles/NOV-API/tasks/configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-SCH"
-      sudo: yes
+      become: yes
       roles:
       - NOV-SCH
       tasks:
@@ -240,7 +240,7 @@ leads to a simplified nova deploy playbook:
     - include: _nova-configure.yml
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - nova-post-configure
 
@@ -267,7 +267,7 @@ their best judgment and deviate where necessary. For example, beyond the standar
 verb tasks, Swift needs to build rings - this play could be coded as:
 
     - hosts: "{{ target_hosts | default('all') }}:&SWIFT-PRXY[0]"
-      sudo: yes
+      become: yes
       roles:
       - SWF-RNG
       tasks:

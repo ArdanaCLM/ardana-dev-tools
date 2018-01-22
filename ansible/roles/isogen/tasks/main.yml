@@ -18,7 +18,7 @@
 ---
 
 - name: main | install requirements
-  sudo: yes
+  become: yes
   apt:
     name: "{{ item }}"
     state: present

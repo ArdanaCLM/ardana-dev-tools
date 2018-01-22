@@ -36,7 +36,7 @@ for a single service is carried out by a per-service cloud-configure playbook,
 e.g. nova-cloud-configure.yml:
 
     - hosts: "{{ target_hosts | default('all') }}:&NOV-API"
-      sudo: yes
+      become: yes
       roles:
       - nova-cloud-configure
 
