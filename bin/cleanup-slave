@@ -54,8 +54,8 @@ done
 
 # LBAAS-2300 - undo Octavia diskimage-builder networking sideeffects
 sudo sysctl -w \
-	net.ipv4.tcp_timestamps=1 \
-	net.ipv4.tcp_sack=1
+    net.ipv4.tcp_timestamps=1 \
+    net.ipv4.tcp_sack=1
 
 # Cleanup old vagrant instances. We have to do this after the run as we will
 # be reusing the same slave. We created them using vagrant, so try to destroy
@@ -72,9 +72,14 @@ if which vagrant ; then
         vagrant destroy -f ${id} || true
     done
     # Remove old vagrant boxes. Output lines are like:
-    # "hlinuxbox (libvirt, 1.0.20150611T111714Z)"
-    vagrant -q box list | awk '/^hlinux|(rhel7|sles12)box/ { sub(")$","",$3) ; print $1,$3 }' | while read box version; do
-        sudo vagrant box remove -f "$box" --box-version $version || true
+    # "sles12xbox (libvirt, 1.0.20170911T111714Z)"
+    vagrant -q box list | \
+        tr -d "(,)" | \
+        awk -v provider=libvirt \
+        '$1 ~ /(hlinux(box)?|(sles12|rhel7)box)$/ && $2 == provider {
+                 print $1, $2, $3
+             }' | while read box provider version; do
+        vagrant box remove -f "$box" --provider $provider --box-version $version || true
     done
 fi
 
@@ -88,7 +93,7 @@ for NAME in $(sudo virsh list --name --all) ; do
     fi
 done
 
-# Refresh the default pool, to remove any volumes whos backing files are
+# Refresh the default pool, to remove any volumes whose backing files are
 # missing. Without this, the vol-delete command will fail.
 sudo virsh pool-refresh default || :
 
@@ -197,3 +202,5 @@ fi
 
 # Remove stale astack-ssh-config files
 find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf
+
+# vim:shiftwidth=4:tabstop=4:expandtab
