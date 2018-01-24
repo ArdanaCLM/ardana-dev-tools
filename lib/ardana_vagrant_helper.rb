@@ -58,7 +58,7 @@ module Ardana
 
     VM_MEMORY = {
       # Node classes used by the dac-* models
-      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 18432,
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 20480,
       DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 5120,
 
       'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
@@ -68,7 +68,7 @@ module Ardana
       ARDANA_HYPERVISOR_NODE => !!ENV["ARDANA_HV_MEMORY"] ? ENV["ARDANA_HV_MEMORY"].to_i : 32768,
       # CONTROL_NODE is currently used in deployerincloud & standard. These
       # controllers run all control servers. So they need more memory
-      CONTROL_NODE => !!ENV["ARDANA_CCN_MEMORY"] ? ENV["ARDANA_CCN_MEMORY"].to_i : 18432,
+      CONTROL_NODE => !!ENV["ARDANA_CCN_MEMORY"] ? ENV["ARDANA_CCN_MEMORY"].to_i : 20480,
       MIDCONTROL_NODE => !!ENV["ARDANA_CCN_MEMORY"] ? ENV["ARDANA_CCN_MEMORY"].to_i : 10240,
       LITECONTROL_NODE => !!ENV["ARDANA_CCN_MEMORY"] ? ENV["ARDANA_CCN_MEMORY"].to_i : 9216,
       COMPUTE_NODE => !!ENV["ARDANA_CPN_MEMORY"] ? ENV["ARDANA_CPN_MEMORY"].to_i : 6144,
@@ -79,8 +79,8 @@ module Ardana
       SWOBJ_NODE => !!ENV["ARDANA_SWOBJ_MEMORY"] ? ENV["ARDANA_SWOBJ_MEMORY"].to_i : 2048,
 
       # Node classes used by std-* models
-      STD_DPLY_NODE => !!ENV["ARDANA_SDPLY_MEMORY"] ? ENV["ARDANA_SDPLY_MEMORY"].to_i : 1280,
-      STD_CTRL_NODE => !!ENV["ARDANA_SCTRL_MEMORY"] ? ENV["ARDANA_SCTRL_MEMORY"].to_i : 18432,
+      STD_DPLY_NODE => !!ENV["ARDANA_SDPLY_MEMORY"] ? ENV["ARDANA_SDPLY_MEMORY"].to_i : 1536,
+      STD_CTRL_NODE => !!ENV["ARDANA_SCTRL_MEMORY"] ? ENV["ARDANA_SCTRL_MEMORY"].to_i : 20480,
       STD_OSC_NODE => !!ENV["ARDANA_SOSC_MEMORY"] ? ENV["ARDANA_SOSC_MEMORY"].to_i : 7424,
       STD_DBMQ_NODE => !!ENV["ARDANA_SDBMQ_MEMORY"] ? ENV["ARDANA_SDBMQ_MEMORY"].to_i : 2816,
       STD_MML_NODE => !!ENV["ARDANA_SMML_MEMORY"] ? ENV["ARDANA_SMML_MEMORY"].to_i : 7424,
