@@ -28,6 +28,7 @@ source $(dirname $0)/libci.sh
 pushd $DEVTOOLS/ansible
 ansible-playbook -i hosts/localhost get-rhel-artifacts.yml
 ansible-playbook -i hosts/localhost get-sles-artifacts.yml
+ansible-playbook -i hosts/localhost get-cloud8-artifacts.yml
 ansible-playbook -i hosts/localhost get-hlinux-iso.yml
 ansible-playbook -i hosts/localhost get-guest-images.yml
 # Build the image after getting the artifacts

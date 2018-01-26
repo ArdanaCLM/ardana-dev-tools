@@ -203,4 +203,7 @@ fi
 # Remove stale astack-ssh-config files
 find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf
 
+# Remove stale .astack-env files
+find $TOOLS_DIR -type f -name .astack-env | xargs rm -vf
+
 # vim:shiftwidth=4:tabstop=4:expandtab

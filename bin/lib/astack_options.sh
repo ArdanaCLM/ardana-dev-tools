@@ -20,7 +20,7 @@
 # all the option variables that control astack.sh
 #
 
-OPTIONS=help,run-tests,ci,no-setup,no-build,no-git-update,build-hlinux-ova,rhel,rhel-compute,rhel-compute-nodes:,sles,sles-deployer,sles-control,sles-control-nodes:,sles-compute,sles-compute-nodes:,guest-images,tarball:,cobble-nodes:,cobble-hlinux-control,cobble-hlinux-compute,cobble-hlinux-nodes:,cobble-rhel-compute,cobble-rhel-nodes:,cobble-sles-control,cobble-sles-compute,cobble-sles-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:
+OPTIONS=help,run-tests,ci,no-setup,no-artifacts,no-build,no-git-update,build-hlinux-ova,rhel,rhel-compute,rhel-compute-nodes:,sles,sles-deployer,sles-control,sles-control-nodes:,sles-compute,sles-compute-nodes:,guest-images,tarball:,cobble-nodes:,cobble-hlinux-control,cobble-hlinux-compute,cobble-hlinux-nodes:,cobble-rhel-compute,cobble-rhel-nodes:,cobble-sles-control,cobble-sles-compute,cobble-sles-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:,cloud8-artifacts,cloud8-deployer,c8,c8-artifacts,c8-mirror,c8-caching,c8-pool,c8-updates,c8-devel,c8-staging,c8-hos,c8-soc,pre-destroy
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
@@ -32,8 +32,16 @@ export ARDANAUSER="${ARDANAUSER:-stack}"
 export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/home}"
 
 NO_SETUP=
+NO_ARTIFACTS=
 NO_BUILD=
 BUILD_HLINUX_OVA=
+export ARDANA_CLOUD8_ARTIFACTS=${ARDANA_CLOUD8_ARTIFACTS:-}
+export ARDANA_CLOUD8_DEPLOYER=${ARDANA_CLOUD8_DEPLOYER:-}
+export ARDANA_CLOUD8_REPOS=${ARDANA_CLOUD8_REPOS:-}
+export ARDANA_CLOUD8_CACHING_PROXY=${ARDANA_CLOUD8_CACHING_PROXY:-}
+export ARDANA_CLOUD8_MIRROR=${ARDANA_CLOUD8_MIRROR:-}
+export ARDANA_CLOUD8_HOS=${ARDANA_CLOUD8_HOS:-}
+export ARDANA_CLOUD8_SOC=${ARDANA_CLOUD8_SOC:-}
 export ARDANA_UPGRADE_NO_HLINUX=${ARDANA_UPGRADE_NO_HLINUX:-}
 export ARDANA_HLINUX_ARTIFACTS=${ARDANA_HLINUX_ARTIFACTS:-}
 export ARDANA_HLINUX_CONTROL=${ARDANA_HLINUX_CONTROL:-}
@@ -79,6 +87,7 @@ SQUASH_KIT=
 FEATURE_DIRS=
 FEATURE_PREPARE=1
 RUN_TESTS=
+PRE_DESTROY=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
@@ -99,9 +108,45 @@ while true ; do
             export ARDANA_BUILD_CPU=$(( $(nproc) / 2 ))
             shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
+        --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
         --no-build) NO_BUILD=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --build-hlinux-ova) export BUILD_HLINUX_OVA=1 ; shift ;;
+        --pre-destroy)
+            PRE_DESTROY=1
+            shift ;;
+        --cloud8-artifacts)
+            export ARDANA_CLOUD8_ARTIFACTS=1
+            shift ;;
+        --c8|--cloud8-deployer)
+            export ARDANA_CLOUD8_DEPLOYER=1
+            shift ;;
+        --c8-hos)
+            export ARDANA_CLOUD8_DEPLOYER=1
+            export ARDANA_CLOUD8_HOS=1
+            shift ;;
+        --c8-soc)
+            export ARDANA_CLOUD8_DEPLOYER=1
+            export ARDANA_CLOUD8_SOC=1
+            shift ;;
+        --c8-mirror)
+            export ARDANA_CLOUD8_MIRROR=1
+            shift ;;
+        --c8-caching)
+            export ARDANA_CLOUD8_CACHING_PROXY=1
+            shift ;;
+        --c8-staging)
+            export ARDANA_CLOUD8_REPOS='["staging", "updates", "pool"]'
+            shift ;;
+        --c8-devel)
+            export ARDANA_CLOUD8_REPOS='["devel", "updates", "pool"]'
+            shift ;;
+        --c8-updates)
+            export ARDANA_CLOUD8_REPOS='["updates", "pool"]'
+            shift ;;
+        --c8-pool)
+            export ARDANA_CLOUD8_REPOS='["pool"]'
+            shift ;;
         --hlinux)
             export ARDANA_HLINUX_ARTIFACTS=1
             shift ;;
@@ -187,7 +232,42 @@ while true ; do
     esac
 done
 
-# Select default control plane and compute distros  if none selected
+# Select appropriate settings if cloud8 deployer selected
+if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
+    export ARDANA_CLOUD8_ARTIFACTS=1
+    export ARDANA_SLES_CONTROL=1
+    export ARDANAUSER=ardana
+    export ARDANA_USER_HOME_BASE=/var/lib
+
+    # disable building of legacy product venvs
+    export ARDANA_PACKAGES_DIST='[]'
+    if [ -z "${RUN_TESTS:-}" ]; then
+        NO_BUILD=1
+        export ARDANA_NO_SETUP_QA=1
+    fi
+
+    # default to staging (DC8S) level of repos
+    if [ -z "${ARDANA_CLOUD8_REPOS:-}" ]; then
+        export ARDANA_CLOUD8_REPOS='["staging", "updates", "pool"]'
+    fi
+
+    # default to enabling caching proxy if mirroring not enabled.
+    if [ -z "${ARDANA_CLOUD8_MIRROR:-}" -a \
+         -z "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
+        export ARDANA_CLOUD8_CACHING_PROXY=1
+    fi
+
+    # default to SOC8 mode if neither or both modes selected
+    if [ \( -z "${ARDANA_CLOUD8_HOS:-}" -a \
+            -z "${ARDANA_CLOUD8_SOC:-}" \) -o \
+         \( -n "${ARDANA_CLOUD8_HOS:-}" -a \
+            -n "${ARDANA_CLOUD8_SOC:-}" \) ]; then
+        export ARDANA_CLOUD8_SOC=1
+        export ARDANA_CLOUD8_HOS=
+    fi
+fi
+
+# Select default control plane and compute distros if none selected
 if [ -z "${ARDANA_SLES_CONTROL:-}" -a \
      -z "${ARDANA_SLES_CONTROL_NODES:-}" -a \
      -z "${ARDANA_HLINUX_CONTROL:-}" -a \

@@ -1,0 +1,10 @@
+[{{ item.item.alias }}]
+name={{ item.item.name }}
+baseurl=http://{{ deployer_address }}:79/{{ c8setup.distros[item.item.distro].dir }}/{{ item.item.path }}
+{% if item.item.gpgkey is defined %}
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release
+gpgcheck=1
+{% else %}
+gpgcheck=0
+{% endif %}
+enabled=1

@@ -16,6 +16,19 @@
 #
 # Install internal code for QA. This code will not be going to customers.
 ---
+
+# TODO(fergal): Hack to work around the fact that the SUSEified ardana-init
+# script is not tracking ardana version information as configured in the
+# ardana-dev-tools/ansible/roles/product-ardana settings.
+# remove once SUSEified deployer version setting matches the value specified
+# in ardana-dev-tools.
+# start-of-hack
+- name: deployer | setup-qa-tests | determine deployer version
+  set_fact:
+    _deployer_version: "{{ deployer_version }}"
+  when: _deployer_version is not defined
+# end-of-hack
+
 - name: deployer | setup-qa-tests | Push local source repos onto deployer
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
@@ -23,12 +36,13 @@
     copy_links: yes
     recursive: yes
     delete: yes
-  with_dict: deployer_qa_git_repositories
+    compress: no
+  with_dict: deployer_qa_git_repositories | default({})
 
 - name: deployer | setup-qa-tests | Evaluate target dir
   set_fact:
     setup_qa_tests_dir: |
-      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{
+      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ _deployer_version }}/{{
           (ansible_os_family == "Debian" ) |
           ternary(package_venv_locations.hlinux[ansible_architecture], package_venv_locations.sles[ansible_architecture]) }}
 
@@ -39,7 +53,12 @@
     src: "{{ venv_cache_dir }}/{{ item.value.1 }}"
     dest: "{{ setup_qa_tests_dir }}"
   when: item.key in packages_nondist
-  with_dict: venv_cache_dir | find_latest_packages(deployer_version)
+  with_dict: venv_cache_dir | find_latest_packages(_deployer_version) | default({})
+
+- name: deployer | setup-qa-tests | determine pwd for create_index operation
+  set_fact:
+    _index_chdir: "{{ PACKAGE_CONSTANTS.SERVICE_DIR }}/packager/venv/bin"
+  when: _index_chdir is not defined
 
 # This is a duplication of ardana-ansible/roles/package-repo/tasks/configure.yml
 - name: deployer | setup-qa-tests | Update venv index
@@ -48,4 +67,4 @@
     ./create_index
     --dir={{ setup_qa_tests_dir }}
   args:
-    chdir: "{{ PACKAGE_CONSTANTS.SERVICE_DIR }}/packager/venv/bin"
+    chdir: "{{ _index_chdir }}"

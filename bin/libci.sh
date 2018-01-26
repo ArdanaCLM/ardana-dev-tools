@@ -15,6 +15,8 @@
 # under the License.
 #
 export DEVTOOLS=$(cd $(dirname ${BASH_SOURCE[0]})/.. ; pwd)
+export DEVROOT=$(readlink -e ${DEVTOOLS}/..)
+export LOGSROOT="${WORKSPACE:-${DEVROOT}}/logs"
 PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
 
 # CDL convention
@@ -31,7 +33,7 @@ if [ -n "$EXTRA_VARS" ]; then
     alias ansible-playbook="ansible-playbook -e '$EXTRA_VARS'"
 fi
 
-export ANSIBLE_LOG_PATH=${WORKSPACE:-${DEVTOOLS}}/vm_host_ansible.log
+export ANSIBLE_LOG_PATH=${LOGSROOT}/vm_host_ansible.log
 # Prevent ssh host key errors
 export ANSIBLE_HOST_KEY_CHECKING=False
 
@@ -41,19 +43,27 @@ export PYTHONUNBUFFERED=1
 export GOZER_GIT_MIRROR=${GOZER_GIT_MIRROR:-https://gerrit.suse.provo.cloud}
 export PYPI_MIRROR_URL=${PYPI_MIRROR_URL:-http://${PYPI_BASE_HOST:-pypi.suse.provo.cloud}/openstack/latest}
 
-# For testing and developer experience we set ARDANAUSER here to be stack. During
-# CI, we pass in the --ci flag which sets the ARDANAUSER appropriately
-export ARDANAUSER=${ARDANAUSER:-stack}
-if [[ -z "${CI:-}" ]]; then
+# If running in Cloud8 deployer mode we use an ardana account,
+# home'd under /var/lib for deployment purposes. Otherwise for
+# testing and developer experience we set ARDANAUSER here to be
+# stack, under /home. For CI runs, we use ardanauser, under /home.
+if [[ -z "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
+    if [[ -z "${CI:-}" ]]; then
+        export ARDANAUSER=${ARDANAUSER:-stack}
+    else
+        export ARDANAUSER=${ARDANAUSER:-ardana}
+    fi
     export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/home}
 else
+    export ARDANAUSER=${ARDANAUSER:-ardana}
     export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/var/lib}
 fi
 
-export VAGRANT_LOG_DIR="${WORKSPACE:-${DEVTOOLS}}/logs/vagrant"
-export CONSOLE_LOG_DIR="${WORKSPACE:-${DEVTOOLS}}/logs/console"
-export CP_LOG_DIR="${WORKSPACE:-${DEVTOOLS}}/logs/configProcessor"
+export VAGRANT_LOG_DIR="${LOGSROOT}/vagrant"
+export CONSOLE_LOG_DIR="${LOGSROOT}/console"
+export CP_LOG_DIR="${LOGSROOT}/configProcessor"
 [[ ! -d "${VAGRANT_LOG_DIR}" ]] && mkdir -p "${VAGRANT_LOG_DIR}"
+[[ ! -d "${CONSOLE_LOG_DIR}" ]] && mkdir -p "${CONSOLE_LOG_DIR}"
 [[ ! -d "${CP_LOG_DIR}" ]] && mkdir -p "${CP_LOG_DIR}"
 
 export VAGRANT_DEFAULT_PROVIDER=libvirt
@@ -62,6 +72,7 @@ export ARDANA_SUBUNIT_VENV=$DEVTOOLS/tools/venvs/subunit
 export ARDANA_RUN_SUBUNIT_OUTPUT=${WORKSPACE:-$PWD}/ardanarun.subunit
 
 export ARDANA_VAGRANT_SSH_CONFIG="astack-ssh-config"
+export ARDANA_ASTACK_ENV=".astack_env"
 
 export ARTIFACTS_FILE=$DEVTOOLS/artifacts-list.txt
 
@@ -134,7 +145,7 @@ logtimeoutfail() {
 }
 
 ensure_in_vagrant_dir() {
-    caller="${1:-$(basename $0)}"
+    local caller="${1:-$(basename $0)}"
 
     if [ ! -f Vagrantfile ]; then
         echo "$caller must be run in directory containing Vagrantfile" >&2
@@ -142,7 +153,7 @@ ensure_in_vagrant_dir() {
     fi
 
     if ! pwd | grep -q '/ardana-vagrant-models/.'; then
-        echo "update-venv.sh must be run from a subdirectory of ardana-dev-tools/ardana-vagrant-models" >&2
+        echo "${caller} must be run from a subdirectory of ardana-dev-tools/ardana-vagrant-models" >&2
         exit 1
     fi
 
@@ -165,6 +176,7 @@ generate_ssh_config() {
             echo "vagrant ssh-config failed; check $log" >&2
         else
             mv ${ARDANA_VAGRANT_SSH_CONFIG}.new $ARDANA_VAGRANT_SSH_CONFIG
+            export -p > ${ARDANA_ASTACK_ENV}
         fi
         return $status
     fi

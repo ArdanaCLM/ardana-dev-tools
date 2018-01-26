@@ -1,0 +1,50 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Detect and persistently mount attached ISOs on a Cloud8 deployer
+---
+
+- name: vagrant-cloud8-setup | setup-isos | Test for ISO attachments
+  stat:
+    path: "{{ item.dev }}"
+  when:
+    - item.enabled | bool
+  with_items: c8setup.isos
+  register: _isos_attached_result
+
+- name: vagrant-cloud8-setup | setup-isos | Create ISO mount points
+  become: yes
+  file:
+    path: "{{ c8setup.server.base }}/{{ c8setup.distros[item.item.distro].dir }}/{{ item.item.path }}"
+    state: directory
+    follow: yes
+  when:
+    - not (item | skipped)
+    - item.stat.exists
+    - item.item.enabled | bool
+  with_items: _isos_attached_result.results
+
+- name: vagrant-cloud8-setup | setup-isos | Setup persistent mounts
+  become: yes
+  mount:
+    name: "{{ c8setup.server.base }}/{{ c8setup.distros[item.item.distro].dir }}/{{ item.item.path }}"
+    src: "{{ item.item.dev }}"
+    fstype: iso9660
+    state: mounted
+  when:
+    - not (item | skipped)
+    - item.stat.exists
+    - item.item.enabled | bool
+  with_items: _isos_attached_result.results

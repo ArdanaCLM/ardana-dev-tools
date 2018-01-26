@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -35,6 +35,15 @@ sites_default:
       host: tarballs.suse.provo.cloud
       path: mirror-hlinux/hlinux-deejay.usa.hp.com/hLinux-iso/archive/blaster
     ardana_artifacts_host: http://ardana.suse.provo.cloud
+    ibs:
+      #host: ibs-mirror.prv.suse.net
+      host: 10.84.2.50
+      path: ibs
+      use_proxy: no
+    clouddata:
+      #host: provo-clouddata.cloud.suse.de
+      host: 10.84.207.240
+      use_proxy: no
     git:
       host: git.suse.provo.cloud
 

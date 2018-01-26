@@ -13,19 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks to setup DHCP provided default route on eth0 for SLES
+# Default settings for IBS cached ISO retrieval.
 ---
 
-- name: vagrant-vm | setup-sles-eth0-default-route | setup eth0 default route if needed
-  become: yes
-  shell: |
-    set -eu
-
-    ifcfg_file=/etc/sysconfig/network/ifcfg-eth0
-    if ! grep -qs "^DHCLIENT_SET_DEFAULT_ROUTE='yes'$" ${ifcfg_file}; then
-        sed -i \
-            -e "s,^\(DHCLIENT_SET_DEFAULT_ROUTE=\).*$,\1'yes'," \
-            ${ifcfg_file} && \
-        systemctl restart network
-    fi
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+clouddata_iso:
+  base_url: "http://{{ dev_env_site_config.clouddata.host }}"
+  use_proxy: "{{ dev_env_site_config.clouddata.use_proxy | default('no') }}"
+  isos_dir: "{{ ardana_cache_isos_dir }}/clouddata"
+  images_dir: "{{ product_cache_directory }}/images"
+  sha256_shared: "SHA256SUMS"

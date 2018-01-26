@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,7 +24,7 @@
 - name: deployer | _run_deployer_tarball | Unarchive the tarball
   unarchive:
     src: "{{ deployer_tarball_location }}"
-    dest: "/home/{{ image_build_user }}/"
+    dest: "{{ image_build_user_home }}/"
     owner: "{{ image_build_user }}"
     group: "{{ image_build_user }}"
     copy: no
@@ -32,14 +32,14 @@
 - name: deployer | _run_deployer_tarball | Delete the tarball
   file:
     state: absent
-    path: "/home/{{ image_build_user }}/{{ deployer_tarball_location | basename }}"
+    path: "{{ image_build_user_home }}/{{ deployer_tarball_location | basename }}"
 
 - name: deployer | _run_deployer_tarball | Execute the ardana-init script
   shell: "{{ deployer_tarball_location | parse_tarball_version() }}/{{ deployer_init_script | basename }}"
 
   args:
    executable: /bin/bash
-   chdir: "/home/{{ image_build_user }}"
+   chdir: "{{ image_build_user_home }}"
   register: pre_init_output_var
 
 - name: deployer | _run_deployer_tarball | Print the ardana-init script output
@@ -49,5 +49,5 @@
 - name: deployer | _run_deployer_tarball | Synchronize CI models to deployer
   synchronize:
     src: "{{ input_model_dir }}"
-    dest: "/home/{{ image_build_user }}"
+    dest: "{{ image_build_user_home }}"
     recursive: yes

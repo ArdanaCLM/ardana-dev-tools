@@ -88,7 +88,7 @@ _packages_nondist:
 
 # User specified package list via ARDANA_PACKAGES_DIST
 _ardana_venv_packages_dist: "{{ lookup('env', 'ARDANA_PACKAGES_DIST') }}"
-packages_dist: "{% if _ardana_venv_packages_dist %}{{ _ardana_venv_packages_dist }}{% else %}{{ _packages_dist }}{% endif %}"
+packages_dist: "{% if _ardana_venv_packages_dist != '' %}{{ _ardana_venv_packages_dist }}{% else %}{{ _packages_dist }}{% endif %}"
 
 # User specified package list via ARDANA_PACKAGES_NONDIST
 _ardana_venv_packages_nondist: "{{ lookup('env', 'ARDANA_PACKAGES_NONDIST') }}"

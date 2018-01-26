@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -23,7 +23,7 @@
   tags: vagrant-package-install
 - include: _get_vagrant_version.yml
   tags: vagrant-package-install
-- name: Set target vagrant version to be installed
+- name: vagrant | install | Set target vagrant version to be installed
   set_fact:
     _target_vagrant_version: >
       {%- if dev_env_in_developer | bool -%}

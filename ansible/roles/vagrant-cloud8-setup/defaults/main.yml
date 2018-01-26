@@ -1,0 +1,208 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Default settings used by the vagrant cloud8 VM setup process.
+---
+
+_proxy_mounts: "{{ ansible_mounts |
+                   selectattr('mount', 'equalto',
+                              cloud8.deployer.caching_proxy.fs.mount) |
+                   list }}"
+
+c8setup:
+  caching_proxy:
+    enabled: "{{ _proxy_mounts | count | bool }}"
+    mounts: "{{ _proxy_mounts }}"
+  server:
+    base: "{{ PACKAGE_CONSTANTS.REPO_DIR }}"
+  distros:
+    sles:
+      dir: "ardana/sles12/zypper"
+    rhel:
+      dir: "ardana/rhel7/yum"
+  isos:
+    - dev: /dev/sr0
+      path: "OS"
+      name: "{{ sles.artifacts.iso.os.name }}"
+      alias: "{{ sles.artifacts.iso.os.alias }}"
+      distro: sles
+      enabled: true
+    - dev: /dev/sr1
+      path: "SDK"
+      name: "{{ sles.artifacts.iso.sdk.name }}"
+      alias: "{{ sles.artifacts.iso.sdk.alias }}"
+      distro: sles
+      enabled: true
+    - dev: /dev/sr2
+      path: "C8"
+      name: "{{ cloud8.artifacts.iso.media1.name }}"
+      alias: "{{ cloud8.artifacts.iso.media1.alias }}"
+      enabled: true
+      distro: sles
+    - dev: /dev/sr3
+      path: "OS"
+      name: "{{ rhel.artifacts.iso.os.name }}"
+      alias: "{{ rhel.artifacts.iso.os.alias }}"
+      gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+      distro: rhel
+      enabled: true
+  repos:
+    #
+    # wget mirror based repos
+    #
+
+    # SUSE OpenStack Cloud 8 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.soc8.staging.name }}"
+      path: "{{ cloud8.artifacts.repos.soc8.staging.alias }}"
+      name: "{{ cloud8.artifacts.repos.soc8.staging.name }}"
+      alias: "{{ cloud8.artifacts.repos.soc8.staging.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.staging.enabled | bool) and
+                   ('staging' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.soc8.devel.name }}"
+      path: "{{ cloud8.artifacts.repos.soc8.devel.alias }}"
+      name: "{{ cloud8.artifacts.repos.soc8.devel.name }}"
+      alias: "{{ cloud8.artifacts.repos.soc8.devel.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.devel.enabled | bool) and
+                   ('devel' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.soc8.updates.name }}"
+      path: "{{ cloud8.artifacts.repos.soc8.updates.alias }}"
+      name: "{{ cloud8.artifacts.repos.soc8.updates.name }}"
+      alias: "{{ cloud8.artifacts.repos.soc8.updates.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.updates.enabled | bool) and
+                   ('updates' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.soc8.pool.name }}"
+      path: "{{ cloud8.artifacts.repos.soc8.pool.alias }}"
+      name: "{{ cloud8.artifacts.repos.soc8.pool.name }}"
+      alias: "{{ cloud8.artifacts.repos.soc8.pool.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.pool.enabled | bool) and
+                   ('pool' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+
+    # HPE Helion OpenStack Cloud 8 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.hos8.devel.name }}"
+      path: "{{ cloud8.artifacts.repos.hos8.devel.alias }}"
+      name: "{{ cloud8.artifacts.repos.hos8.devel.name }}"
+      alias: "{{ cloud8.artifacts.repos.hos8.devel.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.devel.enabled | bool) and
+                   ('devel' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.hos8.updates.name }}"
+      path: "{{ cloud8.artifacts.repos.hos8.updates.alias }}"
+      name: "{{ cloud8.artifacts.repos.hos8.updates.name }}"
+      alias: "{{ cloud8.artifacts.repos.hos8.updates.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.updates.enabled | bool) and
+                   ('updates' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.hos8.pool.name }}"
+      path: "{{ cloud8.artifacts.repos.hos8.pool.alias }}"
+      name: "{{ cloud8.artifacts.repos.hos8.pool.name }}"
+      alias: "{{ cloud8.artifacts.repos.hos8.pool.alias }}"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.pool.enabled | bool) and
+                   ('pool' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    #
+    # Caching proxy based repos
+    #
+
+    # SLES12 SP3 Repos
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
+                   ('updates' in cloud8.config.enabled_repos) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
+                   ('pool' in cloud8.config.enabled_repos) }}"
+
+    # SUSE OpenStack Cloud 8 Repos
+    # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S for both modes.
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.staging.name }}"
+      name: "{{ cloud8.artifacts.repos.soc8.staging.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.soc8.staging.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.staging.enabled | bool) and
+                   ('staging' in cloud8.config.enabled_repos) and
+                   ((cloud8.config.soc_mode | bool) or (cloud8.config.hos_mode | bool)) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.devel.name }}"
+      name: "{{ cloud8.artifacts.repos.soc8.devel.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.soc8.devel.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.devel.enabled | bool) and
+                   ('devel' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.updates.name }}"
+      name: "{{ cloud8.artifacts.repos.soc8.updates.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.soc8.updates.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.updates.enabled | bool) and
+                   ('updates' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.pool.name }}"
+      name: "{{ cloud8.artifacts.repos.soc8.pool.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.soc8.pool.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.pool.enabled | bool) and
+                   ('pool' in cloud8.config.enabled_repos) and
+                   (cloud8.config.soc_mode | bool) }}"
+
+    # HPE Helion OpenStack Cloud 8 Repos
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.staging.name }}"
+      name: "{{ cloud8.artifacts.repos.soc8.staging.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.soc8.staging.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.soc8.staging.enabled | bool) and
+                   ('staging' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.hos8.devel.name }}"
+      name: "{{ cloud8.artifacts.repos.hos8.devel.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.hos8.devel.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.devel.enabled | bool) and
+                   ('devel' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.hos8.updates.name }}"
+      name: "{{ cloud8.artifacts.repos.hos8.updates.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.hos8.updates.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.updates.enabled | bool) and
+                   ('updates' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.hos8.pool.name }}"
+      name: "{{ cloud8.artifacts.repos.hos8.pool.name }}-http"
+      alias: "{{ cloud8.artifacts.repos.hos8.pool.alias }}-http"
+      distro: sles
+      enabled: "{{ (cloud8.artifacts.repos.hos8.pool.enabled | bool) and
+                   ('pool' in cloud8.config.enabled_repos) and
+                   (cloud8.config.hos_mode | bool) }}"
+
+    # TODO(fergal) Add optional yum extras repo tarball info with tarball
+    # rather than mirror attribute here.
+  deployer:
+    init_pkgs:
+      - patterns-cloud-ardana

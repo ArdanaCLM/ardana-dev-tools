@@ -1,0 +1,69 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks for mirroring specified url under specified directory.
+#
+# Pass in the following variables:
+#   _mirror:
+#     url: <url to be mirrored>
+#     dir: <where to put the mirror>
+#     cut_dirs: <optional num dir levels to cut from mirrored paths>
+#     use_proxy: <option boolean indicating whether to use proxy or not>
+---
+
+- name: ardana-scratch | mirror-repos | Determine proxy setting
+  set_fact:
+    _no_proxy: "{%- if (_mirror.use_proxy | default('no')) | bool -%}--no-proxy{%- endif -%}"
+
+- name: ardana-scratch | mirror-repos | Determine cut_dirs setting
+  set_fact:
+    _cut_dirs: "{%- if _mirror.cut_dirs is defined -%}--cut-dirs {{ _mirror.cut_dirs }}{%- endif -%}"
+
+- name: ardana-scratch | mirror-repos | Ensure target directory exists
+  file:
+    path: "{{ _mirror.dir }}"
+    state: directory
+
+- name: ardana-scratch | mirror-repos | Mirror specified SOC8 URLs
+  shell: >
+    wget \
+      --directory-prefix {{ _mirror.dir }} \
+      {{ _no_proxy }} \
+      {{ _cut_dirs }} \
+      --mirror \
+      --no-host-directories \
+      --no-parent \
+      --reject 'index.html*' \
+      --reject-regex '.*url[ ].*' \
+      '{{ _mirror.url_base }}/{{ item.value.name }}/'
+  when:
+    - item.value.enabled | default(False) | bool
+  with_dict: _mirror.repos.soc8 | default({})
+
+- name: ardana-scratch | mirror-repos | Mirror specified HOS8 URLs
+  shell: >
+    wget \
+      --directory-prefix {{ _mirror.dir }} \
+      {{ _no_proxy }} \
+      {{ _cut_dirs }} \
+      --mirror \
+      --no-host-directories \
+      --no-parent \
+      --reject 'index.html*' \
+      --reject-regex '.*url[ ].*' \
+      '{{ _mirror.url_base }}/{{ item.value.name }}/'
+  when:
+    - item.value.enabled | default(False) | bool
+  with_dict: _mirror.repos.hos8 | default({})

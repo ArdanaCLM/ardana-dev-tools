@@ -39,9 +39,29 @@ usage() {
     echo "the 'project' ardana-input-model as a bases."
     echo
     echo "--no-setup            -- Don't run dev-env-install.yml"
+    echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
+    echo "                         guest or OVA images"
     echo "--no-build            -- Don't build venv, reuse existing packages"
     echo "--no-git-update       -- Don't update git cached sources"
     echo "--build-hlinux-ova    -- Build hlinux ova from qcow2"
+    echo "--pre-destroy         -- Destroy any existing instance of the cloud"
+    echo "                         before deploying."
+    echo "--c8|--cloud8-deployer"
+    echo "                      -- Use Cloud8 deployer setup"
+    echo "--c8-hos              -- Enable HPE Helion OpenStack Cloud mode"
+    echo "--c8-soc              -- Enable SUSE OpenStack Cloud mode (default)"
+    echo "--c8-caching          -- Enable caching proxy, running on Cloud8"
+    echo "                         deployer, that will be used to access all"
+    echo "                         non-local repos (default if mirroring not"
+    echo "                         enabled)"
+    echo "--c8-mirror           -- Enable local mirroring of repos"
+    echo "--c8-staging          -- Use staging (DC8S), updates & pool repos"
+    echo "                         (default)"
+    echo "--c8-devel            -- Use devel (DC8), updates & pool repos"
+    echo "--c8-updates          -- Use updates & pool repos"
+    echo "--c8-pool             -- Use pool repo only"
+    echo "--c8-artifacts|cloud8-artifacts"
+    echo "                      -- Use Cloud8 artifacts"
     echo "--hlinux              -- Include any hLinux artifacts"
     echo "--hlinux-control      -- Switch control nodes to use hLinux"
     echo "--hlinux-control-nodes nodes"
@@ -278,10 +298,23 @@ Exiting successfully." >&2
     fi
 fi
 
+# setup vagrant boxes
+if [ -z "${NO_ARTIFACTS:-}" ]; then
+    $SCRIPT_HOME/build-distro-artifacts
+fi
+
 # Build
 if [ -z "$NO_BUILD" -a -z "$DEPLOYER_TARBALL" ]; then
     logsubunit --inprogress build
-    $SCRIPT_HOME/build-venv.sh --stop || logfail build
+    # artifacts should already have been build so skip
+    $SCRIPT_HOME/build-venv.sh \
+        ${CI:+--ci} \
+        ${ARDANA_CLOUD8_ARTIFACTS:+--cloud8} \
+        ${ARDANA_HLINUX_ARTIFACTS:+--hlinux} \
+        ${ARDANA_RHEL_ARTIFACTS:+--rhel} \
+        ${ARDANA_SLES_ARTIFACTS:+--sles} \
+        --no-artifacts \
+        --stop || logfail build
     logsubunit --success build
 fi
 
@@ -329,11 +362,22 @@ if [ -n "$FEATURE_PREPARE" ]; then
     feature_prepare prepare-artifacts.yml
 fi
 
+if [ -n "${PRE_DESTROY:-}" ]; then
+    $SCRIPT_HOME/deploy-vagrant-destroy || logfail pre-destroy
+    logsubunit --inprogress pre-destroy
+fi
+
 # Bring up vagrant VM's
 $SCRIPT_HOME/deploy-vagrant-up || logfail deploy
 logsubunit --inprogress deploy
 
 generate_ssh_config "FORCE"
+
+if [[ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+        $DEVTOOLS/ansible/cloud8-setup.yml \
+        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+fi
 
 # Run any feature hooks between ardana-init.bash and initialising the input model
 feature_ansible post-ardana-init.yml
