@@ -46,8 +46,7 @@
   shell: ./create_iso.sh \
       -d {{ deployer_tarball }} \
       -o {{ output_iso }} \
-      {{ input_iso }} \
-      {{ ardana_images_dir }}/ova/hlinux.ova
+      {{ input_iso }}
   args:
     chdir: "{{ isogen_working_dir }}"
 

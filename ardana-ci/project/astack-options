@@ -1,1 +1,1 @@
---feature-dir ../../ardana-ci/features/third-party --build-hlinux-ova --squashkit previous.iso
+--feature-dir ../../ardana-ci/features/third-party --squashkit previous.iso
