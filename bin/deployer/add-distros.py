@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # (c) Copyright 2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -56,7 +56,7 @@ class Servers(object):
 
     _DISTRO_ID_MAP = dict(sles="sles12sp3-x86_64",
                           hlinux="hlinux-x86_64",
-                          rhel="rhel72-x86_64")
+                          rhel="rhel73-x86_64")
 
     @classmethod
     def supported_distros(cls):
