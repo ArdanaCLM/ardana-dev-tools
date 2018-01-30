@@ -96,7 +96,7 @@ vagrant_vm_sles_extras:
       - python-PyMySQL
       - ruby2.1-rubygem-mysql2
       - xtrabackup
-    url: "http://clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/suse/"
+    url: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/suse/"
 
   - repo: vertica
     disable_gpg_check: yes
