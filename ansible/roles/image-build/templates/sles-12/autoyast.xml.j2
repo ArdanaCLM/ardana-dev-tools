@@ -146,13 +146,13 @@
 # set flag
 #wget http://$http_server/preseed/timestamp -O /etc/cobbler_ardana_installed
 
-# ardanauser access
+# {{ image_build_user }} access
 
 # All ssh from deployer
-mkdir --mode=700 {{ image_build_user }}/.ssh
-chown {{ image_build_user }}:{{ image_build_group }} {{ image_build_user }}/.ssh
+mkdir --mode=700 {{ image_build_user_home }}/.ssh
+chown {{ image_build_user }}:{{ image_build_group }} {{ image_build_user_home }}/.ssh
 
-# Enable passwordless sudo access for ardanauser
+# Enable passwordless sudo access for {{ image_build_user }}
 echo "{{ image_build_user }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/{{ image_build_user }}
 chmod 0440 /etc/sudoers.d/{{ image_build_user }}
 

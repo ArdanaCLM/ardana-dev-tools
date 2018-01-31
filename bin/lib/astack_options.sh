@@ -28,6 +28,8 @@ eval set -- "$TEMP"
 
 # Are you running in CI and should do extra steps
 export CI=${CI:-}
+export ARDANAUSER="${ARDANAUSER:-stack}"
+export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/home}"
 
 NO_SETUP=
 NO_BUILD=
@@ -89,6 +91,7 @@ while true ; do
         --ci)
             SKIP_EXTRA_PLAYBOOKS=
             export ARDANAUSER=ardanauser
+            export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/var/lib}"
             export CI=yes
             export ARDANA_BUILD_MEMORY=${ARDANA_BUILD_MEMORY:-${BLDVM_MB}}
             # Since there could be up to 3 build VMs, only overcommit

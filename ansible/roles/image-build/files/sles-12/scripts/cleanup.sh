@@ -2,7 +2,7 @@
 #
 # Copyright (c) 2010-2012 Patrick Debois
 # (c) Copyright 2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,7 +18,11 @@
 #
 #zypper remove gtk2 libX11 hicolor-icon-theme avahi bitstream-vera-fonts
 zypper clean --all
-zypper removerepo SLES12-SP2-12.3-0
+zypper repos | grep -e "^[[:digit:]]\+" | awk '{print $3}' | while read repo
+do
+    zypper removerepo "${repo}"
+done
+
 # if we add VirtualBox builder support
 #rm -rf VBoxGuestAdditions_*.iso
 
