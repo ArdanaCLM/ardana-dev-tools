@@ -41,8 +41,8 @@ hlinux_ova_archive:
   sha256: "70315cbe3f7f91a62bdefdd08448a9c66083452866137f8ea0442e2f52fe4aab"
 
 yum_extras_archive:
-  path: "/yum-extras/yum-extras-20160509-1400.tgz"
-  sha256: "33fa93e54f423ef6c75ab6e982c44cfb1beccd23d9cd1c8267a29905e39b510b"
+  path: "/yum-extras/yum-extras-rhel73-20180129-2019.tgz"
+  sha256: "f8d82a002292bf660f2f70c67e6e6aef8bdb7253f1a470b54bf54d322d14680f"
 
 yum_optional_archive:
   path: "/yum-extras/yum-internal-rhel73-20180118-1320.tgz"
