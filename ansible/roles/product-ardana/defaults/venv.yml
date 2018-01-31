@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -458,8 +458,8 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/monasca-statsd"
 
   monasca_agent:
-    branch: "{{ _venv_openstack_service_branch_default }}"
-    url: "{{ dev_env_default_git_server }}/openstack/monasca-agent"
+    branch: "c8"
+    url: "https://github.com/ArdanaCLM/monasca-agent"
 
   monascaclient:
     branch: "{{ _venv_openstack_service_branch_default }}"
