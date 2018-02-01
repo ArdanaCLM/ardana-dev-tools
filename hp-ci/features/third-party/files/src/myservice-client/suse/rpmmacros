@@ -1,0 +1,6 @@
+%_topdir %(echo $PWD)
+%_builddir %{_topdir}
+%_rpmdir %{_builddir}/rpms
+%_sourcedir %(echo $PWD)
+%_specdir %{_topdir}
+%_srcrpmdir %{_topdir}
