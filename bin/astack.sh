@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -198,6 +198,7 @@ fi
 if [[ -n "$ARDANA_UPGRADE_NO_RHEL" ]]
 then
     unset ARDANA_RHEL_ARTIFACTS
+    unset ARDANA_RHEL_OPTIONAL_REPO_ENABLED
     unset ARDANA_RHEL_COMPUTE
     unset ARDANA_RHEL_COMPUTE_NODES
 fi
@@ -209,6 +210,18 @@ then
     unset ARDANA_SLES_COMPUTE
     unset ARDANA_SLES_COMPUTE_NODES
 fi
+
+# Enable ardana centos rpm repo support on RHEL required for nova computes.
+# Flag is enabled when one or more RHEL compute is present in deployment.
+if [ "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-0}" = "1" ]; then
+    _centos_repo_feature=$DEVTOOLS/ardana-ci/features/enable-centos-rpms-on-rhel
+    if [ -d "$_centos_repo_feature" ]; then
+        if ! echo "$FEATURE_DIRS" | grep -qs "/$(basename "$_centos_repo_feature")\>"; then
+            FEATURE_DIRS="$FEATURE_DIRS $_centos_repo_feature"
+        fi
+    fi
+fi
+
 
 installsubunit
 logsubunit --inprogress total
@@ -368,6 +381,12 @@ if [ -n "$USE_PROJECT_STACK" ]; then
     fi
 fi
 logsubunit --inprogress deploy
+
+if [ "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-0}" = "1" ]; then
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+        $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml \
+        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+fi
 
 # Run any feature hooks between initialising the input model and running CP
 feature_ansible post-commit.yml

@@ -1,7 +1,7 @@
 # -*- sh -*-
 #
 # (c) Copyright 2016-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -40,6 +40,7 @@ export ARDANA_HLINUX_COMPUTE=${ARDANA_HLINUX_COMPUTE:-}
 export ARDANA_HLINUX_COMPUTE_NODES=${ARDANA_HLINUX_COMPUTE_NODES:-}
 export ARDANA_UPGRADE_NO_RHEL=${ARDANA_UPGRADE_NO_RHEL:-}
 export ARDANA_RHEL_ARTIFACTS=${ARDANA_RHEL_ARTIFACTS:-}
+export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}
 export ARDANA_RHEL_COMPUTE=${ARDANA_RHEL_COMPUTE:-}
 export ARDANA_RHEL_COMPUTE_NODES=${ARDANA_RHEL_COMPUTE_NODES:-}
 export ARDANA_UPGRADE_NO_SLES=${ARDANA_UPGRADE_NO_SLES:-}
@@ -224,6 +225,10 @@ if [ -n "${ARDANA_RHEL_COMPUTE:-}" -o \
      -n "${COBBLER_RHEL_COMPUTE:-}" -o \
      -n "${COBBLER_RHEL_NODES:-}" ]; then
     export ARDANA_RHEL_ARTIFACTS=1
+    # override following flag only when variable is not already set or is blank
+    if [ -z "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED}" ]; then
+        export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
+    fi
 fi
 
 # Will we be cobbling any nodes

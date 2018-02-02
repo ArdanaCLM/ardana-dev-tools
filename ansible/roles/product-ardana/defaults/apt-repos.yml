@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -43,6 +43,10 @@ hlinux_ova_archive:
 yum_extras_archive:
   path: "/yum-extras/yum-extras-20160509-1400.tgz"
   sha256: "33fa93e54f423ef6c75ab6e982c44cfb1beccd23d9cd1c8267a29905e39b510b"
+
+yum_optional_archive:
+  path: "/yum-extras/yum-internal-rhel73-20180118-1320.tgz"
+  sha256: "cd2e2718c86226b7cac2161558be316d422421f28b262b8de30fc25fc3a2f3d1"
 
 sles_extras_archive:
   path: "/sles-extras/sles12sp3-extras-20180103-184045.tgz"
