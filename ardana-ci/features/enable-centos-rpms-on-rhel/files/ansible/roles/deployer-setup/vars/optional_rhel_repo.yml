@@ -18,8 +18,13 @@
 yum_optional_loc: ardana/rhel7/yum/optional
 yum_optional_dir: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ yum_optional_loc }}"
 
+# by default (and via astack flow), optional repo tarball with following name
+# is expected in ardanauser home directory.
 deployer_rhel7_yum_optional_tarball: "rhel7-opt-yum.tgz"
 
+# Following variable can be used to override the optional repo tarball location
 env_yum_optional_tarball_location: "{{ lookup('env', 'ARDANA_RHEL_OPTIONAL_TARBALL_LOCATION') | default('', true) }}"
 
-rhel_optional_repo_enabled: "{{ lookup('env', 'ARDANA_RHEL_OPTIONAL_REPO_ENABLED') | default(True, true) | bool }}"
+# Setting default True as execution of this play/logic implicitly means user
+# wants to use RHEL optional repo support
+rhel_optional_repo_enabled: true
