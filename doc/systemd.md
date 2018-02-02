@@ -1,6 +1,6 @@
 
 (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-(c) Copyright 2017 SUSE LLC
+(c) Copyright 2017-2018 SUSE LLC
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -39,12 +39,12 @@ arguments to this module:
         Default: None
 
 The "setup_systemd" Ansible module is modelled closely on TripleO
-os-svc-daemon.  It writes /usr/lib/systemd/service/"name".service.
+os-svc-daemon.  It writes /etc/systemd/service/"name".service.
 Note that "name" is optional and defaults to "service" for the the
 common use case a single systemd unit corresponds to single
 service-component directory and a single executable being launched
 out of that.  "setup_systemd" also writes
-/usr/lib/systemd/service/"name"-create-dir.service which makes
+/etc/systemd/service/"name"-create-dir.service which makes
 /var/run/"name", and sets ownership of /var/run/"name".  If the
 contents of the systemd service files have not changed, then the service
 files are left untouched.  Otherwise the systemd files are overwritten.

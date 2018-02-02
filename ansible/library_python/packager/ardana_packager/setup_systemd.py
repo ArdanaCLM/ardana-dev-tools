@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -40,7 +40,7 @@ from ardana_packager.ansible import AnsibleModule
 #             Default: simple
 
 # Location of systemd system dir
-SYSTEMD_DIR = "/usr/lib/systemd/system"
+SYSTEMD_DIR = "/etc/systemd/system"
 SYSTEMCTL = "/bin/systemctl"
 
 
@@ -226,24 +226,24 @@ def write_systemd(service, cmd, name, install_path, user, group,
          "StandardError={stderr}\n"
          "\n"
          "[Install]\n"
-         "WantedBy=multi-user.target {wanted_by}\n"
-         "Alias={name}.service\n").format(service=service,
-                                          cmd=cmd,
-                                          name=name,
-                                          install_path=install_path,
-                                          user=user,
-                                          group=group,
-                                          args=args,
-                                          startup_type=startup_type,
-                                          env=env_str,
-                                          restart_params=restart_params,
-                                          limit_params=limit_params,
-                                          wants=wants,
-                                          wanted_by=wanted_by,
-                                          before=before,
-                                          after=after,
-                                          stdout=stdout,
-                                          stderr=stderr)
+         "WantedBy=multi-user.target {wanted_by}\n").format(
+             service=service,
+             cmd=cmd,
+             name=name,
+             install_path=install_path,
+             user=user,
+             group=group,
+             args=args,
+             startup_type=startup_type,
+             env=env_str,
+             restart_params=restart_params,
+             limit_params=limit_params,
+             wants=wants,
+             wanted_by=wanted_by,
+             before=before,
+             after=after,
+             stdout=stdout,
+             stderr=stderr)
 
     return file_write_check(s, name)
 
