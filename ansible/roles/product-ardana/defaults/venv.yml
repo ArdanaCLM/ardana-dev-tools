@@ -225,6 +225,10 @@ _venv_ardana_sources_default:
     branch: "master"
     url: "{{ dev_env_default_git_server }}/openstack/designate-tempest-plugin"
 
+  barbican_tempest_plugin:
+    branch: "master"
+    url: "{{ dev_env_git_servers.github }}/openstack/barbican-tempest-plugin"
+
   django_openstack_auth:
     branch: "{{ _venv_openstack_service_branch_default }}"
     url: "{{ dev_env_default_git_server }}/openstack/django_openstack_auth"
@@ -1312,6 +1316,7 @@ _services_default:
       - tempest
       - designate_tempest_plugin
       - heat_tempest_plugin
+      - barbican_tempest_plugin
     pips:
       - ddt # neutron-vpnaas and neutron-fwaas
       - urllib3==1.16 # BUG-4232
