@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -36,6 +36,22 @@
     - dev-env
   tasks:
     - include: roles/dev-env/tasks/check-ansible-version.yml
+
+# enable external network access on the build-sles* machines
+- hosts: build-sles*
+  roles:
+    - venv
+  tasks:
+    - name: venv | - | set external network access on eth0 on build-sles* host
+      become: yes
+      replace:
+        dest: /etc/sysconfig/network/ifcfg-eth0
+        regexp: "^DHCLIENT_SET_DEFAULT_ROUTE=.*$"
+        replace: "DHCLIENT_SET_DEFAULT_ROUTE='yes'"
+
+    - name: venv | - | Make the ifcfg-eth0 change take effect
+      become: yes
+      command: "systemctl restart network"
 
 # Conditionally get all the venv repos now. This is here to work
 - include: get-venv-sources.yml
