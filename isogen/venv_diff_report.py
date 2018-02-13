@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -520,7 +520,7 @@ class Scratch(Kit):
 
     def read_hlinux_build_manifest(self):
         buildmanifest_filename = os.path.join(
-            self.path, "ardana-0.99.0-build.manifest")
+            self.path, "ardana-8-build.manifest")
 
         buildmanifest_y = yaml.load(open(buildmanifest_filename))
         packages = buildmanifest_y["packages"]

@@ -18,20 +18,18 @@
 
 # WARNING: product_name_version must be a basic string and not contain any
 # ansible variables as constructs.
-product_name_version: "ardana-0.99.0"
+product_name_version: "ardana-8"
 product_name: "{{ product_name_version.split('-') | first }}"
 
 # hack to 0 pad version out to three places so can specify just the
 # <major>.<minor> part of the version in ARDANA_PRODUCT
 _product_version: "{{ product_name_version.split('-') | last }}"
 product_version_major: "{{ _product_version.split('.')[0] }}"
-product_version_minor: "{{ _product_version.split('.')[1] }}"
+product_version_minor: "{{ _product_version.split('.')[1] | default('0') }}"
 product_version_patch: "{{ _product_version.split('.')[2] | default('0') }}"
 product_version_hotfix: "{{ _product_version.split('.')[3] | default('') }}"
 product_version_hotfix_string: "{% if product_version_hotfix != '' %}{{'.' ~ product_version_hotfix}}{% else %}{{ '' }}{% endif %}"
-product_version: "{{
-    product_version_major ~ '.' ~ product_version_minor ~ '.' ~ product_version_patch ~ product_version_hotfix_string
-}}"
+product_version: "{{ product_version_major }}"
 
 product_stream: "{{ product_version_major ~ '.' ~ product_version_minor }}"
 
