@@ -1308,7 +1308,6 @@ _services_default:
       - ironicclient
       - ceilometerclient
       - heatclient
-      - neutronclient
       - barbicanclient
       - keystonemiddleware
       - neutron
@@ -1322,6 +1321,7 @@ _services_default:
       - urllib3==1.16 # BUG-4232
       - testscenarios>=0.4 # needed by neutron tempest tests
       - python-cinderclient>=3.2.0 # needed by the heat tempest plugin
+      - python-neutronclient>=6.7.0 # needed by the heat tempest plugin
     version: "{{ package_version }}"
 
   ardana_qa_tests_example:
