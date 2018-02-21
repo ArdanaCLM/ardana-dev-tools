@@ -30,7 +30,7 @@
     setup_qa_tests_dir: |
       {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{
           (ansible_os_family == "Debian" ) |
-          ternary(package_venv_locations_multi_arch.hlinux[ansible_architecture], package_venv_locations_multi_arch.sles[ansible_architecture]) }}
+          ternary(package_venv_locations.hlinux[ansible_architecture], package_venv_locations.sles[ansible_architecture]) }}
 
 # Install deployer_nondist_venvs directly into /opt/ardana_packager
 - name: deployer | setup-qa-tests | Copy nondist venv packages into the deployer

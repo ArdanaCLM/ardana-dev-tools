@@ -169,9 +169,9 @@ ansible-playbook -i hosts/localhost ansible-init.yml -e \
 popd &>/dev/null
 
 # Create base venv package manifest
-declare -a dir_list=( {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations_multi_arch.hlinux[ansible_architecture] }} \
-                      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations_multi_arch.rhel[ansible_architecture] }} \
-                      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations_multi_arch.sles[ansible_architecture] }} )
+declare -a dir_list=( {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux[ansible_architecture] }} \
+                      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.rhel[ansible_architecture] }} \
+                      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.sles[ansible_architecture] }} )
 for dir in "${dir_list[@]}"; do
     if [ -e "$dir/packages" ]; then
         sudo cp "$dir/packages" "$dir/base_packages"
