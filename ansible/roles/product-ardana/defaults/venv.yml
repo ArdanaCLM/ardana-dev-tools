@@ -222,11 +222,11 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/designate-dashboard"
 
   designate_tempest_plugin:
-    branch: "master"
+    branch: "bbc01e351086f11ae7387ca0593f67e13d90a395"
     url: "{{ dev_env_default_git_server }}/openstack/designate-tempest-plugin"
 
   barbican_tempest_plugin:
-    branch: "master"
+    branch: "73402c7d285b12679a7ff143831c8856057ef026"
     url: "{{ dev_env_git_servers.github }}/openstack/barbican-tempest-plugin"
 
   django_openstack_auth:
@@ -290,7 +290,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/openstack/python-heatclient"
 
   heat_tempest_plugin:
-    branch: "master"
+    branch: "d908bef47d0809c52a43c38d7fc879a525b4580c"
     url: "{{ dev_env_git_servers.openstack }}/openstack/heat-tempest-plugin"
 
   installer-server:
