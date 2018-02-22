@@ -450,7 +450,7 @@ _venv_ardana_sources_default:
     url: "{{ dev_env_default_git_server }}/ardana/swiftlm"
 
   tempest:
-    branch: "master"
+    branch: "ardama/master_1c2a802086"
     url: "{{ dev_env_default_git_server }}/openstack/tempest"
 
   monasca_notification:
