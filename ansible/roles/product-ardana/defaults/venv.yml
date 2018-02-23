@@ -1261,7 +1261,6 @@ _services_default:
   swift:
     sources:
       - certifi
-      - oslomessaging
       - keystoneclient
       - neutronclient
       - swift
@@ -1280,7 +1279,6 @@ _services_default:
   swiftlm:
     sources:
       - certifi
-      - oslomessaging
       - keystoneclient
       - swiftclient
       - swift
