@@ -7,6 +7,7 @@
     "base_dir": "{{ env `PWD` }}/",
     "username": "stack",
     "password": "stack",
+    "home_base": "{{ env `ARDANA_USER_HOME_BASE` }}",
     "http_proxy": "{{ env `http_proxy` }}",
     "https_proxy": "{{ env `https_proxy` }}",
     "no_proxy": "{{ env `no_proxy` }}",
@@ -56,6 +57,7 @@
       "type": "shell",
       "environment_vars": [
         "VAGRANT_USER={{ user `username` }}",
+        "HOME_BASE={{ user `home_base` }}",
         "http_proxy={{ user `http_proxy` }}",
         "https_proxy={{ user `https_proxy` }}",
         "no_proxy={{ user `no_proxy` }}",

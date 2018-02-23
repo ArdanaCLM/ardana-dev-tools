@@ -44,6 +44,11 @@ export PYPI_MIRROR_URL=${PYPI_MIRROR_URL:-http://${PYPI_BASE_HOST:-pypi.suse.pro
 # For testing and developer experience we set ARDANAUSER here to be stack. During
 # CI, we pass in the --ci flag which sets the ARDANAUSER appropriately
 export ARDANAUSER=${ARDANAUSER:-stack}
+if [[ -z "${CI:-}" ]]; then
+    export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/home}
+else
+    export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/var/lib}
+fi
 
 export VAGRANT_LOG_DIR="${WORKSPACE:-${DEVTOOLS}}/logs/vagrant"
 export CONSOLE_LOG_DIR="${WORKSPACE:-${DEVTOOLS}}/logs/console"

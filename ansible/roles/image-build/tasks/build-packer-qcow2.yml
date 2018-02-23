@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -31,14 +31,15 @@
   shell: |
     set -eu
 
-    envfile="{{ image_build_output_dir }}/{{ image_build_name }}.env"
+    envfile="{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}.env"
     echo "{{ image_build_user }}" > $envfile
+    echo "{{ image_build_user_home }}" >> $envfile
 
 - name: image-build | build-packer-qcow2 | Check image inputs
   shell: |
     set -eux
 
-    md5sum --strict --check "{{ image_build_output_dir }}/{{ image_build_name }}.md5sum"
+    md5sum --strict --check "{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}.md5sum"
   register: image_inputs_check_result
   failed_when: false
   changed_when: image_inputs_check_result.rc != 0
@@ -58,9 +59,9 @@
   shell: |
     set -eu
 
-    image_output="{{ image_build_output_dir }}/{{ image_build_name }}"
+    image_output="{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}"
     image_name="{{ image_build_name }}.qcow2"
-    rm -rf "{{ image_build_output_dir }}/{{ image_build_name }}/"
+    rm -rf "{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}/"
 
     packer build \
         -var "iso_url=file://{{ image_build_iso }}" \
@@ -70,10 +71,12 @@
         -var "disk_size={{ image_build_disk_size }}" \
         -var "base_dir={{ ( 'roles/image-build/files/' ~ image_build_name ) | realpath }}" \
         "{{ ( 'roles/image-build/files/' ~ image_build_name ) | realpath }}/diskimage.json"
+    echo packer built
 
     qemu-img convert -c -f qcow2 -O qcow2 -o cluster_size=2M \
         "${image_output}/packer-${image_name}" \
         "${image_output}.qcow2"
+    echo qcow2 converted
     rm -f "${image_output}/packer-${image_name}"
 
     md5sum "${image_output}.env" \
@@ -83,6 +86,7 @@
             ! -name "{{ images_build_images[image_build_name].install_template | basename }}") \
         roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2 \
             > "${image_output}.md5sum.tmp"
+    echo md5sumd files
     mv "${image_output}.md5sum.tmp" "${image_output}.md5sum"
   environment: "{{ image_build_packer_env }}"
   when: image_inputs_check_result | failed
