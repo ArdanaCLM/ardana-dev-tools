@@ -25,6 +25,10 @@
         recursive: yes
     - name: Execute play to setup optional rhel repo support changes
       shell: |
-        ansible-playbook set-optional-rhel-repo.yml -vvvv
+        export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
+        ansible-playbook set-deployer-rhel-repo.yml -vvvv -e "devtools_rhel_setup=true"
       args:
         chdir: openstack/ardana/ansible
+      register: _set_deployer_rhel_repo_result
+
+    - debug: var=_set_deployer_rhel_repo_result.stdout_lines
