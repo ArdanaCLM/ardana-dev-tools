@@ -213,7 +213,7 @@ fi
 
 # Enable ardana centos rpm repo support on RHEL required for nova computes.
 # Flag is enabled when one or more RHEL compute is present in deployment.
-if [ "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-0}" = "1" ]; then
+if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
     _centos_repo_feature=$DEVTOOLS/ardana-ci/features/enable-centos-rpms-on-rhel
     if [ -d "$_centos_repo_feature" ]; then
         if ! echo "$FEATURE_DIRS" | grep -qs "/$(basename "$_centos_repo_feature")\>"; then
@@ -382,7 +382,7 @@ if [ -n "$USE_PROJECT_STACK" ]; then
 fi
 logsubunit --inprogress deploy
 
-if [ "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-0}" = "1" ]; then
+if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
     ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
         $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml \
         -e "{\"deployer_node\": \"$(get_deployer_node)\"}"

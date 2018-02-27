@@ -23,6 +23,8 @@
   vars_files:
     - roles/deployer-setup/vars/optional_rhel_repo.yml
   tasks:
+    - include: roles/deployer-setup/tasks/get_centos_rpms_tarball.yml
+      when: rhel_optional_repo_enabled | bool
     - name: set-optional-rhel-repo | Enable rhel optional repo flag in
             deployer-setup defaults/main.yml
       lineinfile:
@@ -80,8 +82,5 @@
         git add -A
         git commit --allow-empty -m "Enabled selinux policy updates for RHEL compute nodes"
       when: _rhel_apply_seliunx_updates_result.changed
-
-    - include: roles/deployer-setup/tasks/get_centos_rpms_tarball.yml
-      when: rhel_optional_repo_enabled | bool
     - include: roles/deployer-setup/tasks/install_rhel_optional_tarball.yml
       when: rhel_optional_repo_enabled | bool
