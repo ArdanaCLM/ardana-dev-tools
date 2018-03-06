@@ -27,11 +27,3 @@ package_venv_locations:
     x86_64: hlinux_venv
   sles:
     x86_64: sles_venv
-
-package_venv_locations_multi_arch:
-  rhel:
-    x86_64: rhel_venv
-  hlinux:
-    x86_64: hlinux_venv
-  sles:
-    x86_64: sles_venv
