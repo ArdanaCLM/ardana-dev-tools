@@ -13,19 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks to clear DHCP provided default route on eth0 on SLES
 ---
-
-- name: vagrant-vm | clear-sles-eth0-default-route | clear eth0 default route if needed
-  become: yes
-  shell: |
-    set -eu
-
-    ifcfg_file=/etc/sysconfig/network/ifcfg-eth0
-    if ! grep -qs "^DHCLIENT_SET_DEFAULT_ROUTE='no'$" ${ifcfg_file}; then
-        sed -i \
-            -e "s,^\(DHCLIENT_SET_DEFAULT_ROUTE=\).*$,\1'no'," \
-            ${ifcfg_file} && \
-        systemctl restart network
-    fi
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+dependencies:
+  - role: dev-env
+  - role: dev-env-cloud8
+  - role: clouddata-mirror-setup
+  - role: package-constants
+  - role: vagrant-vm
+  - role: deployer
+  - role: venv

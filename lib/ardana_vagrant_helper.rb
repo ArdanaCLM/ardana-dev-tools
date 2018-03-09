@@ -199,6 +199,37 @@ module Ardana
       @config = config
       @dev_tool_path = File.expand_path(File.dirname(__FILE__) + "/..")
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
+      @ardana = {
+        :cloud8 => {
+          :artifacts => !ENV.fetch("ARDANA_CLOUD8_ARTIFACTS", "").empty?,
+          :deployer => !ENV.fetch("ARDANA_CLOUD8_DEPLOYER", "").empty?,
+          :proxy_cache => {
+            :enabled => !ENV.fetch("ARDANA_CLOUD8_CACHING_PROXY", "").empty?,
+            :name => "persistent-proxy-cache.qcow2",
+            :size => "33G",
+            :bus => "scsi"
+          },
+        },
+        :hlinux => {
+          :artifacts => !ENV.fetch("ARDANA_HLINUX_ARTIFACTS", "").empty?,
+          :control => !ENV.fetch("ARDANA_HLINUX_CONTROL", "").empty?,
+          :compute => !ENV.fetch("ARDANA_HLINUX_COMPUTE", "").empty?,
+          :control_nodes => ENV.fetch("ARDANA_HLINUX_CONTROL_NODES", "").split(":"),
+          :compute_nodes => ENV.fetch("ARDANA_HLINUX_COMPUTE_NODES", "").split(":")
+        },
+        :rhel => {
+          :artifacts => !ENV.fetch("ARDANA_RHEL_ARTIFACTS", "").empty?,
+          :compute => !ENV.fetch("ARDANA_RHEL_COMPUTE", "").empty?,
+          :compute_nodes => ENV.fetch("ARDANA_RHEL_COMPUTE_NODES", "").split(":")
+        },
+        :sles => {
+          :artifacts => !ENV.fetch("ARDANA_SLES_ARTIFACTS", "").empty?,
+          :control => !ENV.fetch("ARDANA_SLES_CONTROL", "").empty?,
+          :compute => !ENV.fetch("ARDANA_SLES_COMPUTE", "").empty?,
+          :control_nodes => ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":"),
+          :compute_nodes => ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":"),
+        }
+      }
     end
 
     def get_product_branch()
@@ -245,19 +276,19 @@ module Ardana
       server_details.delete_if { |serverInfo| serverInfo.key?('hypervisor-id') }
 
       # blanket node class directives
-      rhel_compute_all = ENV.fetch("ARDANA_RHEL_COMPUTE", "") == "1"
-      sles_control_all = ENV.fetch("ARDANA_SLES_CONTROL", "") == "1"
-      sles_compute_all = ENV.fetch("ARDANA_SLES_COMPUTE", "") == "1"
-      hlinux_control_all = ENV.fetch("ARDANA_HLINUX_CONTROL", "") == "1"
-      hlinux_compute_all = ENV.fetch("ARDANA_HLINUX_COMPUTE", "") == "1"
+      rhel_compute_all = @ardana[:rhel][:compute]
+      sles_control_all = @ardana[:sles][:control]
+      sles_compute_all = @ardana[:sles][:compute]
+      hlinux_control_all = @ardana[:hlinux][:control]
+      hlinux_compute_all = @ardana[:hlinux][:compute]
 
       # identify potential node specific overrides
-      rhel_nodes = ENV.fetch("ARDANA_RHEL_COMPUTE_NODES", "").split(":")
-      sles_control_nodes = ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":")
-      sles_compute_nodes = ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":")
+      rhel_nodes = @ardana[:rhel][:compute_nodes]
+      sles_control_nodes = @ardana[:sles][:control_nodes]
+      sles_compute_nodes = @ardana[:sles][:compute_nodes]
       sles_nodes = sles_control_nodes + sles_compute_nodes
-      hlinux_control_nodes = ENV.fetch("ARDANA_HLINUX_CONTROL_NODES", "").split(":")
-      hlinux_compute_nodes = ENV.fetch("ARDANA_HLINUX_COMPUTE_NODES", "").split(":")
+      hlinux_control_nodes = @ardana[:hlinux][:control_nodes]
+      hlinux_compute_nodes = @ardana[:hlinux][:compute_nodes]
       hlinux_nodes = hlinux_control_nodes + hlinux_compute_nodes
 
       # setup unique VNC ports for each server
@@ -341,6 +372,13 @@ module Ardana
       end
     end
 
+    def set_sles_cloud8(iso_files)
+      iso_files.push( get_image_output_dir() + "/cloud8.iso" )
+      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        raise "Run 'ansible-playbook -i hosts/localhost get-cloud8-artifacts.yml' to get the Cloud8 ISO"
+      end
+    end
+
     def set_rhel(iso_files)
       iso_files.push( get_image_output_dir() + "/rhel7.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
@@ -368,6 +406,10 @@ module Ardana
       # SLES SDK
       if names.include?("sles12")
         set_sles_sdk(iso_files)
+        # SLES Cloud8
+        if @ardana[:cloud8][:artifacts]
+          set_sles_cloud8(iso_files)
+        end
       end
 
       # RHEL
@@ -385,6 +427,13 @@ module Ardana
     end
 
     def provision_deployer(server: None, name: "deployer", distros: [], extra_vars: {}, disks: [])
+      # override the playbook used if in Cloud8 deployer mode
+      if @ardana[:cloud8][:deployer]
+        playbook = "vagrant-cloud8-vm-setup"
+      else
+        playbook = "deployer-setup"
+      end
+
       # Provisioning
       # Add the pseudo host group defined in parallel-ansiblerepo-build.yml
       setup_vm(vm: server.vm, name: name, extra_vars: extra_vars, disks: disks)
@@ -392,7 +441,7 @@ module Ardana
       setup_iso(server: server, names: distros)
 
       server.vm.provision "ansible" do |ansible|
-        ansible.playbook = "#@dev_tool_path/ansible/deployer-setup.yml"
+        ansible.playbook = "#@dev_tool_path/ansible/#{playbook}.yml"
         ansible.host_key_checking = false
         ansible.limit = name + ",repo_parallel"
         if extra_vars
@@ -498,18 +547,37 @@ module Ardana
           set_vm_hardware(vm: server.vm, type: node_type, graphics_port: serverInfo["graphics_port"])
 
           disks = []
+          # add persistent volumes as appropriate
           if deployer_node == server_name
-            # This is strange. I don't exactly trust vagrant-libvirtd / libvirtd
-            # to be doing the right thing here. But we this puts the persistent
-            # cache to th start of the disks, but inside the deployer I see this
-            # as the last device - sdg
-            disks.push({
-                         :bus => "scsi",
-                         :size => "10G",
-                         :path => @persistent_deployer_apt_cache,
-                         :allow_existing => true
-                       })
+            if @ardana[:cloud8][:deployer]
+              if @ardana[:cloud8][:proxy_cache][:enabled]
+                # if using 'scsi' as the bus type the first additional disk on the
+                # virtio-scsi controller gets probed last, so we add the proxy
+                # cache persistent volume cache as the first disk
+                disks.push({
+                             :path => @ardana[:cloud8][:proxy_cache][:name],
+                             :size => @ardana[:cloud8][:proxy_cache][:size],
+                             :bus => @ardana[:cloud8][:proxy_cache][:bus],
+                             :allow_existing => true
+                           })
+
+                # The proxy cache volume lun will be X:0:0:<lun> for scsi.
+                @ardana[:cloud8][:proxy_cache][:lun] = disks.length
+              end
+            elsif @ardana[:hlinux][:control]
+              # This is strange. I don't exactly trust vagrant-libvirtd / libvirtd
+              # to be doing the right thing here. But we this puts the persistent
+              # cache to th start of the disks, but inside the deployer I see this
+              # as the last device - sdg
+              disks.push({
+                           :bus => "scsi",
+                           :size => "10G",
+                           :path => @persistent_deployer_apt_cache,
+                           :allow_existing => true
+                         })
+            end
           end
+
           # Add the requested number of disks for this node type
           if !!VM_DISK[node_type]
             (1..VM_EXTRA_DISKS[node_type]).each do |i|
@@ -519,12 +587,21 @@ module Ardana
 
           # Provisioning VM
           if deployer_node == server_name
-            device = "/dev/sd#{( 10 + disks.length ).to_s 36}"
+            if @ardana[:cloud8][:deployer]
+              if @ardana[:cloud8][:proxy_cache][:enabled]
+                extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud8][:proxy_cache][:name],
+                              "ardana_proxy_cache_bus" => @ardana[:cloud8][:proxy_cache][:bus],
+                              "ardana_proxy_cache_lun" => @ardana[:cloud8][:proxy_cache][:lun]}
+              end
+            else
+              device = "/dev/sd#{( 10 + disks.length ).to_s 36}"
+              extra_vars = {"persistent_apt_device" => device,
+                            "persistent_apt_cache_volume" => @persistent_deployer_apt_cache}
+            end
             provision_deployer(server: server,
                                name: server_name,
                                distros: distributions,
-                               extra_vars: {"persistent_apt_device" => device,
-                                            "persistent_apt_cache_volume" => @persistent_deployer_apt_cache},
+                               extra_vars: extra_vars,
                                disks: disks)
           else
             setup_vm(vm: server.vm, name: server_name,
@@ -539,22 +616,28 @@ module Ardana
 
     def add_build
       distros_info = {
-        "hlinux" => { :name => "build-hlinux",
-                     :env_var => "ARDANA_HLINUX_ARTIFACTS",
-                     :gfx_port => "5903" },
-        "rhel7" => { :name => "build-rhel7",
-                    :env_var => "ARDANA_RHEL_ARTIFACTS",
-                    :gfx_port => "5902" },
-        "sles12" => { :name => "build-sles12",
-                     :env_var => "ARDANA_SLES_ARTIFACTS",
-                     :gfx_port => "5901" }
+        "hlinux" => {
+          :name => "build-hlinux",
+          :enabled => @ardana[:hlinux][:artifacts],
+          :gfx_port => "5903"
+        },
+        "rhel7" => {
+          :name => "build-rhel7",
+          :enabled => @ardana[:rhel][:artifacts],
+          :gfx_port => "5902"
+        },
+        "sles12" => {
+          :name => "build-sles12",
+          :enabled => @ardana[:sles][:artifacts],
+          :gfx_port => "5901"
+        }
       }
       machines = []
 
       # dirty hack to be able to have vagrant tell us what it knows about already
       active_machines = ObjectSpace.each_object(Vagrant::Environment).first.active_machines
       distros_info.each do |dist, dist_info|
-        if !ENV.fetch(dist_info[:env_var], "").empty? or
+        if dist_info[:enabled] or
            active_machines.map { |machine, _| machine.to_s == dist_info[:name] }.any?
           machines << dist_info[:name]
         end
@@ -563,8 +646,6 @@ module Ardana
       if machines.empty?
         machines << distros_info["sles12"][:name]
       end
-
-      STDERR.puts "machines: #{machines.inspect}"
 
       machines.each do |machine|
         @config.vm.define machine do |build|
@@ -597,6 +678,11 @@ module Ardana
     end
 
     def setup_vm(vm: None, name: None, playbook: "vagrant-setup-vm", extra_vars: {}, disks: [])
+      # override the playbook used if in Cloud8 deployer mode
+      if @ardana[:cloud8][:deployer] and !(playbook.include? "build")
+        playbook = "vagrant-cloud8-vm-setup"
+      end
+
       vm.provider :libvirt do |libvirt, override|
         disks.each do |disk|
           libvirt.storage :file, disk

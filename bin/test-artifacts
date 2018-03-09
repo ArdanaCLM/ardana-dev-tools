@@ -36,7 +36,7 @@ source $(dirname $0)/libci.sh
 
 WORKSPACE=${WORKSPACE:-$PWD}
 JOB_TYPE=${1:-ci}
-CLOUDNAME="${2:-"deployerincloud"}"
+CLOUDNAME="${2:-"dac-min"}"
 
 # Tags are optional, default to empty string to avoid unbound variable error
 TAGS="${3:-}"

@@ -61,6 +61,10 @@ dev_env_provider_net:
     - netmask: 172.30.1.1/24
       vlan: 106
 
+# Should we use Cloud8 artifacts and deployer setup
+dev_env_use_cloud8_artifacts: "{{ lookup('env', 'ARDANA_CLOUD8_ARTIFACTS') | default(False, true) }}"
+dev_env_use_cloud8_deployer: "{{ lookup('env', 'ARDANA_CLOUD8_DEPLOYER') | default(False, true) }}"
+
 # Should we use HLinux artifacts in build
 dev_env_use_hlinux_artifacts: "{{ lookup('env', 'ARDANA_HLINUX_ARTIFACTS') | default(False, true) }}"
 dev_env_use_hlinux_deployer: "{{ lookup('env', 'ARDANA_HLINUX_CONTROL') | default(False, true) }}"
@@ -82,3 +86,6 @@ dev_env_in_ci: "{{ lookup('env', 'CI') | default(False, true) }}"
 
 # Variable to indicate when we are running in Developer mode
 dev_env_in_developer:  "{{ lookup('env', 'ARDANA_DEVELOPER') | default(False, true) }}"
+
+# Variable to indicate if we should setup QA run time env
+dev_env_no_setup_qa: "{{ lookup('env', 'ARDANA_NO_SETUP_QA') | default(False, true) }}"

@@ -15,3 +15,5 @@ tools/elements/haproxy-octavia/post-install.d/20-haproxy-tune-kernel
 isogen/sles/sles12sp3-autoyast.xml
 isogen/sles/add_nic.xslt
 Vagrantfile
+logs
+ansible/roles/vagrant-cloud8-setup/templates/rhel.repo.j2

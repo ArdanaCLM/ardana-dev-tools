@@ -17,11 +17,13 @@
 
 # Ardana Developer Tools
 
-This repo contains all of the tools needed to develop for Ardana.
+This repo contains all of the tools needed to setup a system as an Ardana
+development environment.
 
-This is a developer environment that uses [Vagrant](https://docs.vagrantup.com/v2/why-vagrant/)
-to create a test environment and then runs the Ardana code to configure that test environment.
-All of the configuration is done through [Ansible](http://docs.ansible.com/).
+The development environment uses [Vagrant](https://docs.vagrantup.com/v2/why-vagrant/)
+to create build & test environment, with [Ansible](http://docs.ansible.com/)
+being used to manage the configuration of the Vagrant VMs, including driving
+the deployment of clouds using Ardana, which is itself implemented in Ansible.
 
 This document contains a getting-started guide for the Ardana developer environment.
 The remainder of the documentation related to Ardana is located in the top-level doc
@@ -35,19 +37,74 @@ for testing changes in different parts of the Ardana Openstack release.
 providing instructions on the writing of Ansible code for services, including a
 full description of the layout of a service Ansible repo.
 
-## Things to be aware of when getting started
+## Things to be aware of before getting started
 
-To bring up a few important issues you should be aware of.
+There are a few important issues you should be aware of before
+getting started.
+
+### Paswordless sudo must be setup
+
+It is assumed that you have setup passwordless sudo for your account.
+If not you can do so by running a command like the following:
+
+    % echo "${USER} ALL=(ALL:ALL) NOPASSWD:ALL | \
+        sudo tee /etc/sudoers.d/${USER}
+
+### First run may require re-login
+
+The first time you run astack.sh, or the ansible dev-env-install.yml
+playbook, if libvirt and KVM weren't already installed, then you may
+get an error due to your account not being a member of the required
+groups for access to Libvirt & KVM system resources.
+
+These system groups are usually setup when installing the system
+packages which provide these services, which the setup process will
+have now installed, and thus may not have existed when you originally
+logged into the system.
+
+You just need to log out and log back in, and run the command again to
+proceed.
+
+### Deployment Style
+
+Ardana supports two styles of deployment:
+- Legacy: Builds all inputs locally and uses them to deploy a cloud
+- Cloud8: Consume inputs built by the SUSE Open or Internal Build
+Services (OBS or IBS) to deploy a cloud
+
+#### Lecacy Deployment Style
+The original Ardana developer environment was based around building all
+of the services as Python Virtual Enviroments, here after referred to as
+*venvs*.  To support this we use Vagrant to bring up Build VMs for each
+of the supported platforms, which are used to create the required venvs
+for each platform.  To do this we build platform specific wheels from
+either locally cloned sources, or PyPI pips, and then use those wheels
+to construct the venvs, leveraging persistent caches for the wheels and
+the built venvs to accelerate the build process.
+
+These venvs, and the associated Ardana ansible sources are then packaged
+up in a "product" tarball which is used to setup the deployer and deploy
+the cloud.
+
+#### Cloud8 Deployment Style
+The Cloud8 deployment doesn't need to build the venvs locally; instead
+it uses RPMs containing pre-built venvs and the Ardana ansible sources
+to setup the deployer and bring up the cloud.
 
 ### Vagrant version
 
-The Ardana OpenStack CI infrastructure uses Vagrant 1.7.2; however in early
-2017 HashiCorp stopped providing a Ruby Gems mirror at gems.hashicorp.com, and
-as a result Vagrant 1.7.2 is unable to build plugins anymore. However we can
-use Vagrant 1.7.4 to build compatible plugins and then downgrade to Vagrant
-1.7.2 again. This is handled automatically by the dev-env-install.yml
-playbook.
+The Ardana Legacy style CI infrastructure uses Vagrant 1.7.2; however
+in early 2017 HashiCorp shutdown gems.hashicorp.com, used by Vagrant
+1.7.2, and as a result Vagrant 1.7.2 is no longer able to build plugins.
+However we can use Vagrant 1.7.4 to build compatible plugins and then
+downgrade to Vagrant 1.7.2 again. This is handled automatically by the
+dev-env-install.yml playbook.
 
+The use of such an old version of vagrant is due to the need to share
+some of the CI testing resources with a legacy testing environment that
+expects this version of Vagrant.
+
+#### Developer mode and Vagrant version
 NOTE: If you want to avoid this upgrade/downgrade of vagrant, you can set
 ARDANA_DEVELOPER=1 (or true) in your environment, and Vagrant 1.7.4 will be used.
 Additionally if you need to run a newer version of Vagrant on your system for
@@ -79,37 +136,117 @@ on installing Ansible in a Python virtual environment in the
 [Trouble-shooting](doc/troubleshooting.md) for help getting around
 this limitation.
 
-## Run Ardana Stack
 
-Before trying to run another cloud deployment, run the cleanup script located
-at bin/cleanup-slave. This will clean everything and allow it to rebuild the
-networks again. Warning that the cleanup-slave is quite destructive and if
-there are other vagrant libvirt VM's running on the system it will remove them
-all.
+## Cleaning up your test environment
 
-This script enables you to set up Ardana:
+Before trying to run another cloud deployment, run the cleanup-slave
+script found in ardana-dev-tools/bin; this should clean up everything
+on your system and leave it ready for a fresh deployment.
+
+Warning: that the cleanup-slave is quite destructive and if there are
+other, non-Ardana, vagrant libvirt VM's running on the system it will
+likely remove them, or break their network configurations, if they exist
+in the default namespaces.
+
+
+## Deploy Ardana using astack.sh
+
+To simplify deploying Ardana we have created the astack.sh script, found
+in ardana-dev-tools/bin, which will perform all the steps necessary to
+deploy, and possibly test, your cloud.
+
+This script enables you to setup your development environment and deploy
+a legacy style Ardana cloud with a single command line:
 
     ./bin/astack.sh dac-min
 
-The cloud defaults to dac-min. You can specify the cloud configuration to
-be used as the last argument on the command line e.g. ./astack.sh std-min
+Alternatively you can deploy a new Cloud8 style cloud by including the
+*--c8* option, like:
+
+    ./bin/astack.sh --c8 dac-min
+
+The cloud defaults to _dac-min_, which is a minimal footprint, fully featured
+cloud deployment.
+
+NOTE: You *must* specify the name of the cloud to be used as the last
+argument on the command line e.g. ./astack.sh ... std-min
 
 Add the following parameters for more options:
 
+    --c8                   (Deploy a Cloud8 style cloud, rather than a legacy
+                            style cloud; this will skip the venv build phase
+			    similar to the --no-build option, unless the
+			    --run-tests option has also been specified in
+			    which case it will build just the additional
+			    QA testing venvs using the legacy build process)
+    --c8-hos               (Deploy a Cloud8 cloud using HOS, rather than SOC,
+                            branded repos; otherwise the same as the --c8
+			    option)
     --no-setup             (Don't run dev-env-install.yml)
+    --no-artifacts         (Don't try to download any ISOs, qcow2 or other
+                            inputs; will fail if you haven't previously
+			    downloaded and cached the required artifacts)
     --no-build             (Don't build venvs, reuse existing packages)
+    --pre-destroy          (Destroy and existing instance of the vagrant
+                            cloud before trying to deploy it)
     --no-config            (Don't automatically compile the cloud model and
                             prepare the scratch area after previsioning cloud;
                             implies --no-site)
     --no-site              (Don't run the site.yml play after previsioning cloud)
     --run-tests            (Run the tests against cloud after a successful test)
-    --tarball TARBALL      (Specify a prebuilt deployer tarball to use)
-    --ci                   (Sets the same options for running in the CI CDL lab)
+    --tarball TARBALL      (Specify a pre-built legacy style deployer tarball
+                            to use)
+    --ci                   (Sets the same options used by the legacy deployment
+                            mode CI)
     --guest-images         (Builds and uploads guest images to glance)
     --rhel                 (Builds RHEL artifacts for inclusion in product tarball)
     --rhel-compute         (Configures compute nodes to be RHEL based)
 
-## Getting Started
+### Useful tools
+
+Once a cloud has been deployed, astack.sh will ensure that the files are
+created under the ardana-vagrant-models/$cloud-vagrant directory that can
+make it easier to work with an astack managed cloud.
+
+#### astack-ssh-config
+
+This is the output of the vagrant ssh-config command, generated with
+the same environment settings used to deploy the cloud, so it has the
+correct user and home directory settings configured for the vagrant
+image being used.
+
+This means you can run ssh or scp command to your cloud using this file
+as an argument to the ssh -F option, e.g.
+
+    % cd ardana-vagrant-models/dac-min-vagrant
+    % ssh -F astack-ssh-config controller
+
+#### .astack-env
+
+This is a dump of the environment setting that were active when the cloud
+was being deployer, which can be sourced to setup the same environment
+if you wish to run additional commands against the same cloud.
+
+#### ardana-vagrant
+
+This is a simple wrapper script that leverages the .astack-env file to
+setup the environment appropriately and then runs the vagrant command
+against the cloud, e.g.
+
+    % ./ardana-vagrant ssh controller
+
+#### ardana-vagrant-ansible
+
+This is a simple wrapper script that leverages the .astack-env file
+to setup the environment appropriately and then runs ansible-playbook
+command against the cloud, using the vagrant.py script found under
+ardana-dev-tools/ansible/hosts as the inventory file, so that ansible
+dynamically determines the appropriate inventory data for the running
+cloud from Vagrant, e.g.
+
+    % ./ardana-vagrant-ansible ../../ansible/cloud8-setup.yml
+
+## Deploying manually using Legacy style
 
 ### Hardware
 
@@ -163,23 +300,21 @@ Ensure that you have the SUSE ROOT CA installed as detailed at
 [SUSE ROOT CA Installation](http://ca.suse.de)
 
 ### Installing Ansible
-The first part of the setup is to install ansible as follows:
+You can install install ansible locally on your system, but be warned
+that it is unlikely that it will be a _fully Ardana compatible_ version
+as most modern distros will install a newer version of ansible that we
+have optimised Ardana for, which may see issues.
 
-On openSUSE Leap 42.2:
+For best results we recommend running the ansible-dev-tools playbooks
+using Ansible version 1.9.6. This can be done using a Python virtualenv
+and we provide the ardana-dev-tools/bin/ardana-env script to set this
+up automatically for you; just eval the output it generates, e.g.
 
-   sudo zypper in ansible
+    % cd ardana-dev-tools
+    % eval "$(bin/ardana-env)"
 
-On Ubuntu 14.04 and 16.04:
-
-It is recommended to install Ansible in its own virtualenv.
-
-1. sudo apt-get install virtualenv build-essential python-dev python-all libpython2.7-dev libssl-dev libffi-dev
-2. mkdir ~/[your-venv-folder];
-3. virtualenv ~/[your-venv-folder]/ansible
-4. Activate the ansible venv with:
-   . ~/[your-venv-folder]/ansible/bin/activate
-5. pip install -r ardana-dev-tools/requirements.txt
-
+This creates an appropriate ansible virtualenv, $HOME/.cache-ardana/venvs,
+if it doesn't already exist, and activates it.
 
 ### Local sites
 
@@ -190,6 +325,8 @@ site is in Provo. Note that we do this automatically for all CI runs.
 For example,
 
     export ARDANA_SITE=provo
+
+NOTE: Currently the only defined site is Provo.
 
 ### Steps to manually setup and verify the developer environment
 
@@ -216,37 +353,34 @@ of the necessary groups by running the following validation playbook:
     ansible-playbook -i hosts/localhost dev-env-validate.yml
 
 
-### Download the hLinux ISO
+### Download the SLES ISOs
 
-The hLinux ISO is required for running the build and cloud nodes. It contains the
-apt repositories we use for both building the venvs and deploying the cloud.
+SLES ISOs need to be downloaded to support the creation of the customised Vagrant
+images that we is required for creating the build and cloud VMs.
 
-To the latest hLinux ISO in use, run the following on the command line:
+To the latest configured SLES ISOs, run the following on the command line:
 
-    ansible-playbook -i hosts/localhost get-hlinux-iso.yml
+    % env ARDANA_SLES_ARTIFACTS=true \
+        ansible-playbook -i hosts/localhost get-sles-artifacts.yml
 
-This can take a while to run as the hLinux ISO is ~ 1.2 gigs in size. The temporary
-download file is in /tmp if you want to watch it grow.  But if you rerun the
-command it will recognize when you have a cached version and it won't try and
-download it a second time.
+This can take a while to run as the we need to download ~5G of ISOs.
+
+NOTE: These ISOs are cached under the ~/.cache-ardana tree so you should
+only need to do this very infrequently, and the astack.sh command will take
+care of this step automatically.
 
 
-### Build a hLinux Vagrant Image
+### Build the SLES Vagrant Image
 
-You will now be able to build a hlinux vagrant image for use in building venvs and
+You will now be able to build a SLES vagrant image for use in building venvs and
 booting the test infrastructure.
 
-    ansible-playbook -i hosts/localhost image-build-vagrant-box.yml
+    % env ARDANA_SLES_ARTIFACTS=true \
+        bin/build-distro-artifacts
 
-By default the running of the ansible commands will result in ensuring that your
-cloned repositories are up to date with the correct branch - usually `master`.
-If you do not want it to update the repositories you can set the appropriate
-variables to `False` or `no`.  This can be done on the command line as follows:
+NOTE: This script ensure the latest versions of any artifacts are downloaded.
 
-    ansible-playbook -i hosts/localhost image-build-vagrant-box.yml -e image_build_git_update=no
-
-
-### Create the Deployer Appliance
+### Create the Legacy style Deployer Appliance
 
 Now that we have a base disk image, we can build the customer deliverable
 Deployer Package. This will contain all of the Ardana ansible code and all of the
@@ -264,10 +398,10 @@ Not setting the default vagrant provider, or setting it to `libvirt`, should
 use libvirt to create the virtual machines. Currently libvirt is the only
 supported provider.
 
-    cd ../build-vagrant
+    % cd ardana-dev-tools/build-vagrant
     # to create virtual machines on the local system using libvirt
-    export VAGRANT_DEFAULT_PROVIDER=libvirt
-    vagrant up
+    % export VAGRANT_DEFAULT_PROVIDER=libvirt
+    % vagrant up
 
 _N.B. if you are using libvirt as the vagrant provider, be aware that the
 default dnsmasq setup for the created VMs uses the first item in your
@@ -288,12 +422,13 @@ services and use that.
 For example, the following tree would mean that glance and nova repos on the local
 workstation are used and that all other services are cloned directly from git
 
-    $ ls ~/ardana
+    % cd ardana-dev-tools
+    % ls ../
     glance  ardana-dev-tools  nova
 
 Now, the venvs can be built and packaged up using the build virtual machine.
 
-    ansible-playbook -i ../ansible/hosts/vagrant.py ../ansible/venv-build.yml
+    % bin/build-venv.sh
 
 This process should result in packaged venvs being created in the ardana-dev-tools/scratch
 directory: these have names like `nova-{version}.tgz`. Those packages are used
@@ -302,7 +437,7 @@ see the [longer notes](build-vagrant/README.md).
 
 If you are short of resources, you may choose to remove the build VM at this point :
 
-    vagrant destroy
+    % vagrant destroy
 
 ### Create the Virtual Cloud VMs
 
@@ -356,9 +491,9 @@ WARNING : The std-split, mid-size & multi-cp models may not be stable/functional
 
 Each variant has its own vagrant definition, under the ardana-vagrant-models directory, and associated cloud model defined in the ardana-input-model repo, under the 2.0/ardana-ci directory.
 
-For example to get vagrant to create the VMs needed for a standard cloud with default node distro setting use the following command:
+For example to get vagrant to create the VMs needed for a std-min cloud with default node distro setting use the following command:
 
-    cd ../ardana-vagrant-models/standard-vagrant
+    cd ../ardana-vagrant-models/std-min-vagrant
     vagrant up
 
 NOTE : vagrant up provisions all the nodes in your cloud. During the provisioning of the deployer node we
@@ -376,13 +511,10 @@ playbooks will be run from, and installs the ansible venv that will run those pl
     vagrant status
     Current machine states:
 
-    ccn-0001                  running (libvirt)
-    ccn-0002                  running (libvirt)
-    ccn-0003                  running (libvirt)
-    cpn-0001                  running (libvirt)
-    cpn-0002                  running (libvirt)
-    cpn-0003                  running (libvirt)
     deployer                  running (libvirt)
+    cp1-0001                  running (libvirt)
+    cp1-0002                  running (libvirt)
+    cm1-0001                  running (libvirt)
 
 All of the administration from this point is done through the deployer VM.
 
@@ -650,7 +782,7 @@ Sometimes things go wrong.  Known issues are listed in [troubleshooting](doc/tro
 ## Emulating the CI Build & Testing Process
 The CI Build and Test process can be more closely emulated by passing the
 --ci option to the astack.sh script, e.g. ./astack.sh --ci standard
-The primary impact of doing so will be that the user account on the vagrant 
-VMs will be ardanauser rather than stack. Additionally when creating a standard 
-cloud, the 3rd compute VM will be created as a RHEL7 rather than hLinux VM. 
+The primary impact of doing so will be that the user account on the vagrant
+VMs will be ardanauser rather than stack. Additionally when creating a standard
+cloud, the 3rd compute VM will be created as a RHEL7 rather than hLinux VM.
 See [doc/dev-workflow.md] for more details.

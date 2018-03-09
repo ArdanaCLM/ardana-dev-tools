@@ -25,7 +25,6 @@
     - role: ccache
     - role: vagrant-vm
   tasks:
-    - include: roles/vagrant-vm/tasks/setup-sles-eth0-default-route.yml
     - include: roles/vagrant-vm/tasks/setup-iso.yml
     - include: roles/vagrant-vm/tasks/setup-iso.yml
       vars:
@@ -50,3 +49,4 @@
         persistent_dir: "/tmp/persistent"
         persistent_min_size: 11000000
         persistent_cleanup_min_size: 7340032
+      when: ansible_os_family | lower == 'debian'

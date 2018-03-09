@@ -1,0 +1,102 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks for checking to see if a file is already cached, and if not found,
+# retrieve the file and add it to the cache for future re-use.
+#
+# Pass in the following variables:
+#   _file:
+#     name: <name of iso to retrieve>
+#     url: <url to use to retrieve the file>
+#     sha256url: <url to use to retrieve the sha256 file>
+#     dir: <local dir in which to store the downloaded file>
+#     sha256file: <local file in which to store the sha256>
+#     tmpfile: <local tmpfile to use when downloading files>
+#     link:
+#       name: <optional link to be created, can be blank>
+#       dir: <directory under which to create link if needed>
+---
+
+- name: ardana-cache | get-cached-file | Retrieve Server SHA256 file
+  get_url:
+    url: "{{ _file.sha256url }}"
+    dest: "{{ _file.tmpfile }}"
+    use_proxy: "{{ _file.use_proxy }}"
+    force: yes
+    timeout: 20
+
+- name: ardana-cache | get-cached-file | Extract Server SHA256 value
+  command:
+    awk '$2 == "{{ _file.name }}" {print $1}' "{{ _file.tmpfile }}"
+  register: _server_sha256_result
+  failed_when: _server_sha256_result.stdout == ""
+
+- name: ardana-cache | get-cached-file | Fail if Server SHA256 doesn't match optionally specified SHA256
+  fail:
+    msg: "Server sha256 '{{ _server_sha256_result.stdout }}' doesn't match specified value"
+  when: ( _file.sha256 != "" ) and ( _server_sha256_result.stdout != _file.sha256 )
+
+- name: ardana-cache | get-cached-file | Extract local SHA256 value
+  shell: |
+    if [ -e "{{ _file.sha256file }}" ]; then
+        awk '$2 == "{{ _file.name }}" {print $1}' "{{ _file.sha256file }}"
+    fi
+  register: _local_sha256_result
+
+- name: ardana-cache | get-cached-file | Delete local file if local and server SHA256 doen't match
+  file:
+    path: "{{ _file.dir }}/{{ _file.name }}"
+    state: absent
+  when: ( _local_sha256_result.stdout != _server_sha256_result.stdout )
+
+- name: ardana-cache | get-cached-file | Update local sha256 if needed
+  copy:
+    dest: "{{ _file.sha256file }}"
+    content: "{{ _server_sha256_result.stdout }}  {{ _file.name }}"
+  when: ( _local_sha256_result.stdout != _server_sha256_result.stdout )
+
+- name: ardana-cache | get-cached-file | Validate file against SHA256
+  shell: |
+    set -eu
+
+    sha256sum -c "{{ _file.sha256file }}" &&
+        test -e "{{ _file.dir }}/{{ _file.name }}"
+  args:
+    chdir: "{{ _file.dir }}"
+  register: _sha256sum_result
+  ignore_errors: true
+
+- name: ardana-cache | get-cached-file | Download file to tmpfile if needed
+  get_url:
+    url: "{{ _file.url }}"
+    dest: "{{ _file.tmpfile }}"
+    use_proxy: "{{ _file.use_proxy }}"
+    sha256sum: "{{ _server_sha256_result.stdout }}"
+    force: yes
+    timeout: 20
+  when: _sha256sum_result | failed
+
+- name: ardana-cache | get-cached-file | Move tmpfile to file as root to avoid permissions issues
+  become: yes
+  command:
+    mv {{ _file.tmpfile }} {{ _file.dir }}/{{ _file.name }}
+  when: _sha256sum_result | failed
+
+- name: ardana-cache | get-cached-file | Create link
+  file:
+    path: "{{ _file.link.dir }}/{{ _file.link.name }}"
+    src: "{{ _file.dir }}/{{ _file.name }}"
+    state: link
+  when: _file.link.name != ""
