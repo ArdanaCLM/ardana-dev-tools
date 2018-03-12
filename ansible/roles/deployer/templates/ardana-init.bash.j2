@@ -149,10 +149,15 @@ tar xf "${ardana_output_dir}/{{ deployer_ardana_extensions_tarball }}" \
 rm -rf "${ardana_output_dir}/.ansible.cfg"
 pushd "${ardana_ansible_dir}" &>/dev/null
 echo "[defaults]" > ansible.cfg
-if [ "${OS,,}" == "sles" ]; then
-   ansible-playbook -i hosts/localhost check-zypper-configuration.yml
+
+# FIXME this is just to break up a circular dependency
+#   with https://gerrit.suse.provo.cloud/#/c/3520 it can
+#   be set back to call deployer-status.yml unconditionally
+#   once that review is merged
+if [ -f check-zypper-configuration.yml ]; then
+  ansible-playbook -i hosts/localhost check-zypper-configuration.yml
 else
-   ansible-playbook -i hosts/localhost check-apt-configuration.yml
+  ansible-playbook -i hosts/localhost deployer-status.yml
 fi
 
 ansible-playbook -i hosts/localhost ansible-init.yml
