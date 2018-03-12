@@ -96,7 +96,7 @@ vagrant_vm_sles_extras:
       - yum-utils
       - zookeeper-server
     #url: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
-    url: "http://10.84.207.240/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
+    url: "http://10.86.33.251/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
 
   - repo: "cloud-openstack-pike"
     disable_gpg_check: yes
