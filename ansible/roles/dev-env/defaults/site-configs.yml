@@ -42,7 +42,7 @@ sites_default:
       use_proxy: no
     clouddata:
       #host: provo-clouddata.cloud.suse.de
-      host: 10.84.207.240
+      host: 10.86.33.251
       use_proxy: no
     git:
       host: git.suse.provo.cloud
