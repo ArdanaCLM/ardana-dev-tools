@@ -1297,16 +1297,6 @@ _services_default:
     sources:
       - certifi
       - oslomessaging
-      - keystoneclient
-      - swiftclient
-      - glanceclient
-      - novaclient
-      - openstackclient
-      - designateclient
-      - ironicclient
-      - ceilometerclient
-      - heatclient
-      - barbicanclient
       - keystonemiddleware
       - neutron
       - neutron_lbaas
@@ -1317,9 +1307,19 @@ _services_default:
     pips:
       - ddt # neutron-vpnaas and neutron-fwaas
       - urllib3==1.16 # BUG-4232
-      - testscenarios>=0.4 # needed by neutron tempest tests
-      - python-cinderclient>=3.2.0 # needed by the heat tempest plugin
-      - python-neutronclient>=6.7.0 # needed by the heat tempest plugin
+      - testscenarios # needed by neutron tempest tests
+      - python-barbicanclient
+      - python-ceilometerclient
+      - python-cinderclient
+      - python-designateclient
+      - python-glanceclient
+      - python-heatclient
+      - python-ironicclient
+      - python-keystoneclient
+      - python-openstackclient
+      - python-novaclient
+      - python-neutronclient
+      - python-swiftclient
     version: "{{ package_version }}"
 
   ardana_qa_tests_example:
