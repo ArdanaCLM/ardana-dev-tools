@@ -90,8 +90,8 @@ cloud8:
     iso:
       media1:
         #name: "SUSE-OPENSTACK-CLOUD-8-x86_64-Media1"
-        #name: "SUSE-OPENSTACK-CLOUD-8-x86_64-Build0313-Media1"
-        name: "HPE-HELION-OPENSTACK-CLOUD-8-x86_64-Build0047-Media1"
+        #name: "SUSE-OPENSTACK-CLOUD-8-x86_64-Build0330-Media1"
+        name: "HPE-HELION-OPENSTACK-CLOUD-8-x86_64-Build0049-Media1"
         alias: "C8"
         # blank sha256 means fetch and use server value always
         sha256: ""
