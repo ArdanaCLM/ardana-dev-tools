@@ -45,6 +45,8 @@ usage() {
     echo "--no-git-update       -- Don't update git cached sources"
     echo "--pre-destroy         -- Destroy any existing instance of the cloud"
     echo "                         before deploying."
+    echo "--disable-no-log      -- Remove no_log entries from ansible code"
+    echo "                         before deploying to make debugging easier."
     echo "--c8|--cloud8-deployer"
     echo "                      -- Use Cloud8 deployer setup"
     echo "--c8-hos              -- Enable HPE Helion OpenStack Cloud mode"
@@ -454,6 +456,13 @@ if [ -n "${COBBLER_NODES}" -o -n "$COBBLER_ALL_NODES" ] ; then
     $SCRIPT_HOME/vagrant-set-pxe-off $CLOUDNAME || logfail deploy
     $SCRIPT_HOME/vagrant-check-power-on $CLOUDNAME || logfail deploy
     logsubunit --inprogress deploy
+fi
+
+# Check for --no-log-disable mode
+if [ -n "$NO_LOG_DISABLE" ]; then
+    # Remove no_log entries
+    $SCRIPT_HOME/run-in-deployer.sh \
+        "$SCRIPT_HOME/deployer/remove-no_log-entries.sh" || logfail deploy
 fi
 
 if [ -z "$NO_CONFIG" ]; then
