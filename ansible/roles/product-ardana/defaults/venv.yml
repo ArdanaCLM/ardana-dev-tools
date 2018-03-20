@@ -1063,6 +1063,8 @@ _services_default:
       - PyMySQL
       - oslo.log
       - python-memcached
+      - vmware-nsx==11.0.0
+      - vmware-nsxlib==11.0.0
     version: "{{ package_version }}"
 
   neutronclient:
