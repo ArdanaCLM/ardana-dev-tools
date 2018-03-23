@@ -374,6 +374,13 @@ logsubunit --inprogress deploy
 generate_ssh_config "FORCE"
 
 if [[ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
+    # ensure we have up-to-date input model sources if not using
+    # a locally cloned ardana-input-model
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
+        $DEVTOOLS/ansible/get-input-model-sources.yml
+
+    # setup the cloud8 nodes using a similar process to how
+    # the customer would in a real deployment
     ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
         $DEVTOOLS/ansible/cloud8-setup.yml \
         -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
