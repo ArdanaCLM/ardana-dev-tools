@@ -57,6 +57,7 @@ usage() {
     echo "--c8-staging          -- Use staging (DC8S), updates & pool repos"
     echo "                         (default)"
     echo "--c8-devel            -- Use devel (DC8), updates & pool repos"
+    echo "--c8-updates-test     -- Use updates-test, updates & pool repos"
     echo "--c8-updates          -- Use updates & pool repos"
     echo "--c8-pool             -- Use pool repo only"
     echo "--c8-artifacts|cloud8-artifacts"
