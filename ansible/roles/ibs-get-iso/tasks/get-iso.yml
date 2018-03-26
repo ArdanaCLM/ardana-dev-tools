@@ -17,6 +17,7 @@
 #
 # Pass in the following variables:
 #   iso_name: <name of ISO>
+#   iso_pattern: <patther for name of ISO>
 #   iso_path: <path to ISO image under IBS "root" directory>
 #   iso_sha256: <optional SHA256 for ISO>
 #   link_name: <optional link name to create under branch images dir>
@@ -34,12 +35,11 @@
   vars:
     _file:
       name: "{{ iso_name }}"
+      pattern: "{{ iso_pattern | default('') }}"
       sha256: "{{ iso_sha256 | default('') }}"
-      url: "{{ ibs_iso.base_url}}/{{ iso_path }}/{{ iso_name }}"
+      url_path: "{{ ibs_iso.base_url}}/{{ iso_path }}"
       sha256url: "{{ ibs_iso.base_url}}/{{ iso_path }}/{{ ibs_iso.sha256_shared }}"
       dir: "{{ ibs_iso.isos_dir }}"
-      sha256file: "{{ ibs_iso.isos_dir }}/{{ iso_name }}.sha256"
-      tmpfile: "{{ ibs_iso.isos_dir }}/.{{ iso_name }}.tmp"
       link:
         name: "{{ link_name | default('') }}"
         dir: "{{ ibs_iso.images_dir }}"
