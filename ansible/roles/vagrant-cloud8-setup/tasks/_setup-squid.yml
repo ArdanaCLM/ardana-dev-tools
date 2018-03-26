@@ -34,66 +34,15 @@
     state: directory
   with_items: c8setup.caching_proxy.mounts
 
-- name: vagrant-cloud8-setup | _setup-squid | Add/Update cache_dir entry
+- name: vagrant-cloud8-setup | _setup-squid | Generate customised squid.conf
   become: yes
-  lineinfile:
+  template:
+    src: squid.conf.j2
     dest: "{{ cloud8.deployer.caching_proxy.conf.file }}"
-    insertafter: '^#cache_dir\s+'
-    line: >
-      cache_dir
-      {{ cloud8.deployer.caching_proxy.conf.type }}
-      {{ item.mount }}
-      {{ ((item.size_total * 0.80) / (1024 * 1024)) | int }}
-      {{ cloud8.deployer.caching_proxy.conf.L1 }}
-      {{ cloud8.deployer.caching_proxy.conf.L2 }}
-    regexp: '^cache_dir\s+\S+\s+{{ item.mount }}\s+'
-    state: present
-  with_items: c8setup.caching_proxy.mounts
-  register: _update_cache_dir_result
-
-- name: vagrant-cloud8-setup | _setup-squid | Add/Update max obj size
-  become: yes
-  lineinfile:
-    dest: "{{ cloud8.deployer.caching_proxy.conf.file }}"
-    insertbefore: '^#cache_dir\s+'
-    line: 'maximum_object_size {{ cloud8.deployer.caching_proxy.conf.max_size }}'
-    regexp: '^maximum_object_size\s+'
-    state: present
-  with_items: c8setup.caching_proxy.mounts
-  register: _update_max_size_result
-
-- name: vagrant-cloud8-setup | _setup-squid | Add/Update replacement policy
-  become: yes
-  lineinfile:
-    dest: "{{ cloud8.deployer.caching_proxy.conf.file }}"
-    insertafter: '^cache_dir\s+'
-    line: 'cache_replacement_policy {{ cloud8.deployer.caching_proxy.conf.policy }}'
-    regexp: '^cache_replacement_policy\s+'
-    state: present
-  with_items: c8setup.caching_proxy.mounts
-  register: _update_repl_policy_result
-
-- name: vagrant-cloud8-setup | _setup-squid | Allow port 79
-  become: yes
-  lineinfile:
-    dest: "{{ cloud8.deployer.caching_proxy.conf.file }}"
-    insertbefore: '^acl Safe_ports port 80'
-    line: 'acl Safe_ports port 79		# deployer http'
-    regexp: '^acl\s+Safe_ports\s+port\s+79\s+'
-    state: present
-  with_items: c8setup.caching_proxy.mounts
-  register: _update_allow_port_result
-
-- name: vagrant-cloud8-setup | _setup-squid | Update http_port entry
-  become: yes
-  lineinfile:
-    dest: "{{ cloud8.deployer.caching_proxy.conf.file }}"
-    insertafter: '^# Squid normally listens to port'
-    line: 'http_port {{ cloud8.deployer.caching_proxy.conf.port }}'
-    regexp: '^http_port\s+\S+'
-    state: present
-  with_items: c8setup.caching_proxy.mounts
-  register: _update_http_port_result
+    owner: root
+    group: root
+    mode: 0644
+  register: _template_squid_conf_result
 
 - name: vagrant-cloud8-setup | _setup-squid | Restart proxy service if needed
   become: yes
@@ -101,11 +50,7 @@
     name: "{{ cloud8.deployer.caching_proxy.conf.svc }}"
     state: restarted
   when:
-    - ((_update_cache_dir_result | changed) or
-       (_update_max_size_result | changed) or
-       (_update_repl_policy_result | changed) or
-       (_update_allow_port_result | changed) or
-       (_update_http_port_result | changed))
+    - _template_squid_conf_result | changed
 
 - name: vagrant-cloud8-setup | _setup-squid | Ensure proxy service enabled and started
   become: yes
