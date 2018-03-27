@@ -38,14 +38,12 @@ usage() {
     echo "--no-setup          -- Don't run dev-env-install.yml"
     echo "--no-build          -- Don't build venvs, reuse existing packages"
     echo "--tarball <tarball> -- Use the specified deployer tarball"
-    echo "--hlinux-control    -- Enable hLinux control re-imaging."
-    echo "--hlinux-compute    -- Enable hLinux compute re-imaging."
     echo "--rhel-compute      -- Enable RHEL compute re-imaging."
     echo "--sles-control      -- Enable SLES control re-imaging."
     echo "--sles-compute      -- Enable SLES compute re-imaging."
 }
 
-TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,hlinux-compute,hlinux-control,rhel-compute,sles-compute,sles-control -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,rhel-compute,sles-compute,sles-control -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -62,12 +60,6 @@ while true ; do
             # Needed for verify-bm-install
             export ARDANAUSER=ardanauser
             args+=( $1 )
-            shift ;;
-        --hlinux-control)
-            args+=( --cobble-hlinux-control )
-            shift ;;
-        --hlinux-compute)
-            args+=( --cobble-hlinux-compute )
             shift ;;
         --rhel-compute)
             args+=( --cobble-rhel-compute )

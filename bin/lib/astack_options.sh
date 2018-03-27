@@ -20,7 +20,7 @@
 # all the option variables that control astack.sh
 #
 
-OPTIONS=help,run-tests,ci,no-setup,no-artifacts,no-build,no-git-update,build-hlinux-ova,rhel,rhel-compute,rhel-compute-nodes:,sles,sles-deployer,sles-control,sles-control-nodes:,sles-compute,sles-compute-nodes:,guest-images,tarball:,cobble-nodes:,cobble-hlinux-control,cobble-hlinux-compute,cobble-hlinux-nodes:,cobble-rhel-compute,cobble-rhel-nodes:,cobble-sles-control,cobble-sles-compute,cobble-sles-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:,cloud8-artifacts,cloud8-deployer,c8,c8-artifacts,c8-mirror,c8-caching,c8-pool,c8-updates,c8-devel,c8-staging,c8-hos,c8-soc,pre-destroy
+OPTIONS=help,run-tests,ci,no-setup,no-artifacts,no-build,no-git-update,rhel,rhel-compute,rhel-compute-nodes:,sles,sles-deployer,sles-control,sles-control-nodes:,sles-compute,sles-compute-nodes:,guest-images,tarball:,cobble-nodes:,cobble-rhel-compute,cobble-rhel-nodes:,cobble-sles-control,cobble-sles-compute,cobble-sles-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:,cloud8-artifacts,cloud8-deployer,c8,c8-artifacts,c8-mirror,c8-caching,c8-pool,c8-updates,c8-devel,c8-staging,c8-hos,c8-soc,pre-destroy
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
@@ -111,7 +111,6 @@ while true ; do
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
         --no-build) NO_BUILD=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
-        --build-hlinux-ova) export BUILD_HLINUX_OVA=1 ; shift ;;
         --pre-destroy)
             PRE_DESTROY=1
             shift ;;
@@ -147,21 +146,6 @@ while true ; do
         --c8-pool)
             export ARDANA_CLOUD8_REPOS='["pool"]'
             shift ;;
-        --hlinux)
-            export ARDANA_HLINUX_ARTIFACTS=1
-            shift ;;
-        --hlinux-deployer|--hlinux-control)
-            export ARDANA_HLINUX_CONTROL=1
-            shift ;;
-        --hlinux-control-nodes)
-            ARDANA_HLINUX_CONTROL_NODES="${ARDANA_HLINUX_CONTROL_NODES:+${ARDANA_HLINUX_CONTROL_NODES}:}$2"
-            shift 2 ;;
-        --hlinux-compute)
-            export ARDANA_HLINUX_COMPUTE=1
-            shift ;;
-        --hlinux-compute-nodes)
-            ARDANA_HLINUX_COMPUTE_NODES="${ARDANA_HLINUX_COMPUTE_NODES:+${ARDANA_HLINUX_COMPUTE_NODES}:}$2"
-            shift 2 ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --rhel-compute)
             export ARDANA_RHEL_COMPUTE=1
@@ -189,17 +173,12 @@ while true ; do
         --cobble-nodes)
             COBBLER_NODES="${COBBLER_NODES:+${COBBLER_NODES}:}$2"
             shift 2 ;;
-        --cobble-hlinux-nodes)
-            COBBLER_HLINUX_NODES="${COBBLER_HLINUX_NODES:+${COBBLER_HLINUX_NODES}:}$2"
-            shift 2 ;;
         --cobble-rhel-nodes)
             COBBLER_RHEL_NODES="${COBBLER_RHEL_NODES:+${COBBLER_RHEL_NODES}:}$2"
             shift 2 ;;
         --cobble-sles-nodes)
             COBBLER_SLES_NODES="${COBBLER_SLES_NODES:+${COBBLER_SLES_NODES}:}$2"
             shift 2 ;;
-        --cobble-hlinux-control) COBBLER_HLINUX_CONTROL=1 ; shift ;;
-        --cobble-hlinux-compute) COBBLER_HLINUX_COMPUTE=1 ; shift ;;
         --cobble-rhel-compute) COBBLER_RHEL_COMPUTE=1 ; shift ;;
         --cobble-sles-control) COBBLER_SLES_CONTROL=1 ; shift ;;
         --cobble-sles-compute) COBBLER_SLES_COMPUTE=1 ; shift ;;
