@@ -1,5 +1,5 @@
 (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-(c) Copyright 2017 SUSE LLC
+(c) Copyright 2017-2018 SUSE LLC
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may
 not use this file except in compliance with the License. You may obtain
@@ -28,8 +28,6 @@ nova-ansible, neutron-ansible, glance-ansible, etc.
 - ardana-configuration-processor
 - OpenStack source repos, e.g. nova, neutron, glance, etc.
 - PyPI package.
-- Debian package.
-- hLinux.
 - ardana-dev-tools
 
 ## Testing a change to ardana-ansible or &lt;service&gt;-ansible repos
@@ -86,12 +84,6 @@ TODO: BUG-86
 
 ## Testing a change to a PyPI package
 TODO: BUG-11
-
-## Testing a change to a Debian package
-TODO: BUG-87
-
-## Testing a local change to hLinux
-TODO: BUG-88
 
 ## Testing a change to ardana-dev-tools
 TODO: BUG-357
