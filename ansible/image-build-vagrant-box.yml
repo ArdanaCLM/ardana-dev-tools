@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -25,18 +25,6 @@
     - image-build
     - apt-repos
   tasks:
-    - include: roles/image-build/tasks/build-packer-qcow2.yml
-      vars:
-        image_build_iso: "{{ hlinux_iso }}"
-        image_build_name: hlinux
-        image_build_disk_size: 4120
-      when: dev_env_use_hlinux_artifacts|bool
-    - include: roles/image-build/tasks/convert-qcow2-to-box.yml
-      vars:
-        image_build_name: hlinux
-        image_build_box: "{{ images_build_images['hlinux'].box }}"
-      when: dev_env_use_hlinux_artifacts|bool
-
     - include: roles/image-build/tasks/build-packer-qcow2.yml
       vars:
         image_build_iso: "{{ rhel7_iso }}"

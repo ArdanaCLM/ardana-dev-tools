@@ -75,7 +75,7 @@ while true ; do
 done
 
 # select a default distro if none specified
-if [ -z "${ARDANA_HLINUX_ARTIFACTS:-}" -a -z "${ARDANA_RHEL_ARTIFACTS:-}" -a \
+if [ -z "${ARDANA_RHEL_ARTIFACTS:-}" -a \
      -z "${ARDANA_SLES_ARTIFACTS:-}" ]; then
     export ARDANA_SLES_ARTIFACTS=1
 fi

@@ -19,8 +19,7 @@
 
 - name: deployer | build | Evaluate directory holding nondist packages
   set_fact:
-      packages_nondist_dir:
-        "{{ dev_env_use_hlinux_deployer|bool|ternary(venv_cache_dir_debian, venv_cache_dir_suse)  }}"
+      packages_nondist_dir: "{{ venv_cache_dir_suse }}"
 
 - name: deployer | build | Print directory holding nondist packages
   debug: var=packages_nondist_dir
@@ -30,14 +29,6 @@
   fail: msg="Missing {{ item }}"
   with_items: packages_nondist
   when: item not in (packages_nondist_dir|find_latest_packages(deployer_version))
-
-# Validate that we have all of the venvs needed for hLinux
-- include: _validate_venvs.yml
-  vars:
-    _validate_packages: "{{ packages_dist_os_debian }}"
-    _validate_venv_cache_dir: "{{ venv_cache_dir_debian }}"
-    _validate_deployer_venv_dir: "{{ deployer_hlinux_venv_dir }}"
-  when: dev_env_use_hlinux_artifacts|bool
 
 # Validate that we have all of the venvs needed for RHEL
 - include: _validate_venvs.yml

@@ -65,10 +65,6 @@ dev_env_provider_net:
 dev_env_use_cloud8_artifacts: "{{ lookup('env', 'ARDANA_CLOUD8_ARTIFACTS') | default(False, true) }}"
 dev_env_use_cloud8_deployer: "{{ lookup('env', 'ARDANA_CLOUD8_DEPLOYER') | default(False, true) }}"
 
-# Should we use HLinux artifacts in build
-dev_env_use_hlinux_artifacts: "{{ lookup('env', 'ARDANA_HLINUX_ARTIFACTS') | default(False, true) }}"
-dev_env_use_hlinux_deployer: "{{ lookup('env', 'ARDANA_HLINUX_CONTROL') | default(False, true) }}"
-
 # Should we use RHEL artifacts in build
 dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | default(False, true) }}"
 
