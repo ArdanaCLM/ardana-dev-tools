@@ -361,28 +361,27 @@ module Ardana
       end
     end
 
-    def setup_iso(server: None, names: [distro])
+    def setup_iso(server: None, name: None, distros: [distro])
       iso_files = []
 
       # /dev/sr0 - last release or bare SLES
       if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
         set_release(iso_files)
-      elsif names.include?("sles12")
+      elsif distros.include?("sles12")
         set_sles(iso_files)
       end
 
-      # SLES SDK
-      if names.include?("sles12")
-        set_sles_sdk(iso_files)
-      end
-
-      # SLES Cloud8
-      if names.include?("sles12") and @ardana[:cloud8][:artifacts]
-        set_sles_cloud8(iso_files)
+      if distros.include?("sles12")
+        # SLES SDK only for legacy deployer or SLES build vm
+        if name.include? "build" or not @ardana[:cloud8][:deployer]
+          set_sles_sdk(iso_files)
+        end
+        # SLES Cloud8
+        set_sles_cloud8(iso_files) if @ardana[:cloud8][:artifacts]
       end
 
       # RHEL
-      if names.include?("rhel7")
+      if distros.include?("rhel7")
         set_rhel(iso_files)
       end
 
@@ -407,7 +406,7 @@ module Ardana
       # Add the pseudo host group defined in parallel-ansiblerepo-build.yml
       setup_vm(vm: server.vm, name: name, extra_vars: extra_vars, disks: disks)
 
-      setup_iso(server: server, names: distros)
+      setup_iso(server: server, name: name, distros: distros)
 
       server.vm.provision "ansible" do |ansible|
         ansible.playbook = "#@dev_tool_path/ansible/#{playbook}.yml"
@@ -617,7 +616,7 @@ module Ardana
             libvirt.storage :file, :path => ccache_path, :allow_existing => true, :size => '50G'
           end
 
-          setup_iso(server: build, names: [distro])
+          setup_iso(server: build, name: machine, distros: [distro])
 
           set_proxy_config
         end
