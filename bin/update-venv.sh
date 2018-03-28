@@ -37,7 +37,6 @@ usage() {
     echo
     echo "--no-build     -- Use the latest existing venv package otherwise"
     echo "                  we build a new package"
-    echo "--hlinux       -- Build venv package for hLinux"
     echo "--rhel         -- Build venv package for RHEL"
     echo "--sles         -- Build venv package for SLES"
     echo "--no-artifacts -- Don't check and fetch any new artifacts including"
@@ -69,7 +68,7 @@ distros=()
 venv_args=()
 NO_BUILD=
 
-TEMP=$(getopt -o h -l help,ci,no-config,no-build,hlinux,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,ci,no-config,no-build,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
@@ -78,7 +77,7 @@ while true ; do
         (-h|--help) usage ; exit 0 ;;
         (--ci) export ARDANAUSER=ardanauser ; shift ;;
         (--no-build) NO_BUILD=1 ; shift ;;
-        (--hlinux|--rhel|--sles)
+        (--rhel|--sles)
             distros+=( ${1:2} )
             venv_args+=( $1 )
             shift ;;
@@ -106,8 +105,7 @@ ARDANA_VERSION=$(python -c "import yaml ; print yaml.load(open('../../ansible/ro
 
 # select default distro if none specified
 if (( ${#distros[@]} == 0)); then
-    # TODO(fergal): switch to sles as default
-    distros=( hlinux )
+    distros=( sles )
 fi
 
 if [ -z "$NO_BUILD" ]; then
@@ -124,7 +122,6 @@ branch=$(git config --file $(git rev-parse --show-toplevel)/.gitreview \
 
 # paths under scratch dir where distro venvs are located
 declare -A distro_dirs
-distro_dirs["hlinux"]=""
 distro_dirs["rhel"]="redhat"
 distro_dirs["sles"]="suse"
 

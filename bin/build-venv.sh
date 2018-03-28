@@ -29,14 +29,13 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
 usage() {
     set +x
-    echo "$SCRIPT_NAME [--help] [--ci] [--hlinux] [--rhel] [--sles] [--stop] [packages...]"
+    echo "$SCRIPT_NAME [--help] [--ci] [--rhel] [--sles] [--stop] [packages...]"
     echo
     echo "Manage all aspects of the venv building."
     echo "This includes downloading any needed artifacts, building vargant"
     echo "box images, bringing up the build VM's, and finally building any"
     echo "or all venv packages."
     echo
-    echo "--hlinux       -- Build venv packages for hLinux"
     echo "--rhel         -- Build venv packages for RHEL"
     echo "--sles         -- Build venv packages for SLES"
     echo "--cloud8       -- Use Cloud8 artifacts during venv build"
@@ -49,7 +48,7 @@ usage() {
     echo "                  the specified packages."
 }
 
-TEMP=$(getopt -o h -l help,ci,cloud8,hlinux,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,ci,cloud8,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -64,7 +63,6 @@ while true ; do
         -h | --help) usage ; exit 0 ;;
         --ci) export ARDANAUSER=ardanauser ; shift ;;
         --cloud8) export ARDANA_CLOUD8_ARTIFACTS=1 ; shift ;;
-        --hlinux) export ARDANA_HLINUX_ARTIFACTS=1 ; shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;

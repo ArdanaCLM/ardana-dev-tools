@@ -55,7 +55,6 @@ class InvalidServersPathError(StandardError):
 class Servers(object):
 
     _DISTRO_ID_MAP = dict(sles="sles12sp3-x86_64",
-                          hlinux="hlinux-x86_64",
                           rhel="rhel73-x86_64")
 
     @classmethod
@@ -203,9 +202,6 @@ def main():
                         '(colon separated list)')
 
     # specific node distro selections
-    parser.add_argument('--hlinux-nodes', dest='hlinux_nodes', default='',
-                        help='Configure selected nodes to re-image as hLinux '
-                        '(colon separated list)')
     parser.add_argument('--rhel-nodes', dest='rhel_nodes', default='',
                         help='Configure selected nodes to re-image as RHEL '
                         '(colon separated list)')
@@ -214,17 +210,11 @@ def main():
                         '(colon separated list)')
 
     # control plane distro selection
-    parser.add_argument('--hlinux-control', action="store_true",
-                        help='Configure control nodes to be re-imaged as '
-                        'hLinux')
     parser.add_argument('--sles-control', action="store_true",
                         help='Configure control nodes to be re-imaged as '
                         'SLES')
 
     # compute node distro selection
-    parser.add_argument('--hlinux-compute', action="store_true",
-                        help='Configure compute nodes to be re-image as '
-                        'hLinux')
     parser.add_argument('--rhel-compute', action="store_true",
                         help='Configure compute nodes to be re-image as '
                         'RHEL')
@@ -240,7 +230,6 @@ def main():
     else:
         cobble_nodes = set(args.cobble_nodes.split(':'))
 
-    hlinux_node_ids = set(args.hlinux_nodes.split(':'))
     rhel_node_ids = set(args.rhel_nodes.split(':'))
     sles_node_ids = set(args.sles_nodes.split(':'))
 
@@ -257,8 +246,6 @@ def main():
             server_distro = 'sles'
         elif server['id'] in rhel_node_ids:
             server_distro = 'rhel'
-        elif server['id'] in hlinux_node_ids:
-            server_distro = 'hlinux'
 
         if (server_distro is None) and ("COMPUTE" in server['role']):
             # check for blanket all compute setting
@@ -266,15 +253,11 @@ def main():
                 server_distro = 'sles'
             elif args.rhel_compute:
                 server_distro = 'rhel'
-            elif args.hlinux_compute:
-                server_distro = 'hlinux'
 
         if (server_distro is None) and ("CONTROLLER" in server['role']):
             # check first for blanket all control setting
             if args.sles_control:
                 server_distro = 'sles'
-            elif args.hlinux_control:
-                server_distro = 'hlinux'
 
         if server_distro is None:
             server_distro = args.default_distro

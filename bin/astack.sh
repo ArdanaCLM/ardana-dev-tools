@@ -43,7 +43,6 @@ usage() {
     echo "                         guest or OVA images"
     echo "--no-build            -- Don't build venv, reuse existing packages"
     echo "--no-git-update       -- Don't update git cached sources"
-    echo "--build-hlinux-ova    -- Build hlinux ova from qcow2"
     echo "--pre-destroy         -- Destroy any existing instance of the cloud"
     echo "                         before deploying."
     echo "--c8|--cloud8-deployer"
@@ -62,18 +61,6 @@ usage() {
     echo "--c8-pool             -- Use pool repo only"
     echo "--c8-artifacts|cloud8-artifacts"
     echo "                      -- Use Cloud8 artifacts"
-    echo "--hlinux              -- Include any hLinux artifacts"
-    echo "--hlinux-control      -- Switch control nodes to use hLinux"
-    echo "--hlinux-control-nodes nodes"
-    echo "                      -- Colon separated list of nodes to be setup"
-    echo "                         as hLinux controllers. (repeatable)"
-    echo "--hlinux-compute      -- Switch compute nodes to use hLinux"
-    echo "--hlinux-compute-nodes nodes"
-    echo "                      -- Colon separated list of nodes to be setup"
-    echo "                         as hLinux computes. (repeatable)"
-    echo "--hlinux-deployer     -- Switch deployer node to use hLinux"
-    echo "                         (deprecated - deployer will use whichever"
-    echo "                         distro is used for control plane."
     echo "--rhel                -- Include any RHEL artifacts"
     echo "--rhel-compute        -- Switch compute nodes to use rhel"
     echo "--rhel-compute-nodes nodes"
@@ -95,9 +82,6 @@ usage() {
     echo "--tarball TARBALL     -- Specify a prebuilt deployer tarball to use."
     echo "--cobble-nodes nodes  -- Specify a list of nodes to re-image with cobbler"
     echo "                         before running the Ardana OpenStack deployment."
-    echo "--cobble-hlinux-nodes nodes"
-    echo "                      -- Specify a list of nodes to configured as hLinux"
-    echo "                         if being re-imaged by cobbler."
     echo "--cobble-rhel-nodes nodes"
     echo "                      -- Specify a list of nodes to configured as RHEL"
     echo "                         if being re-imaged by cobbler."
@@ -310,7 +294,6 @@ if [ -z "$NO_BUILD" -a -z "$DEPLOYER_TARBALL" ]; then
     $SCRIPT_HOME/build-venv.sh \
         ${CI:+--ci} \
         ${ARDANA_CLOUD8_ARTIFACTS:+--cloud8} \
-        ${ARDANA_HLINUX_ARTIFACTS:+--hlinux} \
         ${ARDANA_RHEL_ARTIFACTS:+--rhel} \
         ${ARDANA_SLES_ARTIFACTS:+--sles} \
         --no-artifacts \
@@ -396,11 +379,8 @@ if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
             -- \
             --default-distro=sles \
             ${COBBLER_NODES:+--nodes="${COBBLER_NODES:-}"} \
-            ${COBBLER_HLINUX_NODES:+--hlinux-nodes=${COBBLER_HLINUX_NODES:-}} \
             ${COBBLER_RHEL_NODES:+--rhel-nodes=${COBBLER_RHEL_NODES:-}} \
             ${COBBLER_SLES_NODES:+--sles-nodes=${COBBLER_SLES_NODES:-}} \
-            ${COBBLER_HLINUX_COMPUTE:+--hlinux-compute} \
-            ${COBBLER_HLINUX_CONTROL:+--hlinux-control} \
             ${COBBLER_RHEL_COMPUTE:+--rhel-compute} \
             ${COBBLER_SLES_COMPUTE:+--sles-compute} \
             ${COBBLER_SLES_CONTROL:+--sles-control} \
