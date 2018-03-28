@@ -71,7 +71,7 @@ Locate the volume and then delete it.
     virsh vol-list --pool=default
      Name                 Path
     ------------------------------------------------------------------------------
-     hlinux_vagrant_box_image.img /var/lib/libvirt/images/hlinux_vagrant_box_image.img
+     sles12box_vagrant_box_image.img /var/lib/libvirt/images/sles12box_vagrant_box_image.img
      standard-vagrant_ccn-1.img /var/lib/libvirt/images/standard-vagrant_ccn-1.img
     ```
 1. Delete the offending image:
@@ -90,7 +90,7 @@ work.
     virsh vol-list --pool=default
      Name                 Path
     ------------------------------------------------------------------------------
-     hlinux_vagrant_box_image.img /var/lib/libvirt/images/hlinux_vagrant_box_image.img
+     sles12box_vagrant_box_image.img /var/lib/libvirt/images/sles12box_vagrant_box_image.img
      standard-vagrant_ccn-1.img /var/lib/libvirt/images/standard-vagrant_ccn-1.img
     ```
 1. Manually delete the image

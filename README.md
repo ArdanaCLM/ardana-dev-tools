@@ -765,13 +765,13 @@ rebuilding your environment.
 
     which will then create a new tgz under ../scratch-master_<version_name>/swiftlm-20160226T144301Z.tgz
 
-5. scp this new tgz up to the deployer directory at /opt/ardana_packager/openstack-<version>/hlinux_venv/.
+5. scp this new tgz up to the deployer directory at /opt/ardana_packager/ardana-<version>/sles_venv/.
 
 6. vagrant ssh to the deployer and regenerate the packager index:
-    sudo /opt/stack/service/packager/venv/bin/create_index --dir /opt/ardana_packager/openstack-<version>/hlinux_venv/
+    sudo /opt/stack/service/packager/venv/bin/create_index --dir /opt/ardana_packager/ardana-<version>/sles_venv/
 
 7. Verify your new package listed in packages:
-    cat /opt/ardana_packager/openstack-<version>/hlinux_venv/packages
+    cat /opt/ardana_packager/ardana-<version>/sles_venv/packages
 
 8. Do an upgrade of the service:
     ansible-playbook -i hosts/verb_hosts swift-upgrade.yml
@@ -784,5 +784,5 @@ The CI Build and Test process can be more closely emulated by passing the
 --ci option to the astack.sh script, e.g. ./astack.sh --ci standard
 The primary impact of doing so will be that the user account on the vagrant
 VMs will be ardanauser rather than stack. Additionally when creating a standard
-cloud, the 3rd compute VM will be created as a RHEL7 rather than hLinux VM.
+cloud, the 3rd compute VM will be created as a RHEL7 rather than SLES VM.
 See [doc/dev-workflow.md] for more details.
