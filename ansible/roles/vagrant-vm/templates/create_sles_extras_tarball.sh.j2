@@ -55,6 +55,7 @@ create_repo()
     repo_dir=${WORK_DIR}/${1}
     zypper_cache=${ZYPPER_CACHE_BASE}/${1}
 
+{% if vagrant_vm_sles_extras_include_srpms | bool %}
     # also retrieve matching source rpms for the packages
     echo "Downloaded RPMs in ${1}:"
     find ${zypper_cache} -type f -name "*.rpm"
@@ -71,6 +72,7 @@ create_repo()
     done
     echo "Downloaded Source RPMs in ${1}:"
     sudo find ${zypper_cache} -type f -name "*.src.rpm"
+{% endif %}
 
     # delete any previous scratch area
     rm -rf ${scratch_dir}

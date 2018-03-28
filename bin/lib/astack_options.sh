@@ -31,6 +31,9 @@ export CI=${CI:-}
 export ARDANAUSER="${ARDANAUSER:-stack}"
 export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/home}"
 
+# Dynamically build the SLES Extras tarball by default
+export ARDANA_SLES_NET_REPOS=${ARDANA_SLES_NET_REPOS:-true}
+
 NO_SETUP=
 NO_ARTIFACTS=
 NO_BUILD=

@@ -48,6 +48,7 @@ vagrant_vm_sles_extras_build_repos_dir: /var/cache/sles_extras
 vagrant_vm_sles_extras:
   - repo: "SUSE-OpenStack-Cloud-8-devel"
     disable_gpg_check: yes
+    type: "yast2"
     pkgs:
       - apache2-mod_wsgi
       - cassandra
@@ -62,6 +63,7 @@ vagrant_vm_sles_extras:
       - erlang-sd_notify
       - galera-3-wsrep-provider
       - haproxy
+      - ipxe-bootimgs
       - keepalived
       - kibana
       - liberasurecode1
@@ -98,15 +100,16 @@ vagrant_vm_sles_extras:
     #url: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
     url: "http://10.86.33.251/repos/x86_64/SUSE-OpenStack-Cloud-8-devel"
 
-  - repo: "cloud-openstack-pike"
+  # Only needed on SLES Build VM so we don't need to setup osconfig zypper
+  # repo management to add it in the product code.
+  - repo: "SUSE-SLE-12-SP3-Update-Products-Cloud8-standard"
     disable_gpg_check: yes
+    type: "rpm-md"
     pkgs:
-      - liberasurecode1
       - liberasurecode-devel
-    url: "http://download.opensuse.org/repositories/Cloud:/OpenStack:/Pike/SLE_12_SP3/"
+    #url: "http://ibs-mirror.prv.suse.net/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/standard/"
+    url: "http://10.84.2.50/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/standard/"
 
-  - repo: "SLE_12_SP3-network"
-    disable_gpg_check: yes
-    pkgs:
-      - ipxe-bootimgs
-    url: "https://download.opensuse.org/repositories/network/SLE_12_SP3/"
+# used to determine if SRPMs should be included in the SLES Extras tarball
+vagrant_vm_sles_extras_include_srpms: "{{
+        lookup('env', 'ARDANA_SLES_NET_REPOS_SRPMS') | default(False, true) }}"
