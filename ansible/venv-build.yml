@@ -23,11 +23,11 @@
     - dev-env
   tasks:
     - name: venv | - | Check if target OS selected
-      fail: msg="Nothing to build - either ARDANA_HLINUX_ARTIFACTS, or ARDANA_RHEL_ARTIFACTS,
+      fail: msg="Nothing to build - either ARDANA_RHEL_ARTIFACTS,
         or ARDANA_SLES_ARTIFACTS env variable must be exported"
-      when: (not dev_env_use_hlinux_artifacts|bool) and
-        (not dev_env_use_rhel7_artifacts|bool) and
-        (not dev_env_use_sles12_artifacts|bool)
+      when:
+        - not dev_env_use_rhel7_artifacts | bool
+        - not dev_env_use_sles12_artifacts | bool
 
 - hosts: localhost
   connection: local
@@ -96,15 +96,6 @@
 # As set-up uses add_host and this bypasses the play host group and hence will
 # only run on the first node in any group we have to split split out the host
 # per play here to correctly register all the hosts.
-- hosts: build-hlinux
-  gather_facts: no
-  any_errors_fatal: true
-  roles:
-    - venv
-  tasks:
-    # setup parallel workers
-    - include: roles/venv/tasks/setup.yml
-
 - hosts: build-rhel7
   gather_facts: no
   any_errors_fatal: true
@@ -151,7 +142,7 @@
     # Build venvs from sources
     - include: roles/venv/tasks/build.yml
 
-- hosts: build-hlinux:build-sles12
+- hosts: build-sles12
   roles:
     - venv
   tasks:

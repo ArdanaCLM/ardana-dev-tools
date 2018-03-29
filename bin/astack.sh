@@ -190,15 +190,7 @@ if [ -n "$CI" -a "$CLOUDNAME" = "standard" ]; then
     fi
 fi
 
-# Check for upgrade flags disabling hLinux, RHEL or SLES support
-if [[ -n "$ARDANA_UPGRADE_NO_HLINUX" ]]
-then
-    unset ARDANA_HLINUX_ARTIFACTS
-    unset ARDANA_HLINUX_CONTROL
-    unset ARDANA_HLINUX_CONTROL_NODES
-    unset ARDANA_HLINUX_COMPUTE
-    unset ARDANA_HLINUX_COMPUTE_NODES
-fi
+# Check for upgrade flags disabling RHEL or SLES support
 if [[ -n "$ARDANA_UPGRADE_NO_RHEL" ]]
 then
     unset ARDANA_RHEL_ARTIFACTS

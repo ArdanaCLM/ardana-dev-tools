@@ -210,13 +210,6 @@ module Ardana
             :bus => "scsi"
           },
         },
-        :hlinux => {
-          :artifacts => !ENV.fetch("ARDANA_HLINUX_ARTIFACTS", "").empty?,
-          :control => !ENV.fetch("ARDANA_HLINUX_CONTROL", "").empty?,
-          :compute => !ENV.fetch("ARDANA_HLINUX_COMPUTE", "").empty?,
-          :control_nodes => ENV.fetch("ARDANA_HLINUX_CONTROL_NODES", "").split(":"),
-          :compute_nodes => ENV.fetch("ARDANA_HLINUX_COMPUTE_NODES", "").split(":")
-        },
         :rhel => {
           :artifacts => !ENV.fetch("ARDANA_RHEL_ARTIFACTS", "").empty?,
           :compute => !ENV.fetch("ARDANA_RHEL_COMPUTE", "").empty?,
@@ -279,17 +272,12 @@ module Ardana
       rhel_compute_all = @ardana[:rhel][:compute]
       sles_control_all = @ardana[:sles][:control]
       sles_compute_all = @ardana[:sles][:compute]
-      hlinux_control_all = @ardana[:hlinux][:control]
-      hlinux_compute_all = @ardana[:hlinux][:compute]
 
       # identify potential node specific overrides
       rhel_nodes = @ardana[:rhel][:compute_nodes]
       sles_control_nodes = @ardana[:sles][:control_nodes]
       sles_compute_nodes = @ardana[:sles][:compute_nodes]
       sles_nodes = sles_control_nodes + sles_compute_nodes
-      hlinux_control_nodes = @ardana[:hlinux][:control_nodes]
-      hlinux_compute_nodes = @ardana[:hlinux][:compute_nodes]
-      hlinux_nodes = hlinux_control_nodes + hlinux_compute_nodes
 
       # setup unique VNC ports for each server
       vnc_base = 5910  # 590{1..9} range wil be used for build VMs
@@ -306,8 +294,6 @@ module Ardana
             # check for blanket controller settings
             if sles_control_all
               distro = "sles12"
-            elsif hlinux_control_all
-              distro = "hlinux"
             end
           elsif serverInfo["role"].match("COMPUTE")
             # check for blanket compute settings
@@ -315,8 +301,6 @@ module Ardana
               distro = "sles12"
             elsif rhel_compute_all
               distro = "rhel7"
-            elsif hlinux_compute_all
-              distro = "hlinux"
             end
           end
 
@@ -325,8 +309,6 @@ module Ardana
             distro = "sles12"
           elsif ( rhel_nodes.include? serverInfo["id"] )
             distro = "rhel7"
-          elsif ( hlinux_nodes.include? serverInfo["id"] )
-            distro = "hlinux"
           end
 
           # default to SLES if no distro selected
@@ -349,13 +331,6 @@ module Ardana
         raise "Run 'ansible-playbook -i hosts/localhost get-release-artifacts.yml' to get the relase ISO"
       end
       iso_files.push(iso_file)
-    end
-
-    def set_hlinux(iso_files)
-      iso_files.push( get_image_output_dir() + "/hlinux.iso" )
-      if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-hlinux-iso.yml' to get the correct ISO"
-      end
     end
 
     def set_sles(iso_files)
@@ -389,27 +364,21 @@ module Ardana
     def setup_iso(server: None, names: [distro])
       iso_files = []
 
-      # /dev/sr0 - last release, or bare HLinux, or bare SLES
+      # /dev/sr0 - last release or bare SLES
       if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
         set_release(iso_files)
       elsif names.include?("sles12")
-        set_sles(iso_files)
-      elsif names.include?("hlinux")
-        set_hlinux(iso_files)
-      end
-
-      # HLinux control plane with SLES computes
-      if names.include?("hlinux") and names.include?("sles12")
         set_sles(iso_files)
       end
 
       # SLES SDK
       if names.include?("sles12")
         set_sles_sdk(iso_files)
-        # SLES Cloud8
-        if @ardana[:cloud8][:artifacts]
-          set_sles_cloud8(iso_files)
-        end
+      end
+
+      # SLES Cloud8
+      if names.include?("sles12") and @ardana[:cloud8][:artifacts]
+        set_sles_cloud8(iso_files)
       end
 
       # RHEL
@@ -548,34 +517,21 @@ module Ardana
 
           disks = []
           # add persistent volumes as appropriate
-          if deployer_node == server_name
-            if @ardana[:cloud8][:deployer]
-              if @ardana[:cloud8][:proxy_cache][:enabled]
-                # if using 'scsi' as the bus type the first additional disk on the
-                # virtio-scsi controller gets probed last, so we add the proxy
-                # cache persistent volume cache as the first disk
-                disks.push({
-                             :path => @ardana[:cloud8][:proxy_cache][:name],
-                             :size => @ardana[:cloud8][:proxy_cache][:size],
-                             :bus => @ardana[:cloud8][:proxy_cache][:bus],
-                             :allow_existing => true
-                           })
+          if ((deployer_node == server_name) and
+              @ardana[:cloud8][:deployer] and
+              @ardana[:cloud8][:proxy_cache][:enabled])
+            # if using 'scsi' as the bus type the first additional disk on the
+            # virtio-scsi controller gets probed last, so we add the proxy
+            # cache persistent volume cache as the first disk
+            disks.push({
+                         :path => @ardana[:cloud8][:proxy_cache][:name],
+                         :size => @ardana[:cloud8][:proxy_cache][:size],
+                         :bus => @ardana[:cloud8][:proxy_cache][:bus],
+                         :allow_existing => true
+                       })
 
-                # The proxy cache volume lun will be X:0:0:<lun> for scsi.
-                @ardana[:cloud8][:proxy_cache][:lun] = disks.length
-              end
-            elsif @ardana[:hlinux][:control]
-              # This is strange. I don't exactly trust vagrant-libvirtd / libvirtd
-              # to be doing the right thing here. But we this puts the persistent
-              # cache to th start of the disks, but inside the deployer I see this
-              # as the last device - sdg
-              disks.push({
-                           :bus => "scsi",
-                           :size => "10G",
-                           :path => @persistent_deployer_apt_cache,
-                           :allow_existing => true
-                         })
-            end
+            # The proxy cache volume lun will be X:0:0:<lun> for scsi.
+            @ardana[:cloud8][:proxy_cache][:lun] = disks.length
           end
 
           # Add the requested number of disks for this node type
@@ -587,16 +543,12 @@ module Ardana
 
           # Provisioning VM
           if deployer_node == server_name
-            if @ardana[:cloud8][:deployer]
-              if @ardana[:cloud8][:proxy_cache][:enabled]
-                extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud8][:proxy_cache][:name],
-                              "ardana_proxy_cache_bus" => @ardana[:cloud8][:proxy_cache][:bus],
-                              "ardana_proxy_cache_lun" => @ardana[:cloud8][:proxy_cache][:lun]}
-              end
+            if @ardana[:cloud8][:deployer] and @ardana[:cloud8][:proxy_cache][:enabled]
+              extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud8][:proxy_cache][:name],
+                            "ardana_proxy_cache_bus" => @ardana[:cloud8][:proxy_cache][:bus],
+                            "ardana_proxy_cache_lun" => @ardana[:cloud8][:proxy_cache][:lun]}
             else
-              device = "/dev/sd#{( 10 + disks.length ).to_s 36}"
-              extra_vars = {"persistent_apt_device" => device,
-                            "persistent_apt_cache_volume" => @persistent_deployer_apt_cache}
+              extra_vars = {}
             end
             provision_deployer(server: server,
                                name: server_name,
@@ -616,11 +568,6 @@ module Ardana
 
     def add_build
       distros_info = {
-        "hlinux" => {
-          :name => "build-hlinux",
-          :enabled => @ardana[:hlinux][:artifacts],
-          :gfx_port => "5903"
-        },
         "rhel7" => {
           :name => "build-rhel7",
           :enabled => @ardana[:rhel][:artifacts],
@@ -727,12 +674,12 @@ module Ardana
         vm.box = box
 
         # This sets the box for non-openstack vagrant configurations
-        # We check for the hlinuxbox.json file so that developers who
-        # haven't yet rebuild their hlinux image will continue to still work.
+        # We check for the sles12box.json file so that developers who
+        # haven't yet rebuild their sles12 image will continue to still work.
         if use_release_artifact
-          box_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}-hlinuxbox.json"
+          box_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}-sles12box.json"
           if !File.exists?(box_file)
-            box_file = get_release_artifact_dir() + "/release-hlinuxbox.json"
+            box_file = get_release_artifact_dir() + "/release-sles12box.json"
           end
         else
           box_file = "#@dev_tool_path/#{box}.json"
@@ -744,12 +691,6 @@ module Ardana
 
           vm.box_url = "file://" + box_file
           vm.box_version = box_json["versions"][0]["version"]
-        end
-
-        # don't override a setting provided by the box itself, but ensure
-        # old hlinuxbox images without this, will still boot
-        if !vm.guest.kind_of? String and vm.box == "hlinuxbox"
-          vm.guest = :debian
         end
       end
     end
