@@ -70,7 +70,7 @@ dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | defaul
 
 # Should we use SLES artifacts in build
 dev_env_use_sles12_artifacts: "{{ lookup('env', 'ARDANA_SLES_ARTIFACTS') | default(False, true) }}"
-dev_env_use_sles12_net_repos: "{{ lookup('env', 'ARDANA_SLES_NET_REPOS') | default(False, true) }}"
+dev_env_use_sles12_net_repos: "{{ lookup('env', 'ARDANA_SLES_NET_REPOS') | default(True, true) }}"
 dev_env_use_sles12_deployer: "{{ lookup('env', 'ARDANA_SLES_CONTROL') | default(False, true) }}"
 
 # Should we use Guest image artifacts in build (e.g for Octavia etc)
