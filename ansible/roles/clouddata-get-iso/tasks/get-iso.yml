@@ -17,6 +17,7 @@
 #
 # Pass in the following variables:
 #   iso_name: <name of ISO>
+#   iso_pattern: <pattern for name of ISO>
 #   iso_path: <path to ISO image under clouddata "root" directory>
 #   iso_sha256: <optional SHA256 for ISO>
 #   link_name: <optional link name to create under branch images dir>
@@ -34,12 +35,11 @@
   vars:
     _file:
       name: "{{ iso_name }}"
+      pattern: "{{ iso_pattern | default('') }}"
       sha256: "{{ iso_sha256 | default('') }}"
-      url: "{{ clouddata_iso.base_url}}/{{ iso_path }}/{{ iso_name }}"
+      url_path: "{{ clouddata_iso.base_url}}/{{ iso_path }}/"
       sha256url: "{{ clouddata_iso.base_url}}/{{ iso_path }}/{{ clouddata_iso.sha256_shared }}"
       dir: "{{ clouddata_iso.isos_dir }}"
-      sha256file: "{{ clouddata_iso.isos_dir }}/{{ iso_name }}.sha256"
-      tmpfile: "{{ clouddata_iso.isos_dir }}/.{{ iso_name }}.tmp"
       link:
         name: "{{ link_name | default('') }}"
         dir: "{{ clouddata_iso.images_dir }}"
