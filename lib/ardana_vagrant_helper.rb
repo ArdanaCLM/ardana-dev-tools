@@ -654,7 +654,7 @@ module Ardana
         end
       end
 
-      if ENV.fetch("CI", "no").downcase == "yes"
+      if ENV.fetch("CI", "no").downcase == "yes" or @ardana[:cloud8][:deployer]
         vm.provider :libvirt do |libvirt, override|
           libvirt.serial :type => "file",
             :source => {
