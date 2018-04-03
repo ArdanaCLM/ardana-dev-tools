@@ -20,7 +20,64 @@
 # all the option variables that control astack.sh
 #
 
-OPTIONS=help,run-tests,ci,no-setup,no-artifacts,no-build,no-git-update,rhel,rhel-compute,rhel-compute-nodes:,sles,sles-deployer,sles-control,sles-control-nodes:,sles-compute,sles-compute-nodes:,guest-images,tarball:,cobble-nodes:,cobble-rhel-compute,cobble-rhel-nodes:,cobble-sles-control,cobble-sles-compute,cobble-sles-nodes:,cobble-all-nodes,no-config,no-site,skip-extra-playbooks,disable-services:,update-only,project-stack:,feature-dir:,no-prepare,restrict-by-project:,squashkit:,extra-vars:,cloud8-artifacts,cloud8-deployer,c8,c8-artifacts,c8-mirror,c8-caching,c8-pool,c8-updates,c8-devel,c8-staging,c8-hos,c8-soc,pre-destroy
+# Manage list of long options as a sorted array of option names which
+# we then join with commas to form the argument to getopt.
+long_opts=(
+    c8
+    c8-artifacts
+    c8-caching
+    c8-devel
+    c8-hos
+    c8-mirror
+    c8-pool
+    c8-soc
+    c8-staging
+    c8-updates
+    ci
+    cloud8-artifacts
+    cloud8-deployer
+    cobble-all-nodes
+    cobble-nodes:
+    cobble-rhel-compute
+    cobble-rhel-nodes:
+    cobble-sles-compute
+    cobble-sles-control
+    cobble-sles-nodes:
+    disable-services:
+    extra-vars:
+    feature-dir:
+    guest-images
+    help
+    no-artifacts
+    no-build
+    no-config
+    no-git-update
+    no-prepare
+    no-setup
+    no-site
+    pre-destroy
+    project-stack:
+    restrict-by-project:
+    rhel
+    rhel-compute
+    rhel-compute-nodes:
+    run-tests
+    skip-extra-playbooks
+    sles
+    sles-compute
+    sles-compute-nodes:
+    sles-control
+    sles-control-nodes:
+    sles-deployer
+    squashkit:
+    tarball:
+    update-only
+)
+
+# join long_opts members with ","
+printf -v OPTIONS ",%s" "${long_opts[@]:1}"
+OPTIONS="${long_opts[0]}${OPTIONS}"
+
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
