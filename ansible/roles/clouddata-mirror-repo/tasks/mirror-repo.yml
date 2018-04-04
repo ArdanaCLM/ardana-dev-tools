@@ -13,10 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks to mirror the specified clouddata repo url.
+# Tasks to mirror the specified clouddata repos locally.
 #
 # Pass in the following variables:
-#   repo_name: <name of clouddata repo to mirror>
+#   repos: <set of clouddata repos to mirror>
 ---
 
 - name: clouddata-mirror-repo | mirror-repo | Ensure relevant directories exist
@@ -26,13 +26,26 @@
   with_items:
     - dir: "{{ clouddata_repo.mirrors_dir }}"
 
-- include: ../../../roles/ardana-scratch/tasks/mirror-repos.yml
+- name: clouddata-mirror-repo | mirror-repo | Mirror SOC8 repos
+  include: ../../../roles/ardana-scratch/tasks/rsync-mirror-repos.yml
   vars:
     _mirror:
-      url_base: "{{ clouddata_repo.base_url}}"
-      repos: "{{ repos }}"
+      rsync_base: "{{ clouddata_repo.rsync_base}}"
       dir: "{{ clouddata_repo.mirrors_dir }}"
-      cut_dirs: "{{ clouddata_repo.cut_dirs }}"
-      use_proxy: "{{ clouddata_repo.use_proxy }}"
+      repos: "{{ cloud8.artifacts.repos.soc8 }}"
+      enabled: "{{ cloud8.config.enabled_repos }}"
   when:
     - cloud8.config.mirror_repos | bool
+    - cloud8.config.soc_mode | bool
+
+- name: clouddata-mirror-repo | mirror-repo | Mirror HOS8 repos
+  include: ../../../roles/ardana-scratch/tasks/rsync-mirror-repos.yml
+  vars:
+    _mirror:
+      rsync_base: "{{ clouddata_repo.rsync_base}}"
+      dir: "{{ clouddata_repo.mirrors_dir }}"
+      repos: "{{ cloud8.artifacts.repos.hos8 }}"
+      enabled: "{{ cloud8.config.enabled_repos }}"
+  when:
+    - cloud8.config.mirror_repos | bool
+    - cloud8.config.hos_mode | bool

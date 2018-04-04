@@ -19,5 +19,4 @@
 clouddata_repo:
   mirrors_dir: "{{ ardana_scratch_mirrors_dir }}/clouddata"
   base_url: "http://{{ dev_env_site_config.clouddata.host }}/repos/x86_64"
-  cut_dirs: 2
-  use_proxy: "{{ dev_env_site_config.clouddata.use_proxy | default('no') }}"
+  rsync_base: "rsync://{{ dev_env_site_config.clouddata.host }}/cloud/repos/x86_64"
