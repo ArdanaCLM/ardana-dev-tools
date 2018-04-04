@@ -40,6 +40,7 @@
         "<esc><enter><wait>",
         "linux netdevice=eth0 netsetup=dhcp install=cd:/<wait>",
         " autoyast=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoyast.xml<wait>",
+        " self_update=0<wait>",
         "<enter><wait>"
       ],
       "qemuargs": [
