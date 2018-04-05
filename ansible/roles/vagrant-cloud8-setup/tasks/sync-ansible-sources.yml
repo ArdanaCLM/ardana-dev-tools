@@ -24,9 +24,12 @@
     dest: "~/openstack/ardana/ansible/"
     copy_links: yes
     rsync_opts: >
+      --exclude=.copyrightignore
       --exclude=.git*
       --exclude=*.pyc
       --exclude=ardana-ci/*
+      --exclude=hosts/localhost
+      --exclude=LICENSE
   with_dict: deployer_git_repositories | default({})
   when:
     - not (item.value | find_local_repo | search(product_cache_base_directory))
