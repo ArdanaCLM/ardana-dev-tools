@@ -40,18 +40,12 @@ c8setup:
       distro: sles
       enabled: true
     - dev: /dev/sr1
-      path: "SDK"
-      name: "{{ sles.artifacts.iso.sdk.name }}"
-      alias: "{{ sles.artifacts.iso.sdk.alias }}"
-      distro: sles
-      enabled: true
-    - dev: /dev/sr2
       path: "C8"
       name: "{{ cloud8.artifacts.iso.media1.name | replace('.iso', '') }}"
       alias: "{{ cloud8.artifacts.iso.media1.alias }}"
       enabled: true
       distro: sles
-    - dev: /dev/sr3
+    - dev: /dev/sr2
       path: "OS"
       name: "{{ rhel.artifacts.iso.os.name }}"
       alias: "{{ rhel.artifacts.iso.os.alias }}"
