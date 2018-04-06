@@ -43,6 +43,7 @@ long_opts=(
     cobble-sles-compute
     cobble-sles-control
     cobble-sles-nodes:
+    disable-no-log
     disable-services:
     extra-vars:
     feature-dir:
@@ -139,6 +140,7 @@ FEATURE_DIRS=
 FEATURE_PREPARE=1
 RUN_TESTS=
 PRE_DESTROY=
+NO_LOG_DISABLE=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
@@ -164,6 +166,9 @@ while true ; do
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --pre-destroy)
             PRE_DESTROY=1
+            shift ;;
+        --disable-no-log)
+            NO_LOG_DISABLE=1
             shift ;;
         --cloud8-artifacts)
             export ARDANA_CLOUD8_ARTIFACTS=1
