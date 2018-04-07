@@ -1,4 +1,26 @@
 #!/bin/bash -eu
+#
+# (c) Copyright 2017-2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Bootstrap the runtime environment to enable running Ardana development
+# environment:
+#   * ensure that the bootstrap ansible venv exists and is in PATH
+#
+# The output of this command it intended to be evaluated by the caller
+# to update their environment.
+#
 
 set -eu
 set -o pipefail
@@ -7,7 +29,11 @@ get_distro_family()
 {
     if grep -qs ID_LIKE /etc/os-release
     then
-        echo $(grep ID_LIKE /etc/os-release | cut -d= -f2)
+        grep ID_LIKE /etc/os-release | \
+            cut -d= -f2 | \
+            tr -d '"' | \
+            tr -d "'" | \
+            tr -d '[:space:]'
     elif grep -qs 'ID="sles"' /etc/os-release
     then
         echo suse
@@ -19,56 +45,61 @@ is_trusty()
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "trusty" ) ]]
 }
 
-suse_install()
-{
-    sudo zypper install --no-confirm "${0}"
-}
+# We may need to prepend new path elements to PATH
+path_prefix=""
 
-debian_install()
-{
-    sudo apt-get install --yes "${@}"
-}
+# May need some minimal packages to be able to create an ansible venv
+req_pkgs=()
 
+venv_cmd=/usr/bin/virtualenv
+
+# Determine which shell function will be used to install packages
+# NOTES:
+#   * openSUSE Leap 42 bash includes quotes in distro_family value
+#   * debian and suse use different names for Python development package
 distro_family=$(get_distro_family)
+case "${distro_family}" in
+(debian)
+    pkg_install="sudo apt-get install --yes"
+    # On Trusty CI nodes virtualenv is installed under /usr/local/bin
+    if is_trusty && [[ -x /usr/local/bin/virtualenv ]]
+    then
+        venv_cmd=/usr/local/bin/virtualenv
+    fi
+    [[ -e /usr/include/python2.7/Python.h ]] || req_pkgs+=( python-dev )
+    ;;
+(suse)
+    pkg_install="sudo zypper install --no-confirm"
+    [[ -e /usr/include/python2.7/Python.h ]] || req_pkgs+=( python-devel )
+    ;;
+(*)
+    echo "Unsupported distro family: '${distro_family}'"
+    exit 1
+    ;;
+esac
+
+# Need gcc to build wheels
+[[ -x /usr/bin/gcc ]] || req_pkgs+=( gcc )
+
+# Need virtualenv command
+[[ -x ${venv_cmd} ]] || req_pkgs+=( python-virtualenv )
+
+# Install required packages if needed
+if (( ${#req_pkgs[@]} > 0 ))
+then
+    ${pkg_install} "${req_pkgs[@]}" 1>&2
+fi
+
+
+#
+# Ansible bootstrap venv setup
+#
+
+# Ansible settings
 ardana_cache="${HOME}/.cache-ardana"
 ansible_version=1.9.6
 bootstrap_venvs="${ardana_cache}/venvs"
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
-
-# For Trusty CI nodes virtualenv is installed to /usr/local/bin
-if is_trusty
-then
-    venv_cmd=/usr/local/bin/virtualenv
-else
-    venv_cmd=/usr/bin/virtualenv
-fi
-
-# Need some minimal packages to be able to create an ansible venv
-req_pkgs=(
-    gcc
-)
-
-# debian and suse use different names for Python development package
-case "${distro_family}" in
-(debian)
-    req_pkgs+=( python-dev )
-    ;;
-(suse)
-    req_pkgs+=( python-devel )
-    ;;
-esac
-
-# install required packaged if needed
-if [[ ( ! -x /usr/bin/gcc ) || ( ! -e /usr/include/python2.7/Python.h ) ]]
-then
-    ${distro_family}_install "${req_pkgs[@]}" 1>&2
-fi
-
-# Install require package if desired virtualenv command not found
-if [[ ! -x ${venv_cmd} ]]
-then
-    ${distro_family}_install python-virtualenv 1>&2
-fi
 
 # Create the bootstrap ansible venv if it doesn't exist
 if [[ ! -d "${bootstrap_ansible}" ]]
@@ -83,9 +114,29 @@ then
     ${bootstrap_ansible}/bin/pip install "ansible==1.9.6" 1>&2
 fi
 
-echo "Using ansible venv '${bootstrap_ansible}'" 1>&2
+# Check if ansible bootstrap venv already in path, and if not, add it
+case :${PATH}: in
+(*:${bootstrap_ansible}/bin:*)
+    echo "Already using ansible venv '${bootstrap_ansible}'" 1>&2
+    ;;
+(*)
+    echo "Using ansible venv '${bootstrap_ansible}'" 1>&2
+    path_prefix="${bootstrap_ansible}/bin${path_prefix:+:${path_prefix}}"
+    ;;
+esac
 
-echo "PATH=${bootstrap_ansible}/bin:\$PATH"
-echo "export PATH"
+# If we needed to update the path settings
+if [[ -n "${path_prefix}" ]]
+then
+    echo "PATH=${path_prefix}:\$PATH"
+    echo "export PATH"
+
+    # Ensure shell sessions re-evaluate command lists
+    case "${SHELL}" in
+    (*/bash|*/zsh)
+        echo "hash -r"
+        ;;
+    esac
+fi
 
 # vim:shiftwidth=4:tabstop=4:expandtab
