@@ -51,7 +51,7 @@ cloud8:
   config:
     arch: "x86_64"
     caching_proxy: "{{ lookup('env', 'ARDANA_CLOUD8_CACHING_PROXY') | default(False, true) }}"
-    enabled_repos: "{{ lookup('env', 'ARDANA_CLOUD8_REPOS') | default(['devel', 'updates', 'pool'], true) }}"
+    enabled_repos: "{{ lookup('env', 'ARDANA_CLOUD8_REPOS') | default(['staging'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_CLOUD8_MIRROR') | default(False, true) }}"
     hos_mode: "{{ lookup('env', 'ARDANA_CLOUD8_HOS') | default(False, true) }}"
     soc_mode: "{{ lookup('env', 'ARDANA_CLOUD8_SOC') | default(False, true) }}"

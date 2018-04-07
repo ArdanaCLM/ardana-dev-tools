@@ -287,7 +287,7 @@ if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
 
     # default to staging (DC8S) level of repos
     if [ -z "${ARDANA_CLOUD8_REPOS:-}" ]; then
-        export ARDANA_CLOUD8_REPOS='["staging", "updates", "pool"]'
+        export ARDANA_CLOUD8_REPOS='["staging"]'
     fi
 
     # default to enabling caching proxy if mirroring not enabled.

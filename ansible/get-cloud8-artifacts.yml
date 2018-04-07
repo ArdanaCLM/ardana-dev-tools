@@ -22,7 +22,6 @@
 
     # mirror the clouddata repo
     - role: clouddata-mirror-repo
-      repos: "{{ cloud8.artifacts.repos }}"
 
     # retrieve the cloud8 iso
     - role: ibs-get-iso
