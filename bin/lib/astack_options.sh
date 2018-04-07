@@ -33,6 +33,7 @@ long_opts=(
     c8-soc
     c8-staging
     c8-updates
+    c8-updates-test
     ci
     cloud8-artifacts
     cloud8-deployer
@@ -191,10 +192,13 @@ while true ; do
             export ARDANA_CLOUD8_CACHING_PROXY=1
             shift ;;
         --c8-staging)
-            export ARDANA_CLOUD8_REPOS='["staging", "updates", "pool"]'
+            export ARDANA_CLOUD8_REPOS='["staging"]'
             shift ;;
         --c8-devel)
-            export ARDANA_CLOUD8_REPOS='["devel", "updates", "pool"]'
+            export ARDANA_CLOUD8_REPOS='["devel"]'
+            shift ;;
+        --c8-updates-test)
+            export ARDANA_CLOUD8_REPOS='["updates-test", "updates", "pool"]'
             shift ;;
         --c8-updates)
             export ARDANA_CLOUD8_REPOS='["updates", "pool"]'
