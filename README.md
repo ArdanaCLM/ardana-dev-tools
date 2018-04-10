@@ -202,6 +202,13 @@ Add the following parameters for more options:
                             implies --no-site)
     --no-site              (Don't run the site.yml play after previsioning cloud)
     --run-tests            (Run the tests against cloud after a successful test)
+    --run-tests-filter FILTER
+                           (Use specified filter when running tests; this
+			    implicitly selects --run-tests so only need to
+			    specify one. Default is 'ci' and can specify any
+			    filter name found in roles/tempest/filters/run_filters
+			    directory under ~/openstack/ardana/ansible on a deployed
+			    system, or in the ardana/tempest-ansible.git repo)
     --tarball TARBALL      (Specify a pre-built legacy style deployer tarball
                             to use)
     --ci                   (Sets the same options used by the legacy deployment

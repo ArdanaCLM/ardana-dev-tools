@@ -99,6 +99,13 @@ usage() {
     echo "--ci                  -- Sets the same options for running in the CI"
     echo "                         CDL lab."
     echo "--run-tests           -- Run tests after deployment"
+    echo "--run-tests-filter FILTER"
+    echo "                      -- The tempest test filter to use, default 'ci'."
+    echo "                         You can see which filters are available to be run"
+    echo "                         in the roles/tempest/files/run_filters directory"
+    echo "                         under ~/openstack/ardana/ansible or in the"
+    echo "                         ardana/tempest-ansible.git repo."
+    echo "                         NOTE: This option implies --run-tests also"
     echo "--disable-services    -- Disable specified services"
     echo "--project-stack       -- The stack (cloud etc) will be customized for"
     echo "                         this project, using files in the specified"
@@ -537,7 +544,11 @@ if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
     fi
 
     pushd "${DEVTOOLS}/ardana-vagrant-models/${CLOUDNAME}-vagrant"
-    ${SCRIPT_HOME}/run-in-deployer.sh ${SCRIPT_HOME}/deployer/run-tests.sh ${test_args} ci ${CLOUDNAME}
+    ${SCRIPT_HOME}/run-in-deployer.sh \
+        ${SCRIPT_HOME}/deployer/run-tests.sh \
+            ${test_args} \
+            ${RUN_TESTS_FILTER} \
+            ${CLOUDNAME}
     popd
 fi
 
