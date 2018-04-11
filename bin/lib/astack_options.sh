@@ -64,6 +64,7 @@ long_opts=(
     rhel-compute
     rhel-compute-nodes:
     run-tests
+    run-tests-filter:
     skip-extra-playbooks
     sles
     sles-compute
@@ -140,6 +141,7 @@ SQUASH_KIT=
 FEATURE_DIRS=
 FEATURE_PREPARE=1
 RUN_TESTS=
+RUN_TESTS_FILTER=${RUN_TESTS_FILTER:-ci}
 PRE_DESTROY=
 NO_LOG_DISABLE=
 
@@ -151,6 +153,10 @@ while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --run-tests) RUN_TESTS=1 ; shift ;;
+        --run-tests-filter)
+            RUN_TESTS=1
+            RUN_TESTS_FILTER=$2
+            shift 2 ;;
         --ci)
             SKIP_EXTRA_PLAYBOOKS=
             export ARDANAUSER=ardanauser
