@@ -538,15 +538,20 @@ popd
 logsubunit --success deploy
 
 if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
-    test_args=""
+    test_args=()
     if [ -n "$CI" ]; then
-        test_args="--ci"
+        test_args+=( --ci )
+    fi
+    # TODO(fergal): Remove this once we have updated ardana-qa-ansible
+    # tests to run on a Cloud8 deployment.
+    if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
+        test_args+=( --tempest-only )
     fi
 
     pushd "${DEVTOOLS}/ardana-vagrant-models/${CLOUDNAME}-vagrant"
     ${SCRIPT_HOME}/run-in-deployer.sh \
         ${SCRIPT_HOME}/deployer/run-tests.sh \
-            ${test_args} \
+            ${test_args[@]} \
             ${RUN_TESTS_FILTER} \
             ${CLOUDNAME}
     popd

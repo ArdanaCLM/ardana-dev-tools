@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -28,7 +28,7 @@ usage() {
     echo "$SCRIPT_NAME [--timeout] JOB_TYPE CLOUD_NAME [TAGS]"
 }
 
-TEMP=$(getopt -o h -l help,timeout:,no-ironic -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,tempest-only,timeout:,no-ironic -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -36,12 +36,14 @@ eval set -- "$TEMP"
 # The overall test time available (in minutes)
 TEST_TIMEOUT=80
 NO_IRONIC=
+TEMPEST_ONLY=
 
 while true ; do
     case "$1" in
         -h|--help) usage ; exit 0 ;;
         --timeout) TEST_TIMEOUT=$2 ; shift 2 ;;
         --no-ironic) NO_IRONIC=1 ; shift ;;
+        --tempest-only) TEMPEST_ONLY=1 ; shift ;;
         --) shift ; break;;
         *) break ;;
     esac
@@ -87,6 +89,11 @@ ansible-playbook \
     -e tempest_test_axis=control_plane
 popd
 
+if [[ -n "${TEMPEST_ONLY}" ]]; then
+    echo "Completed tempest tests successfully; finishing now."
+    exit 0
+fi
+
 pushd "${ANSIBLE_NEXT}/group_vars"
 popd
 
@@ -119,3 +126,5 @@ ansible-playbook \
     --skip-tags=no-qa \
     -e run_filter=${RUN_FILTER} \
     -e cache_folder=${HOME} || [ $JOB_TYPE == 'upgrade-ci' ]
+
+# vim:shiftwidth=4:tabstop=4:expandtab
