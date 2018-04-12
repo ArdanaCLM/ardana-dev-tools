@@ -23,12 +23,12 @@
 #     enabled: <list of enabled repo names>
 ---
 
-- name: ardana-scratch | rsync-mirror-repos | Ensure target directory exists
+- name: ardana-cache | rsync-mirror-repos | Ensure target directory exists
   file:
     path: "{{ _mirror.dir }}"
     state: directory
 
-- name: ardana-scratch | rsync-mirror-repos | Mirror specified repos
+- name: ardana-cache | rsync-mirror-repos | Mirror specified repos
   command: >
     rsync
       --archive
