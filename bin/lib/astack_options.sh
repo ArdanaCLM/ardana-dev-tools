@@ -30,6 +30,7 @@ long_opts=(
     c8-hos
     c8-mirror
     c8-pool
+    c8-qa-tests
     c8-soc
     c8-staging
     c8-updates
@@ -119,6 +120,7 @@ export ARDANA_SLES_COMPUTE_NODES=${ARDANA_SLES_COMPUTE_NODES:-}
 export ARDANA_GUEST_IMAGE_ARTIFACTS=${ARDANA_GUEST_IMAGE_ARTIFACTS:-}
 export ARDANA_DISABLE_SERVICES=${ARDANA_DISABLE_SERVICES:-}
 export ARDANA_GIT_UPDATE=${ARDANA_GIT_UPDATE:-}
+export ARDANA_NO_SETUP_QA=${ARDANA_NO_SETUP_QA:-}
 export EXTRA_VARS=${EXTRA_VARS:-}
 # By default don't run the extra playbooks that we run during CI
 # Override this if we declare that we in the CI system with --ci
@@ -144,6 +146,7 @@ RUN_TESTS=
 RUN_TESTS_FILTER=${RUN_TESTS_FILTER:-ci}
 PRE_DESTROY=
 NO_LOG_DISABLE=
+C8_QA_TESTS=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
@@ -184,11 +187,9 @@ while true ; do
             export ARDANA_CLOUD8_DEPLOYER=1
             shift ;;
         --c8-hos)
-            export ARDANA_CLOUD8_DEPLOYER=1
             export ARDANA_CLOUD8_HOS=1
             shift ;;
         --c8-soc)
-            export ARDANA_CLOUD8_DEPLOYER=1
             export ARDANA_CLOUD8_SOC=1
             shift ;;
         --c8-mirror)
@@ -211,6 +212,10 @@ while true ; do
             shift ;;
         --c8-pool)
             export ARDANA_CLOUD8_REPOS='["pool"]'
+            shift ;;
+        --c8-qa-tests)
+            RUN_TESTS=1
+            C8_QA_TESTS=1
             shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --rhel-compute)
@@ -277,6 +282,16 @@ while true ; do
     esac
 done
 
+# Enable Cloud8 mode if any relevant Cloud8 options specified
+if [ -n "${C8_QA_TESTS}" -o \
+     -n "${ARDANA_CLOUD8_HOS}" -o \
+     -n "${ARDANA_CLOUD8_SOC}" -o \
+     -n "${ARDANA_CLOUD8_REPOS}" -o \
+     -n "${ARDANA_CLOUD8_MIRROR}" -o \
+     -n "${ARDANA_CLOUD8_CACHING_PROXY}" ]; then
+    export ARDANA_CLOUD8_DEPLOYER=1
+fi
+
 # Select appropriate settings if cloud8 deployer selected
 if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
     export ARDANA_CLOUD8_ARTIFACTS=1
@@ -286,8 +301,21 @@ if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
 
     # disable building of legacy product venvs
     export ARDANA_PACKAGES_DIST='[]'
-    if [ -z "${RUN_TESTS:-}" ]; then
+
+    # ensure we build & upload QA venvs only if --c8-qa-tests specified
+    if [ -n "${C8_QA_TESTS:-}" ]; then
+        # ensure we run tests
+        RUN_TESTS=1
+
+        # We could explicitly clear NO_BUILD here to ensure that we
+        # force a build of the venvs, but since NO_BUILD defaults to
+        # empty, meaning we trigger a venv build, and would only be
+        # set if the --no-build option were specified, we trust that
+        # the caller knows what they are doing.
+    else
+        # disable building & uploading QA venvs
         NO_BUILD=1
+        export ARDANA_PACKAGES_NONDIST='[]'
         export ARDANA_NO_SETUP_QA=1
     fi
 

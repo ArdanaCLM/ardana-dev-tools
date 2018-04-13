@@ -64,6 +64,8 @@ usage() {
     echo "--c8-pool             -- Use pool repo only"
     echo "--c8-artifacts|cloud8-artifacts"
     echo "                      -- Use Cloud8 artifacts"
+    echo "--c8-qa-tests         -- Enable running additional QA tests Cloud8"
+    echo "                         deployments; implicitly enables --run-tests"
     echo "--rhel                -- Include any RHEL artifacts"
     echo "--rhel-compute        -- Switch compute nodes to use rhel"
     echo "--rhel-compute-nodes nodes"
@@ -538,20 +540,23 @@ popd
 logsubunit --success deploy
 
 if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
-    test_args=()
-    if [ -n "$CI" ]; then
-        test_args+=( --ci )
+    run_in_args=""
+    # only set --ci option to run-in-deployer if not a Cloud8 deployment
+    if [ \( -n "$CI" \) -a \( -z "${ARDANA_CLOUD8_DEPLOYER}" \)]; then
+        run_in_args="--ci"
     fi
-    # TODO(fergal): Remove this once we have updated ardana-qa-ansible
-    # tests to run on a Cloud8 deployment.
-    if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
-        test_args+=( --tempest-only )
+
+    run_test_args=""
+    # unless --c8-qa-tests specified, we just run tempest tests
+    if [ -z "${C8_QA_TEST:-}" ]; then
+        run_test_args="-- --tempest-only"
     fi
 
     pushd "${DEVTOOLS}/ardana-vagrant-models/${CLOUDNAME}-vagrant"
     ${SCRIPT_HOME}/run-in-deployer.sh \
+        ${run_in_args} \
         ${SCRIPT_HOME}/deployer/run-tests.sh \
-            ${test_args[@]} \
+            ${run_test_args} \
             ${RUN_TESTS_FILTER} \
             ${CLOUDNAME}
     popd
