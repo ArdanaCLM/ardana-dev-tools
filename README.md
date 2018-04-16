@@ -261,6 +261,10 @@ cloud from Vagrant, e.g.
 
     % ./ardana-vagrant-ansible ../../ansible/cloud8-setup.yml
 
+If no arguments are specified it will run the cloud8-setup.yml playbook
+against the cloud; if you don't want to run the ardana-init command
+again, you can specify the --skip-ardana-init option.
+
 ## Deploying manually using Legacy style
 
 ### Hardware

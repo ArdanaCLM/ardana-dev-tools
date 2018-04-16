@@ -16,7 +16,7 @@
 # Default settings used by the vagrant cloud8 VM setup process.
 ---
 
-_proxy_mounts: "{{ ansible_mounts |
+_proxy_mounts: "{{ hostvars[deployer_node]['ansible_mounts'] |
                    selectattr('mount', 'equalto',
                               cloud8.deployer.caching_proxy.fs.mount) |
                    list }}"

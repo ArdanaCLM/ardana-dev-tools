@@ -23,10 +23,66 @@ set -o pipefail
 
 _tools_bin_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 _tools_ansible_dir="$(dirname "${_tools_bin_dir}")/ansible"
+_cmd_name="$(basename "${0}")"
+
 eval "$(${_tools_bin_dir}/ardana-env)"
+
+usage()
+{
+    cat - << _EOF_
+Usage:
+    ${_cmd_name} [--skip-ardana-init] [-i inventory_file] [options] [playbook]
+
+See ansible-playbook(1) for other possible options.
+
+Automatically specifies the deployer_node variable setting via a -e option,
+and the vagrant.py dynamic inventory file if none has been specified.
+
+If no playbook is specified will default to running the cloud8-setup.yml
+playbook if running in Cloud8 deployment mode.
+_EOF_
+}
+
+skip_tags_arg=
+inventory_file=
+args=()
+while (( $# > 0 ))
+do
+    case "${1}" in
+    (-h|--help|--usage)
+        usage
+        exit 0
+        ;;
+    (--skip-ardana-init)
+        skip_tags_arg="${skip_tags_arg:+${skip_tags_arg},}${1:2}"
+        shift
+        ;;
+    (-i|--inventory-file)
+        inventory_file="${2}"
+        shift 2
+        ;;
+    (--inventory-file=*)
+        inventory_file="${1#*=}"
+        shift
+        ;;
+    (*)
+        args+=( "${1}" )
+        shift
+        ;;
+    esac
+done
+
+# reset args to just those we are passing through
+set +u
+set -- "${args[@]}"
+set -u
+
+# if no inventory file specified, default to the vagrant.py one
+inventory_file="${_tools_ansible_dir}/hosts/vagrant.py"
+
 source ${_tools_bin_dir}/libci.sh
 
-ensure_in_vagrant_dir "$(basename ${0})"
+ensure_in_vagrant_dir "${_cmd_name}"
 
 if [[ ! -e "${ARDANA_ASTACK_ENV}" ]]; then
     echo "No ${ARDANA_ASTACK_ENV} found; has this cloud been deployed?" >&2
@@ -35,6 +91,28 @@ fi
 
 source ${ARDANA_ASTACK_ENV}
 
-ansible-playbook -i ${_tools_ansible_dir}/hosts/vagrant.py "${@}"
+# if not even a playbook is specified, and this is a Cloud8 cloud,
+# default to running cloud8-setup.yml
+if (( $# < 1 )) && [[ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
+    set -- ${_tools_ansible_dir}/cloud8-setup.yml
+fi
+
+# specify inventory file and deployer_node var setting as initial
+# arguments when calling ansible-playbook
+ap_args=(
+    -i ${inventory_file}
+    -e deployer_node="$(get_deployer_node)"
+)
+
+# optionally include the --skip-tags opts if needed
+if [[ -n "${skip_tags_arg:-}" ]]; then
+    ap_args+=( --skip-tags "${skip_tags_arg}" )
+fi
+
+# run ansible-playbook with configured arguments and any additional
+# arguments the user may have specified.
+${DEBUG:+echo} ansible-playbook \
+    ${ap_args[@]} \
+    "${@}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab
