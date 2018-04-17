@@ -18,3 +18,4 @@
 
 ardana_cache_base_dir: "{{ product_cache_base_directory }}"
 ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
+ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"

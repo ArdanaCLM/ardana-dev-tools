@@ -17,4 +17,4 @@
 dependencies:
   - role: dev-env
   - role: dev-env-cloud8
-  - role: ardana-scratch
+  - role: ardana-cache
