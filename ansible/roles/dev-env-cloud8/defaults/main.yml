@@ -109,7 +109,7 @@ cloud8:
         # blank sha256 means fetch and use server value always
         sha256: ""
         link: "cloud8.iso"
-        path: "install/SLE-12-SP3-Cloud8-RC4"
+        path: "install/SLE-12-SP3-Cloud8-GMC"
   deployer:
     caching_proxy:
       fs:
