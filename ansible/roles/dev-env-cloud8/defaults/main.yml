@@ -86,17 +86,17 @@ cloud8:
       hos8:
         # moderately tested
         devel:
-          name: "HPE-Helion-OpenStack-Cloud-8-devel"
+          name: "HPE-Helion-OpenStack-8-devel"
           alias: "HOS8-Devel"
           enabled: true
         # updates since release
         updates:
-          name: "HPE-Helion-OpenStack-Cloud-8-Updates"
+          name: "HPE-Helion-OpenStack-8-Updates"
           alias: "HOS8-Updates"
           enabled: true
         # initial release
         pool:
-          name: "HPE-Helion-OpenStack-Cloud-8-Pool"
+          name: "HPE-Helion-OpenStack-8-Pool"
           alias: "HOS8-Pool"
           enabled: true
     iso:
