@@ -128,13 +128,13 @@ esac
 # If we needed to update the path settings
 if [[ -n "${path_prefix}" ]]
 then
-    echo "PATH=${path_prefix}:\$PATH"
-    echo "export PATH"
+    echo "PATH=${path_prefix}:\$PATH;"
+    echo "export PATH;"
 
     # Ensure shell sessions re-evaluate command lists
     case "${SHELL}" in
     (*/bash|*/zsh)
-        echo "hash -r"
+        echo "hash -r;"
         ;;
     esac
 fi
