@@ -401,6 +401,13 @@ if [ "${ARDANA_SITE:-provo}" = "provo" ]; then
         "$SCRIPT_HOME/deployer/fix-ntp-server.sh" "$CLOUDNAME" || logfail deploy
 fi
 
+# If using caching proxy on deployer node, need to update firewall
+# rules to permit access to it.
+if [ -n "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
+    $SCRIPT_HOME/run-in-deployer.sh \
+        "$SCRIPT_HOME/deployer/add-squid-firewall-rules.sh" "$CLOUDNAME" || logfail deploy
+fi
+
 # If --project-stack is set then modify the input model appropriately.
 if [ -n "$USE_PROJECT_STACK" ]; then
     # Copy and commit the project input model
