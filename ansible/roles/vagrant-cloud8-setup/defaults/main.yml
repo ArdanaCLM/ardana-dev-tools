@@ -21,6 +21,8 @@ _proxy_mounts: "{{ hostvars[deployer_node]['ansible_mounts'] |
                               cloud8.deployer.caching_proxy.fs.mount) |
                    list }}"
 
+_c8_flavour: "{{ cloud8.config.hos_mode | bool | ternary('hos8', 'soc8') }}"
+
 c8setup:
   caching_proxy:
     enabled: "{{ _proxy_mounts | count | bool }}"
@@ -41,8 +43,8 @@ c8setup:
       enabled: true
     - dev: /dev/sr1
       path: "C8"
-      name: "{{ cloud8.artifacts.iso.media1.name | replace('.iso', '') }}"
-      alias: "{{ cloud8.artifacts.iso.media1.alias }}"
+      name: "{{ cloud8.artifacts.iso[_c8_flavour].media1.name | replace('.iso', '') }}"
+      alias: "{{ cloud8.artifacts.iso[_c8_flavour].media1.alias }}"
       enabled: true
       distro: sles
     - dev: /dev/sr2

@@ -25,8 +25,3 @@
 
     # retrieve the cloud8 iso
     - role: ibs-get-iso
-      iso_name: "{{ cloud8.artifacts.iso.media1.name }}"
-      iso_pattern: "{{ cloud8.artifacts.iso.media1.pattern | default('') }}"
-      iso_path: "{{ cloud8.artifacts.iso.media1.path }}"
-      iso_sha256: "{{ cloud8.artifacts.iso.media1.sha256 }}"
-      link_name: "{{ cloud8.artifacts.iso.media1.link }}"

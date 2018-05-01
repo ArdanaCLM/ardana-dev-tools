@@ -31,8 +31,8 @@
 - name: ardana-cache | get-cached-file | Sanity check inputs
   debug:
     msg: >
-      Using pattern '{{ _file.pattern }}' rather
-      than file '{{ _file.name }}' to determine which file to download
+      Using pattern '{{ _file.pattern }}' rather than a specific
+      file name to determine which file to download
   when:
     - _file.pattern != ""
 

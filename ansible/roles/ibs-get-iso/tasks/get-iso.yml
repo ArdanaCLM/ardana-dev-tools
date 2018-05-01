@@ -14,13 +14,6 @@
 # under the License.
 #
 # Tasks for retrieving an IBS ISO via the Ardana ISO cache.
-#
-# Pass in the following variables:
-#   iso_name: <name of ISO>
-#   iso_pattern: <patther for name of ISO>
-#   iso_path: <path to ISO image under IBS "root" directory>
-#   iso_sha256: <optional SHA256 for ISO>
-#   link_name: <optional link name to create under branch images dir>
 ---
 
 - name: ibs-get-iso | get-iso | Ensure relevant directories exist
@@ -31,16 +24,25 @@
     - dir: "{{ ibs_iso.isos_dir }}"
     - dir: "{{ ibs_iso.images_dir }}"
 
-- include: ../../ardana-cache/tasks/get-cached-file.yml
+- name: ibs-get-iso | get-iso | Determine Cloud8 flavour to download
+  set_fact:
+    _ibs_c8_media: "{{ cloud8.artifacts.iso[
+                       cloud8.config.hos_mode | bool | ternary('hos8', 'soc8')]
+                       .media1 }}"
+
+- name: ibs-get-iso | get-iso | Get the Cloud8 ISO
+  include: ../../ardana-cache/tasks/get-cached-file.yml
   vars:
     _file:
-      name: "{{ iso_name }}"
-      pattern: "{{ iso_pattern | default('') }}"
-      sha256: "{{ iso_sha256 | default('') }}"
-      url_path: "{{ ibs_iso.base_url}}/{{ iso_path }}"
-      sha256url: "{{ ibs_iso.base_url}}/{{ iso_path }}/{{ ibs_iso.sha256_shared }}"
+      name: "{{ _ibs_c8_media.name | default('') }}"
+      pattern: "{{ _ibs_c8_media.pattern | default('') }}"
+      sha256: "{{ _ibs_c8_media.sha256 | default('') }}"
+      url_path: "{{ ibs_iso.base_url}}/{{ _ibs_c8_media.path }}{{
+                    cloud8.config.iso_type }}"
+      sha256url: "{{ ibs_iso.base_url}}/{{ _ibs_c8_media.path }}{{
+                     cloud8.config.iso_type }}/{{ ibs_iso.sha256_shared }}"
       dir: "{{ ibs_iso.isos_dir }}"
       link:
-        name: "{{ link_name | default('') }}"
+        name: "{{ _ibs_c8_media.link | default('') }}"
         dir: "{{ ibs_iso.images_dir }}"
       use_proxy: "{{ ibs_iso.use_proxy }}"
