@@ -26,24 +26,59 @@ eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 SCRIPT_NAME=$(basename $0)
 SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
-export ARDANAUSER=${ARDANAUSER:-stack}
-
 usage() {
     set +x
     echo "$(basename $0) [cloud]"
     echo
     echo "cloud defaults to deployerincloud"
     echo
-    echo "--ci                -- Set options for running in the CI mode"
+    echo "--c8                -- Configure options to run in Cloud8 mode (default)"
+    echo "--c8-hos            -- Use the HOS flavour of Cloud8"
+    echo "--c8-soc            -- Use the SOC flavour of Cloud8"
+    echo "--c8-mirror         -- Enabled Cloud8 repo mirroring"
+    echo "--c8-devel          -- USE DC8 repos"
+    echo "--c8-staging        -- USE DC8S repos"
+    echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"
+    echo "--legacy            -- Configure options to run in legacy mode"
+    echo "--ci                -- Configure options to run in legacy CI mode"
     echo "--no-setup          -- Don't run dev-env-install.yml"
+    echo "--no-artifacts      -- Don't retrieve/build artifacts, reuse existing"
     echo "--no-build          -- Don't build venvs, reuse existing packages"
-    echo "--tarball <tarball> -- Use the specified deployer tarball"
+    echo "--pre-destroy       -- Destroy any existing instance of cloud first"
+    echo "--tarball <tarball> -- Use the specified legacy deployer tarball"
     echo "--rhel-compute      -- Enable RHEL compute re-imaging."
     echo "--sles-control      -- Enable SLES control re-imaging."
     echo "--sles-compute      -- Enable SLES compute re-imaging."
 }
 
-TEMP=$(getopt -o -h -l help,ci,no-setup,no-build,tarball:,rhel-compute,sles-compute,sles-control -n $SCRIPT_NAME -- "$@")
+# Manage list of long options as a sorted array of option names which
+# we then join with commas to form the argument to getopt
+long_opts=(
+    c8
+    c8-devel
+    c8-hos
+    c8-mirror
+    c8-soc
+    c8-staging
+    c8-updates
+    ci
+    help
+    legacy
+    no-artifacts
+    no-build
+    no-setup
+    pre-destroy
+    rhel-compute
+    sles-compute
+    sles-control
+    tarball:
+)
+
+# join long_opts members with ","
+printf -v OPTIONS ",%s" "${long_opts[@]:1}"
+OPTIONS="${long_opts[0]}${OPTIONS}"
+
+TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -53,12 +88,22 @@ args=(
     --no-site
 )
 
+MODE=
+
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
+        --legacy)
+            MODE=legacy
+            shift ;;
         --ci)
-            # Needed for verify-bm-install
-            export ARDANAUSER=ardanauser
+            MODE=legacy-ci
+            shift ;;
+        --c8)
+            MODE=cloud8
+            shift ;;
+        --c8-*)
+            MODE=cloud8
             args+=( $1 )
             shift ;;
         --rhel-compute)
@@ -70,7 +115,7 @@ while true ; do
         --sles-compute)
             args+=( --cobble-sles-compute )
             shift ;;
-        --no-setup|--no-build)
+        --no-setup|--no-artifacts|--no-build|--pre-destroy)
             args+=( $1 )
             shift ;;
         --tarball)
@@ -81,6 +126,30 @@ while true ; do
     esac
 done
 
+# Configure vagrant user account settings, etc, based on mode,
+# defaulting to cloud8 mode if none specified.
+[[ -z "${MODE}" ]] && MODE=cloud8
+case "${MODE}" in
+(legacy)
+    _user=stack
+    _home_base=/home
+    ;;
+(legacy-ci)
+    _user=ardanauser
+    _home_base=/home
+    args+=( --ci )
+    ;;
+(cloud8)
+    _user=ardana
+    _home_base=/var/lib
+    args+=( --c8 )
+    ;;
+esac
+
+# Needed for verify-bm-install
+export ARDANAUSER=${ARDANAUSER:-${_user}}
+export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-${_home_base}}
+
 args+=(
     --skip-extra-playbooks
     --cobble-all-nodes
@@ -88,7 +157,7 @@ args+=(
 
 set -x
 
-CLOUDNAME=${1:-deployerincloud}
+CLOUDNAME=${1:-dac-min}
 args+=( $CLOUDNAME )
 
 
