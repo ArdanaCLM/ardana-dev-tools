@@ -40,9 +40,22 @@ get_distro_family()
     fi
 }
 
+is_ubuntu()
+{
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -is)" == "Ubuntu" ) ]]
+}
+
 is_trusty()
 {
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "trusty" ) ]]
+}
+
+version_at_least()
+{
+    local cur="${1}" tgt="${2}"
+
+    # true if cur >= tgt
+    [[ "${cur}" == "$(printf '%s\n' ${cur} ${tgt} | sort -rV | head -n1)" ]]
 }
 
 # We may need to prepend new path elements to PATH
@@ -60,11 +73,14 @@ venv_cmd=/usr/bin/virtualenv
 distro_family=$(get_distro_family)
 case "${distro_family}" in
 (debian)
-    pkg_install="sudo apt-get install --yes"
-    # On Trusty CI nodes virtualenv is installed under /usr/local/bin
-    if is_trusty && [[ -x /usr/local/bin/virtualenv ]]
+    pkg_install="sudo env DEBIAN_FRONTEND=noninteractive apt-get --quiet --yes install"
+    if is_trusty
     then
-        venv_cmd=/usr/local/bin/virtualenv
+        # On Trusty CI nodes virtualenv is installed under /usr/local/bin
+        if [[ -x /usr/local/bin/virtualenv ]]
+        then
+            venv_cmd=/usr/local/bin/virtualenv
+        fi
     fi
     [[ -e /usr/include/python2.7/Python.h ]] || req_pkgs+=( python-dev )
     ;;
@@ -83,6 +99,35 @@ esac
 
 # Need virtualenv command
 [[ -x ${venv_cmd} ]] || req_pkgs+=( python-virtualenv )
+
+# Need osc to be able to build Cloud8 RPMs
+osc_cmd=/usr/bin/osc
+if [[ ! -x ${osc_cmd} ]] || ! version_at_least $(${osc_cmd} --version) 0.162
+then
+    if is_ubuntu
+    then
+        # Trusty version of osc is way too old, Xenial version is old,
+        # so we set up to install latest available (x)Ubuntu version
+        # available from OBS repos
+        osc_list="/etc/apt/sources.list.d/osc.list"
+        osc_repo="http://download.opensuse.org/repositories/openSUSE:/Tools/xUbuntu_$(lsb_release -rs)"
+        # If the osc.list repo source hasn't been added, then set it up here
+        if [[ ! -e ${osc_list} ]]
+        then
+            echo "Add OBS Tools repo to system APT repos" 1>&2
+            echo "deb ${osc_repo}/ ./" | sudo tee ${osc_list} 1>&2
+            wget -q -O - ${osc_repo}/Release.key | sudo apt-key add - 1>&2
+            sudo apt-get --quiet --yes update 1>&2
+            echo "Removing any existing osc related packages" 1>&2
+            sudo apt-get --quiet --yes remove --purge osc obs-build 1>&2
+        fi
+    fi
+
+    req_pkgs+=( osc )
+fi
+
+# Need createrepo to initialise the NEW_RPMS overrides repo
+[[ -x /usr/bin/createrepo ]] || req_pkgs+=( createrepo )
 
 # Install required packages if needed
 if (( ${#req_pkgs[@]} > 0 ))
