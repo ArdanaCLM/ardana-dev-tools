@@ -56,7 +56,7 @@ c8setup:
       enabled: true
   repos:
     #
-    # wget mirror based repos
+    # rsync mirror based repos
     #
 
     # SUSE OpenStack Cloud 8 Repos
@@ -118,6 +118,7 @@ c8setup:
       enabled: "{{ (cloud8.artifacts.repos.hos8.pool.enabled | bool) and
                    ('pool' in cloud8.config.enabled_repos) and
                    (cloud8.config.hos_mode | bool) }}"
+
     #
     # Caching proxy based repos
     #
@@ -196,6 +197,19 @@ c8setup:
       enabled: "{{ (cloud8.artifacts.repos.hos8.pool.enabled | bool) and
                    ('pool' in cloud8.config.enabled_repos) and
                    (cloud8.config.hos_mode | bool) }}"
+
+    #
+    # Override repo - hosts locally built RPMs that we want to supersede
+    # any versions available in standard Cloud8 sources, except for the
+    # PTF repo.
+    #
+    - override: "{{ dev_env_working_dir | dirname }}/NEW_RPMS"
+      path: "C8-Local"
+      name: "Locally built overrides packages"
+      alias: "C8-Local"
+      priority: 98
+      distro: sles
+      enabled: True
 
     # TODO(fergal) Add optional yum extras repo tarball info with tarball
     # rather than mirror attribute here.

@@ -164,6 +164,12 @@ feature_ansible() {
     done
 }
 
+# Update RPMs if needed.
+if [ -n "${ARDANA_CLOUD8_DEPLOYER}" ]; then
+    ${SCRIPT_HOME}/update_rpms.sh
+fi
+
+
 if [ -n "${ARDANA_DISABLE_SERVICES:-}" -a -n "${USE_PROJECT_STACK:-}" ]; then
     echo "Combining --disable-services and --project-stack isn't allowed." >&2
     exit 1

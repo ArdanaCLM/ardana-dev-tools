@@ -19,7 +19,7 @@
 - name: vagrant-cloud8-setup | _refresh-repos | Refresh repo caches (SLES)
   become: yes
   command: |
-    zypper --non-interactive refresh
+    zypper --non-interactive --gpg-auto-import-keys refresh
   when:
     - ardana_family == "suse"
 

@@ -22,6 +22,8 @@
   when:
     - cloud8.config.mirror_repos | bool
 
+- include: sync-override-repos.yml
+
 # TODO(fergal) Add support for sync'ing and unpacking tarball repos
 #- include: sync-tarball-repos.yml
 
