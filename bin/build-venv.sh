@@ -103,6 +103,8 @@ fi
 
 pushd "$DEVTOOLS/build-vagrant"
 
+generate_astack_env "FORCE"
+
 $SCRIPT_HOME/deploy-vagrant-up
 
 # Specify the max number of "forks" (parallel host actions) used by
@@ -133,6 +135,6 @@ vagrant_data_on_error env ARDANA_SKIP_REPO_CHECKOUT=1 ansible-playbook \
 
 # halting a vagrant image can introduce a problem where if someone does
 # a vagrant up after, it will clear out the /tmp/persistent folder.
-[ -z "$DO_STOP" ] || vagrant destroy
+[ -z "$DO_STOP" ] || ./ardana-vagrant destroy
 
 exit 0  # The last line can return 1 from the script

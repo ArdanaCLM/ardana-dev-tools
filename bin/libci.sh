@@ -152,14 +152,41 @@ ensure_in_vagrant_dir() {
         exit 1
     fi
 
-    if ! pwd | grep -q '/ardana-vagrant-models/.'; then
-        echo "${caller} must be run from a subdirectory of ardana-dev-tools/ardana-vagrant-models" >&2
+    case "${PWD}" in
+    (*/ardana-vagrant-models/*-vagrant|*/build-vagrant)
+        # all good
+        ;;
+    (*)
+        cat 1>&2 << _EOF_
+${caller} must be run either from within a <cloud>-vagrant subdirectory
+under the ardana-dev-tools/ardana-vagrant-models, or from within the
+ardana-dev-tools/build-vagrant directory.
+_EOF_
         exit 1
-    fi
+        ;;
+    esac
 
     if ! grep -q "/ardana_vagrant_helper.rb" Vagrantfile; then
         echo "Vagrantfile in this directory doesn't look like the right kind." >&2
         exit 1
+    fi
+}
+
+ensure_astack_env_exists()
+{
+    if [[ ! -e "${ARDANA_ASTACK_ENV}" ]]; then
+        echo "No ${ARDANA_ASTACK_ENV} found; has this cloud been initialised?" >&2
+        exit 1
+    fi
+}
+
+# Generate the .astack-env file
+generate_astack_env()
+{
+    ensure_in_vagrant_dir generate_astack_env
+
+    if [ \( ! -e ${ARDANA_ASTACK_ENV} \) -o \( -n "${1:-}" \) ]; then
+        export -p > ${ARDANA_ASTACK_ENV}
     fi
 }
 
@@ -176,7 +203,7 @@ generate_ssh_config() {
             echo "vagrant ssh-config failed; check $log" >&2
         else
             mv ${ARDANA_VAGRANT_SSH_CONFIG}.new $ARDANA_VAGRANT_SSH_CONFIG
-            export -p > ${ARDANA_ASTACK_ENV}
+            generate_astack_env
         fi
         return $status
     fi
