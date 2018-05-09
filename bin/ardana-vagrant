@@ -27,13 +27,10 @@ source ${_tools_bin_dir}/libci.sh
 
 ensure_in_vagrant_dir "$(basename ${0})"
 
-if [[ ! -e "${ARDANA_ASTACK_ENV}" ]]; then
-    echo "No ${ARDANA_ASTACK_ENV} found; has this cloud been deployed?" >&2
-    exit 1
-fi
+ensure_astack_env_exists
 
 source ${ARDANA_ASTACK_ENV}
 
-vagrant "${@}"
+vagrant_data_on_error vagrant "${@}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab

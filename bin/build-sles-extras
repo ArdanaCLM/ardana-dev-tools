@@ -76,12 +76,14 @@ fi
 if [ -z "$NO_BUILD" ]; then
     pushd "$DEVTOOLS/build-vagrant"
 
+    generate_astack_env
+
     # Bringing up SLES Build VM with ARDANA_SLES_NET_REPOS set
     # will trigger generation of updated SLES extras tarball
     $SCRIPT_HOME/deploy-vagrant-up build-sles12
 
     # Stop VM unless specified not to
-    [ -z "$NO_STOP" ] && vagrant destroy build-sles12
+    [ -z "$NO_STOP" ] && $SCRIPT_HOME/deploy-vagrant-destroy build-sles12
 
     popd
 fi

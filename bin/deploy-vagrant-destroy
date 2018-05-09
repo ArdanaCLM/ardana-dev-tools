@@ -21,17 +21,27 @@
 set -eux
 set -o pipefail
 
-eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+SCRIPT_NAME="$(basename "${0}")"
+SCRIPT_HOME="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+eval "$(${SCRIPT_HOME}/ardana-env)"
 
-source $(dirname $0)/libci.sh
+source ${SCRIPT_HOME}/libci.sh
 
-ensure_in_vagrant_dir "$(basename ${0})"
+ensure_in_vagrant_dir "${SCRIPT_NAME}"
 
-VAGRANT_CLOUD="$(basename $PWD)"
+ensure_astack_env_exists
+
+source ${ARDANA_ASTACK_ENV}
+
+VAGRANT_CLOUD="${PWD##*/}"
 [[ "${VAGRANT_CLOUD}" != "build-vagrant" ]] && VAGRANT_CLOUD="cloud"
 
-vagrant_data_on_error "vagrant destroy --debug 2>'${VAGRANT_LOG_DIR}/${VAGRANT_CLOUD}-vagrant-destroy.log' ${@}"
+./ardana-vagrant destroy \
+    --debug \
+    2>${VAGRANT_LOG_DIR}/${VAGRANT_CLOUD}-vagrant-destroy.log \
+    "${@}"
 
 # cleanup any stale artifacts that may be left from previous incarnation
 rm -f "${ARDANA_VAGRANT_SSH_CONFIG}"
-rm -f "${ARDANA_ASTACK_ENV}"
+
+# vim:shiftwidth=4:tabstop=4:expandtab
