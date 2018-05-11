@@ -51,6 +51,7 @@ long_opts=(
     feature-dir:
     guest-images
     help
+    legacy
     no-artifacts
     no-build
     no-config
@@ -99,6 +100,7 @@ NO_SETUP=
 NO_ARTIFACTS=
 NO_BUILD=
 BUILD_HLINUX_OVA=
+export ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
 export ARDANA_CLOUD8_ARTIFACTS=${ARDANA_CLOUD8_ARTIFACTS:-}
 export ARDANA_CLOUD8_DEPLOYER=${ARDANA_CLOUD8_DEPLOYER:-}
 export ARDANA_CLOUD8_REPOS=${ARDANA_CLOUD8_REPOS:-}
@@ -182,6 +184,9 @@ while true ; do
             shift ;;
         --cloud8-artifacts)
             export ARDANA_CLOUD8_ARTIFACTS=1
+            shift ;;
+        --legacy)
+            export ARDANA_LEGACY_DEPLOYER=1
             shift ;;
         --c8|--cloud8-deployer)
             export ARDANA_CLOUD8_DEPLOYER=1
@@ -282,13 +287,26 @@ while true ; do
     esac
 done
 
-# Enable Cloud8 mode if any relevant Cloud8 options specified
-if [ -n "${C8_QA_TESTS}" -o \
-     -n "${ARDANA_CLOUD8_HOS}" -o \
-     -n "${ARDANA_CLOUD8_SOC}" -o \
-     -n "${ARDANA_CLOUD8_REPOS}" -o \
-     -n "${ARDANA_CLOUD8_MIRROR}" -o \
-     -n "${ARDANA_CLOUD8_CACHING_PROXY}" ]; then
+# Enable Cloud8 mode if any relevant Cloud8 options specified,
+# and legacy mode not enabled.
+if [ -n "${C8_QA_TESTS:-}" -o \
+     -n "${ARDANA_CLOUD8_HOS:-}" -o \
+     -n "${ARDANA_CLOUD8_SOC:-}" -o \
+     -n "${ARDANA_CLOUD8_REPOS:-}" -o \
+     -n "${ARDANA_CLOUD8_MIRROR:-}" -o \
+     -n "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
+    export ARDANA_CLOUD8_DEPLOYER=1
+fi
+
+# Legacy and Cloud8 modes are mutually exclusive
+if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" -a \
+     -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
+    echo "ERROR: Legacy and Cloud8 modes cannot be combined!"
+    exit 1
+fi
+
+# Default to Cloud8 mode if legacy mode not specified
+if [ -z "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
     export ARDANA_CLOUD8_DEPLOYER=1
 fi
 

@@ -67,10 +67,20 @@ proceed.
 
 ### Deployment Style
 
-Ardana supports two styles of deployment:
-- Legacy: Builds all inputs locally and uses them to deploy a cloud
+Ardana supports two mutually exclusive styles of deployment:
 - Cloud8: Consume inputs built by the SUSE Open or Internal Build
 Services (OBS or IBS) to deploy a cloud
+- Legacy: Builds all inputs locally and uses them to deploy a cloud
+
+#### Cloud8 Deployment Style
+The Cloud8 deployment doesn't need to build the venvs locally; instead
+it uses RPMs containing pre-built venvs and the Ardana ansible sources
+to setup the deployer and bring up the cloud.
+
+Cloud8 mode is the default, and is implicitly implied if any of the
+various *--c8...* option flags are specified.
+
+This is the default deployment mode.
 
 #### Lecacy Deployment Style
 The original Ardana developer environment was based around building all
@@ -86,10 +96,8 @@ These venvs, and the associated Ardana ansible sources are then packaged
 up in a "product" tarball which is used to setup the deployer and deploy
 the cloud.
 
-#### Cloud8 Deployment Style
-The Cloud8 deployment doesn't need to build the venvs locally; instead
-it uses RPMs containing pre-built venvs and the Ardana ansible sources
-to setup the deployer and bring up the cloud.
+To enable legacy mode deployment, you must specify the *--legacy* option
+to the astack.sh command
 
 ### Vagrant version
 
