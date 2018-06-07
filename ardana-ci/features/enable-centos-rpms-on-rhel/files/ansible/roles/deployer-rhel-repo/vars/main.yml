@@ -184,3 +184,4 @@ rhel_repo_rpms_list:
   - openstack-freezer-api
   - openstack-freezer-scheduler
   - python-python-logstash
+  - python-monascaclient
