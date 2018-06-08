@@ -68,6 +68,9 @@ _deployer_git_repositories_default:
   ardana-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-ansible"
     branch: "{{ _deployer_branch_default }}"
+  ardana-extensions-ses:
+    url: "{{ dev_env_default_git_server }}/ardana/ardana-extensions-ses"
+    branch: "{{ _deployer_branch_default }}"
   horizon-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/horizon-ansible"
     branch: "{{ _deployer_branch_default }}"
