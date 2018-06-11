@@ -792,8 +792,8 @@ module Ardana
       else
         if !@config.ssh.username.kind_of? String
           # if the box already defines a username, use it's credentials
-          @config.ssh.username = ENV["ARDANAUSER"] ||= "stack"
-          @config.ssh.password = ENV["ARDANAUSER"] ||= "stack"
+          @config.ssh.username = ENV["ARDANAUSER"] ||= "ardana"
+          @config.ssh.password = ENV["ARDANAUSER"] ||= "ardana"
         end
       end
     end
