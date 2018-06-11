@@ -15,7 +15,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Called by CI infrastructure to run the canary builds.
+# Called by CI infrastructure to run the canary jobs.
 #
 
 set -eux
@@ -30,9 +30,10 @@ source $SCRIPT_HOME/libci.sh
 # Call dev-env-install to install supported version of ansible
 devenvinstall
 
-$SCRIPT_HOME/astack.sh --no-setup \
-  --rhel \
-  --sles \
-  --sles-control \
-  --sles-compute \
-  $*
+$SCRIPT_HOME/astack.sh \
+    --no-setup \
+    --c8-mirror \
+    --rhel \
+    $*
+
+# vim:shiftwidth=4:tabstop=4:expandtab
