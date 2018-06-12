@@ -336,14 +336,14 @@ module Ardana
     def set_sles(iso_files)
       iso_files.push( get_image_output_dir() + "/sles12sp3.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"
+        raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
     end
 
     def set_sles_sdk(iso_files)
       iso_files.push( get_image_output_dir() + "/sles12sp3sdk.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-sles-artifacts.yml' to get the SLES ISOs"
+        raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
     end
 
@@ -357,7 +357,7 @@ module Ardana
     def set_rhel(iso_files)
       iso_files.push( get_image_output_dir() + "/rhel7.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-rhel-artifacts.yml' to get the RHEL ISO"
+        raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the RHEL ISO"
       end
     end
 
