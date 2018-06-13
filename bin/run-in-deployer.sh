@@ -39,7 +39,7 @@ eval set -- "$TEMP"
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --ci) export ARDANAUSER=ardanauser ; shift ;;
+        --ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac

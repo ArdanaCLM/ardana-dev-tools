@@ -49,7 +49,7 @@ while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --ci)
-            export ARDANAUSER=ardanauser
+            export ARDANAUSER=${ARDANAUSER:-ardana}
             CI=yes
             shift;;
         --restrict-by-project) ARGS="${ARGS}${ARGS:+' '}$2" ; shift 2 ;;

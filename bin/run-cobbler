@@ -39,8 +39,6 @@ usage() {
     echo "--c8-devel          -- USE DC8 repos"
     echo "--c8-staging        -- USE DC8S repos"
     echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"
-    echo "--legacy            -- Configure options to run in legacy mode"
-    echo "--ci                -- Configure options to run in legacy CI mode"
     echo "--no-setup          -- Don't run dev-env-install.yml"
     echo "--no-artifacts      -- Don't retrieve/build artifacts, reuse existing"
     echo "--no-build          -- Don't build venvs, reuse existing packages"
@@ -93,12 +91,6 @@ MODE=
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --legacy)
-            MODE=legacy
-            shift ;;
-        --ci)
-            MODE=legacy-ci
-            shift ;;
         --c8)
             MODE=cloud8
             shift ;;
@@ -130,15 +122,6 @@ done
 # defaulting to cloud8 mode if none specified.
 [[ -z "${MODE}" ]] && MODE=cloud8
 case "${MODE}" in
-(legacy)
-    _user=stack
-    _home_base=/home
-    ;;
-(legacy-ci)
-    _user=ardanauser
-    _home_base=/home
-    args+=( --ci )
-    ;;
 (cloud8)
     _user=ardana
     _home_base=/var/lib

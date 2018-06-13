@@ -75,7 +75,7 @@ eval set -- "$TEMP"
 while true ; do
     case "$1" in
         (-h|--help) usage ; exit 0 ;;
-        (--ci) export ARDANAUSER=ardanauser ; shift ;;
+        (--ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
         (--no-build) NO_BUILD=1 ; shift ;;
         (--rhel|--sles)
             distros+=( ${1:2} )

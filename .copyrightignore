@@ -18,3 +18,4 @@ Vagrantfile
 logs
 ansible/roles/vagrant-cloud8-setup/templates/rhel.repo.j2
 ansible/roles/vagrant-cloud8-setup/templates/squid.conf.j2
+tools/elements/ardanauser/install.d/50-user

@@ -49,7 +49,7 @@ if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --ci) export ARDANAUSER=ardanauser ; shift ;;
+        --ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
         --no-config) NO_CONFIG=--no-config ; shift ;;
         --) shift ; break ;;
         *) break ;;
