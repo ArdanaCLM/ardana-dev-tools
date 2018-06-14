@@ -35,7 +35,7 @@ usage() {
     echo "--c8                -- Configure options to run in Cloud8 mode (default)"
     echo "--c8-hos            -- Use the HOS flavour of Cloud8"
     echo "--c8-soc            -- Use the SOC flavour of Cloud8"
-    echo "--c8-mirror         -- Enabled Cloud8 repo mirroring"
+    echo "--c8-mirror         -- Enable Cloud8 repo mirroring (default)"
     echo "--c8-devel          -- USE DC8 repos"
     echo "--c8-staging        -- USE DC8S repos"
     echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"

@@ -342,10 +342,10 @@ if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
         export ARDANA_CLOUD8_REPOS='["staging"]'
     fi
 
-    # default to enabling caching proxy if mirroring not enabled.
+    # default to enabling mirroring if caching proxy not enabled.
     if [ -z "${ARDANA_CLOUD8_MIRROR:-}" -a \
          -z "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
-        export ARDANA_CLOUD8_CACHING_PROXY=1
+        export ARDANA_CLOUD8_MIRROR=1
     fi
 
     # default to SOC8 mode if neither or both modes selected

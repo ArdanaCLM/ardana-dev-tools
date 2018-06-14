@@ -32,7 +32,6 @@ devenvinstall
 
 $SCRIPT_HOME/astack.sh \
     --no-setup \
-    --c8-mirror \
     --rhel \
     $*
 
