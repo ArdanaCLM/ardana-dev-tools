@@ -206,4 +206,35 @@ find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf
 # Remove stale .astack-env files
 find $TOOLS_DIR -type f -name .astack-env | xargs rm -vf
 
+# Remove stale cached ISO images
+# Look for any files under the ~/.cache-ardana/isos tree older than
+# one week, and delete them if they don't have an associated symlink
+# reference elsewhere under ~/.cache-ardana; we ignore files with a
+# .sha256 extension.
+cached_isos=( $(find ~/.cache-ardana/isos/ -type f -atime +7 | \
+                grep -v "[.]sha256$") )
+link_tgts=( $(find ~/.cache-ardana/ -type l | \
+              grep -v "/.cache-ardana/\(sources\|venvs\)/" | \
+              xargs readlink -m) )
+stale_isos=()
+if (( ${#cached_isos[@]} > 0 )); then
+    # identify potential stale ISO files
+    for iso in "${cached_isos[@]}"
+    do
+        if ! (printf "%s\n" "${link_tgts[@]}" | grep "^${iso}$"); then
+            stale_isos+=( ${iso} )
+        fi
+    done
+
+    if (( ${#stale_isos[@]} > 0 )); then
+        # If any stale ISO files are found then delete them, and any
+        # associated checksum files
+        echo "Deleting stale cached ISOs:"
+        for iso in "${stale_isos[@]}"
+        do
+            rm -vf ${iso}*
+        done
+    fi
+fi
+
 # vim:shiftwidth=4:tabstop=4:expandtab
