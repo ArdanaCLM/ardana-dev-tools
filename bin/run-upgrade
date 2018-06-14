@@ -38,7 +38,7 @@ export ARDANA_UPGRADE_DEPLOY_TIMEOUT=${ARDANA_UPGRADE_DEPLOY_TIMEOUT:-18000}
 export PYTHONUNBUFFERED=1
 
 # We download vagrant images from Gozer that are built with this user
-export ARDANAUSER=ardanauser
+export ARDANAUSER=${ARDANAUSER:-ardana}
 
 # Usage
 usage() {

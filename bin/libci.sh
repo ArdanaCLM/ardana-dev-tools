@@ -43,21 +43,11 @@ export PYTHONUNBUFFERED=1
 export GOZER_GIT_MIRROR=${GOZER_GIT_MIRROR:-https://gerrit.suse.provo.cloud}
 export PYPI_MIRROR_URL=${PYPI_MIRROR_URL:-http://${PYPI_BASE_HOST:-pypi.suse.provo.cloud}/openstack/latest}
 
-# If running in Cloud8 deployer mode we use an ardana account,
-# home'd under /var/lib for deployment purposes. Otherwise for
-# testing and developer experience we set ARDANAUSER here to be
-# stack, under /home. For CI runs, we use ardanauser, under /home.
-if [[ -z "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
-    if [[ -z "${CI:-}" ]]; then
-        export ARDANAUSER=${ARDANAUSER:-stack}
-    else
-        export ARDANAUSER=${ARDANAUSER:-ardana}
-    fi
-    export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/home}
-else
-    export ARDANAUSER=${ARDANAUSER:-ardana}
-    export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/var/lib}
-fi
+# Default to using an ardana user, with home directory /var/lib/ardana
+# which can be overriden by setting up these environment variables
+# before we source this file.
+export ARDANAUSER=${ARDANAUSER:-ardana}
+export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-/var/lib}
 
 export VAGRANT_LOG_DIR="${LOGSROOT}/vagrant"
 export CONSOLE_LOG_DIR="${LOGSROOT}/console"

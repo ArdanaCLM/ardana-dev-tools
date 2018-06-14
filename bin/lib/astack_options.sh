@@ -90,8 +90,10 @@ eval set -- "$TEMP"
 
 # Are you running in CI and should do extra steps
 export CI=${CI:-}
-export ARDANAUSER="${ARDANAUSER:-stack}"
-export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/home}"
+
+# Default to using ardana user homed under /var/lib/ardana
+export ARDANAUSER="${ARDANAUSER:-ardana}"
+export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/var/lib}"
 
 # Dynamically build the SLES Extras tarball by default
 export ARDANA_SLES_NET_REPOS=${ARDANA_SLES_NET_REPOS:-true}
@@ -164,8 +166,6 @@ while true ; do
             shift 2 ;;
         --ci)
             SKIP_EXTRA_PLAYBOOKS=
-            export ARDANAUSER=ardanauser
-            export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/var/lib}"
             export CI=yes
             export ARDANA_BUILD_MEMORY=${ARDANA_BUILD_MEMORY:-${BLDVM_MB}}
             # Since there could be up to 3 build VMs, only overcommit
@@ -314,6 +314,9 @@ fi
 if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
     export ARDANA_CLOUD8_ARTIFACTS=1
     export ARDANA_SLES_CONTROL=1
+
+    # Cloud8 requires that we are using ardana user homed under
+    # /var/lib/ardana
     export ARDANAUSER=ardana
     export ARDANA_USER_HOME_BASE=/var/lib
 

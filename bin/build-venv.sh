@@ -61,7 +61,7 @@ ARDANA_FORCE_VENV_REBUILD=${ARDANA_FORCE_VENV_REBUILD:-}
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --ci) export ARDANAUSER=ardanauser ; shift ;;
+        --ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
         --cloud8) export ARDANA_CLOUD8_ARTIFACTS=1 ; shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;

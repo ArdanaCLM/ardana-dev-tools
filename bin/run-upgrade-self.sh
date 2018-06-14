@@ -57,7 +57,7 @@ while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --ci)
-            export ARDANAUSER=ardanauser
+            export ARDANAUSER=${ARDANAUSER:-ardana}
             export CI=yes
             ARGS=" $1"
             shift ;;
