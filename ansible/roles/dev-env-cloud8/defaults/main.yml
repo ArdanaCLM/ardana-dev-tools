@@ -34,9 +34,13 @@ sles:
       os:
         name: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1"
         alias: "SLES-OS"
+        path: "SLE"
+        link: "sles12sp3.iso"
       sdk:
         name: "SLE-12-SP3-SDK-DVD-x86_64-GM-DVD1"
         alias: "SLES-SDK"
+        path: "SLE"
+        link: "sles12sp3sdk.iso"
 
 # RHEL deployment settings
 rhel:
@@ -45,6 +49,8 @@ rhel:
       os:
         name: "RHEL-7.3-20170728-Server-x86_64-dvd"
         alias: "RHEL-OS"
+        path: "RHEL"
+        link: "rhel7.iso"
 
 # cloud8 deloyment settings
 cloud8:

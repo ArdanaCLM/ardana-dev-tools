@@ -34,7 +34,7 @@
       Using pattern '{{ _file.pattern }}' rather than a specific
       file name to determine which file to download
   when:
-    - _file.pattern != ""
+    - (_file.pattern | default("")) != ""
 
 - name: ardana-cache | get-cached-file | Setup local config settings
   set_fact:
@@ -57,7 +57,7 @@
   failed_when:
     - _server_pattern_lookup_result.stdout == ""
   when:
-    - _file.pattern != ""
+    - (_file.pattern | default("")) != ""
 
 - name: ardana-cache | get-cached-file | Report found name if pattern is set
   debug:
@@ -65,19 +65,19 @@
       Identified '{{ _server_pattern_lookup_result.stdout }}' as match for
       pattern '{{ _file.pattern }}' in '{{ _file.sha256url }}'
   when:
-    - _file.pattern != ""
+    - (_file.pattern | default("")) != ""
 
 - name: ardana-cache | get-cached-file | Use found name if pattern is set
   set_fact:
     _file_name: "{{ _server_pattern_lookup_result.stdout | basename }}"
   when:
-    - _file.pattern != ""
+    - (_file.pattern | default("")) != ""
 
 - name: ardana-cache | get-cached-file | Use specified name if set
   set_fact:
     _file_name: "{{ _file.name }}"
   when:
-    - _file.pattern == ""
+    - (_file.pattern | default("")) == ""
 
 - name: ardana-cache | get-cached-file | Report file name being downloaded
   debug:
@@ -148,6 +148,20 @@
   command:
     mv {{ _file_tmpfile }} {{ _file.dir }}/{{ _file_name }}
   when: _sha256sum_result | failed
+
+- name: ardana-cache | get-cached-file | Check if desired link already exists as a file
+  stat:
+    path: "{{ _file.link.dir }}/{{ _file.link.name }}"
+    get_checksum: False
+    get_md5: False
+  register: _link_stat_result
+
+- name: ardana-cache | get-cached-file | Delete desired link if exists as a file
+  file:
+    path: "{{ _file.link.dir }}/{{ _file.link.name }}"
+    state: absent
+  when:
+    - _link_stat_result.stat.isreg | bool
 
 - name: ardana-cache | get-cached-file | Create link
   file:
