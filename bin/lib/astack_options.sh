@@ -59,6 +59,7 @@ long_opts=(
     no-prepare
     no-setup
     no-site
+    no-update-rpms
     pre-destroy
     project-stack:
     restrict-by-project:
@@ -99,6 +100,7 @@ export ARDANA_SLES_NET_REPOS=${ARDANA_SLES_NET_REPOS:-true}
 NO_SETUP=
 NO_ARTIFACTS=
 NO_BUILD=
+NO_UPDATE_RPMS=
 BUILD_HLINUX_OVA=
 export ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
 export ARDANA_CLOUD8_ARTIFACTS=${ARDANA_CLOUD8_ARTIFACTS:-}
@@ -175,6 +177,7 @@ while true ; do
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
         --no-build) NO_BUILD=1 ; shift ;;
+        --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --pre-destroy)
             PRE_DESTROY=1

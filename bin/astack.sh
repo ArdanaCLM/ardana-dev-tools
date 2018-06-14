@@ -42,6 +42,7 @@ usage() {
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
     echo "                         guest or OVA images"
     echo "--no-build            -- Don't build venv, reuse existing packages"
+    echo "--no-update-rpms      -- Don't run updated_rpms.sh to rebuild RPMs"
     echo "--no-git-update       -- Don't update git cached sources"
     echo "--pre-destroy         -- Destroy any existing instance of the cloud"
     echo "                         before deploying."
@@ -166,7 +167,8 @@ feature_ansible() {
 
 # Update RPMs if needed.
 if [ -n "${ARDANA_CLOUD8_DEPLOYER}" ]; then
-    ${SCRIPT_HOME}/update_rpms.sh
+    # skip this if NO_UPDATE_RPMS is set
+    [ -n "${NO_UPDATE_RPMS:-}" ] || ${SCRIPT_HOME}/update_rpms.sh
 fi
 
 
