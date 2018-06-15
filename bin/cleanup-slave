@@ -212,7 +212,7 @@ find $TOOLS_DIR -type f -name .astack-env | xargs rm -vf
 # reference elsewhere under ~/.cache-ardana; we ignore files with a
 # .sha256 extension.
 cached_isos=( $(find ~/.cache-ardana/isos/ -type f -atime +7 | \
-                grep -v "[.]sha256$") )
+                grep -v "[.]sha256$" || true) )
 link_tgts=( $(find ~/.cache-ardana/ -type l | \
               grep -v "/.cache-ardana/\(sources\|venvs\)/" | \
               xargs readlink -m) )
