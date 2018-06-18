@@ -161,7 +161,8 @@
     path: "{{ _file.link.dir }}/{{ _file.link.name }}"
     state: absent
   when:
-    - _link_stat_result.stat.isreg | bool
+    - _link_stat_result.stat.exists | bool
+    - _link_stat_result.stat.isreg | default(false) | bool
 
 - name: ardana-cache | get-cached-file | Create link
   file:
