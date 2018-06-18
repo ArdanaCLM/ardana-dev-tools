@@ -13,20 +13,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks to mirror the specified clouddata repos locally.
-#
-# Pass in the following variables:
-#   repos: <set of clouddata repos to mirror>
+# Tasks to mirror the specified clouddata Cloud8 repos locally.
 ---
 
-- name: clouddata-mirror-repo | mirror-repo | Ensure relevant directories exist
+- name: clouddata-mirror-repo | mirror-cloud8-repo | Ensure relevant directories exist
   file:
     path: "{{ item.dir }}"
     state: directory
   with_items:
     - dir: "{{ clouddata_repo.mirrors_dir }}"
 
-- name: clouddata-mirror-repo | mirror-repo | Mirror SOC8 repos
+- name: clouddata-mirror-repo | mirror-cloud8-repo | Mirror SOC8 repos
   include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
   vars:
     _mirror:
@@ -38,7 +35,7 @@
     - cloud8.config.mirror_repos | bool
     - cloud8.config.soc_mode | bool
 
-- name: clouddata-mirror-repo | mirror-repo | Mirror HOS8 repos
+- name: clouddata-mirror-repo | mirror-cloud8-repo | Mirror HOS8 repos
   include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
   vars:
     _mirror:

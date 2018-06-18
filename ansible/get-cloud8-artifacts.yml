@@ -15,13 +15,4 @@
 #
 ---
 
-- hosts: localhost
-  connection: local
-  roles:
-    - role: dev-env-cloud8
-
-    # mirror the clouddata repo
-    - role: clouddata-mirror-repo
-
-    # retrieve the cloud8 iso
-    - role: ibs-get-iso
+- include: get-ardana-artifacts.yml

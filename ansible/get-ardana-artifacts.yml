@@ -28,3 +28,14 @@
   tasks:
     - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
       when: dev_env_use_rhel7_artifacts|bool
+
+- hosts: localhost
+  connection: local
+  roles:
+    - role: dev-env-cloud8
+
+    # mirror the clouddata repo
+    - role: clouddata-mirror-repo
+
+    # retrieve the cloud8 iso
+    - role: ibs-get-iso

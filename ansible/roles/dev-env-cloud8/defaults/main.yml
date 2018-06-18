@@ -19,12 +19,15 @@
 
 # SLES deployment settings
 sles:
+  config:
+    enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates'], true) }}"
+    mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
   artifacts:
     repos:
       sles12sp3:
         updates:
           name: "SLES12-SP3-Updates"
-          alias: "SLES12SP3-Updates"
+          alias: "SLE12SP3-Updates"
           enabled: true
         pool:
           name: "SLES12-SP3-Pool"

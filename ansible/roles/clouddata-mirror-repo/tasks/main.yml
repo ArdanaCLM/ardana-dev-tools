@@ -16,7 +16,14 @@
 # Tasks performed by the clouddata-mirror-repo role
 ---
 
-- include: mirror-repo.yml
+- include: mirror-sles-repo.yml
+  when:
+    - dev_env_use_sles12_artifacts | bool
+    - sles.config.mirror_repos | bool
+  tags:
+    - skip-repos
+
+- include: mirror-cloud8-repo.yml
   when:
     - dev_env_use_cloud8_artifacts | bool
     - cloud8.config.mirror_repos | bool
