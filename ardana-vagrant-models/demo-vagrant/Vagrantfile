@@ -1,21 +1,22 @@
 # -*- mode: ruby -*-
-# vi: set ft=ruby :
+# vi: set ft=ruby ts=2 :
 
-Vagrant.configure(2) do |config|
-  config.vm.box = "baremettle/ubuntu-14.04"
+require File.expand_path(File.dirname(__FILE__)) + "/../../lib/ardana_vagrant_helper.rb"
 
-  config.vm.provider "libvirt" do |domain, override|
-    domain.memory = 8192
-    domain.cpus = 2
-  end
+cloud_name = File.basename(File.dirname(__FILE__)).chomp("-vagrant")
+deployer_node = "controller"
 
-  if ENV["http_proxy"]
-      config.proxy.http = ENV["http_proxy"]
-  end
-  if ENV["https_proxy"]
-      config.proxy.https = ENV["https_proxy"]
-  end
-  if ENV["no_proxy"]
-      config.proxy.no_proxy = ENV["no_proxy"]
-  end
+Vagrant.configure("2") do |config|
+
+  ardana = Ardana::Config.new config
+  ardana.set_ssh_config
+
+  # Provider-specific settings
+  ardana.set_provider_config
+
+  ardana.set_vm_config
+
+  # Server Definitions
+  # Control & Compute nodes
+  ardana.add_server_group(modifier: 1, cloud_name: cloud_name, deployer_node: deployer_node)
 end
