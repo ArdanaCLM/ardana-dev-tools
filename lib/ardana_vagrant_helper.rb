@@ -59,7 +59,7 @@ module Ardana
     VM_MEMORY = {
       # Node classes used by the dac-* models
       DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 20480,
-      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 5120,
+      DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 6144,
 
       'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
       'default' => 2048,
@@ -84,7 +84,7 @@ module Ardana
       STD_OSC_NODE => !!ENV["ARDANA_SOSC_MEMORY"] ? ENV["ARDANA_SOSC_MEMORY"].to_i : 7424,
       STD_DBMQ_NODE => !!ENV["ARDANA_SDBMQ_MEMORY"] ? ENV["ARDANA_SDBMQ_MEMORY"].to_i : 2816,
       STD_MML_NODE => !!ENV["ARDANA_SMML_MEMORY"] ? ENV["ARDANA_SMML_MEMORY"].to_i : 7424,
-      STD_COMP_NODE => !!ENV["ARDANA_SCMP_MEMORY"] ? ENV["ARDANA_SCMP_MEMORY"].to_i : 5120
+      STD_COMP_NODE => !!ENV["ARDANA_SCMP_MEMORY"] ? ENV["ARDANA_SCMP_MEMORY"].to_i : 6144
     }
 
     VM_CPU = {
