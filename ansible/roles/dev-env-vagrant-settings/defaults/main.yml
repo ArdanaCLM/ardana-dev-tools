@@ -1,0 +1,159 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Settings used to install & manage the vagrant runtime environment
+---
+
+# The user specified version, defaulting to 1.7.2, to be compatible with
+# the Legacy HOS CI which requires 1.7.2 for HOS 4 building, though with
+# HOS 5 we could potentially use 1.8.7.
+vagrant_version: "{{ lookup('env', 'ARDANA_VAGRANT_VERSION') | default('1.7.2', true) }}"
+
+# From the version we extract the major and minor version values and use
+# them to construct a "series" version, which is then used to determine
+# the necessary actions required to install vagrant and required plugins
+vagrant_series: "{{ vagrant_version.split('.')[0:2] | join('.') }}"
+
+# The VAGRANT_HOME env var, default ~/.vagrant.d/, determines where the
+# vagrant plugins live.
+vagrant_home: "{{ lookup('env', 'VAGRANT_HOME') |
+                  default(ansible_env.HOME ~ '/.vagrant.d', true) }}"
+
+# The plugins.json file holds details on the set of installed plugins
+# and the version of vagrant that they are built for.
+vagrant_plugins_json: "{{ vagrant_home }}/plugins.json"
+
+# Settings related to downloading Vagrant packages
+vagrant_download:
+  url_base: "https://releases.hashicorp.com/vagrant"
+  cache_dir: "{{ ardana_cache_vagrant_dir }}"
+
+vagrant_series_settings:
+  series:
+    # For 1.7 series we need to build plugins with 1.7.4 because in
+    # March 2017, Hashicorp retired gems.hashicorp.com, causing any
+    # pluging building with versions earlier than 1.7.4 to fail.
+    "1.7":
+      versions:
+        plugins: "1.7.4"
+        runtime: "{{ vagrant_version }}"
+      plugins:
+        - name: "vagrant-proxyconf"
+          version: "1.5.0"
+        - name: "fog"
+          version: "1.29.0"
+        - name: "rack"
+          version: "1.6.4"
+        - name: "vagrant-libvirt"
+          version: "0.0.35.hp.2"
+          gem: "vagrant-libvirt-0.0.35.hp.2.gem"
+        - name: "vagrant-openstack-plugin"
+          version: "0.11.1"
+          patch:
+            file: "vagrant-openstack-plugin-0.11.1/create_server.rb.patch"
+            subdir: "gems"
+      pkgs:
+        suse:
+          - gcc-c++
+          - libvirt-devel
+          - make
+          - patch
+          - pkg-config
+        debian:
+          - build-essential
+          - libvirt-dev
+          - pkg-config
+    "1.8":
+      versions:
+        plugins: "{{ vagrant_version }}"
+        runtime: "{{ vagrant_version }}"
+      plugins:
+        - name: "vagrant-proxyconf"
+          version: "1.5.2"
+        - name: "vagrant-libvirt"
+          version: "0.0.43"
+          patch:
+            file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
+            subdir: "gems"
+      pkgs:
+        suse:
+          - pkg-config
+        debian:
+          - build-essential
+          - pkg-config
+          - libvirt-dev
+    "1.9":
+      versions:
+        plugins: "{{ vagrant_version }}"
+        runtime: "{{ vagrant_version }}"
+      plugins:
+        - name: "vagrant-proxyconf"
+          version: "1.5.2"
+        - name: "vagrant-libvirt"
+          version: "0.0.43"
+          patch:
+            file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
+            subdir: "gems/2.3.4"
+      pkgs:
+        suse:
+          - pkg-config
+        debian:
+          - build-essential
+          - pkg-config
+          - libvirt-dev
+    "2.0":
+      versions:
+        plugins: "{{ vagrant_version }}"
+        runtime: "{{ vagrant_version }}"
+      plugins:
+        - name: "vagrant-proxyconf"
+          version: "1.5.2"
+        - name: "vagrant-libvirt"
+          version: "0.0.43"
+          patch:
+            file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
+            subdir: "gems/2.4.4"
+      pkgs:
+        suse:
+          - pkg-config
+        debian:
+          - build-essential
+          - pkg-config
+          - libvirt-dev
+    "2.1":
+      versions:
+        plugins: "{{ vagrant_version }}"
+        runtime: "{{ vagrant_version }}"
+      plugins:
+        - name: "vagrant-proxyconf"
+          version: "1.5.2"
+        - name: "vagrant-libvirt"
+          version: "0.0.43"
+          patch:
+            file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
+            subdir: "gems/2.4.4"
+      pkgs:
+        suse:
+          - pkg-config
+        debian:
+          - build-essential
+          - pkg-config
+          - libvirt-dev
+
+vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"
+
+vagrant_runtime_version: "{{ vagrant_settings.versions.runtime }}"
+vagrant_plugins_version: "{{ vagrant_settings.versions.plugins |
+                             default(vagrant_runtime_version) }}"

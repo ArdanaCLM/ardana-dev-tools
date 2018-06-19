@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -22,18 +22,26 @@ dev_env_zypp_packages_default:
     kmod:
     kmod-compat:
     python-devel:
-    python-pip:
-    python-virtualenv:
     vlan:
     kpartx:
     # required for network config debug on job failure
     ethtool:
     libopenssl-devel:
-    # required for ansible install into virtualenv
-    libffi48-devel:
     acl:
     sysfsutils:
 
 dev_env_zypp_packages: "{{ dev_env_zypp_packages_default |
                           update( dev_env_zypp_packages_update |
                                   default({}) ) }}"
+
+dev_env_zypp_packages_leap42:
+  # required for ansible install into virtualenv
+  libffi48-devel:
+  python-pip:
+  python-virtualenv:
+
+dev_env_zypp_packages_leap15:
+  # required for ansible install into virtualenv
+  libffi-devel:
+  python2-pip:
+  python2-virtualenv:

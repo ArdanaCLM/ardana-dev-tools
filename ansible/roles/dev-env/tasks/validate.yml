@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,7 +17,6 @@
 # Validate the developer environment
 ---
 
-- include: ../../../roles/vagrant/tasks/validate.yml
 - include: ../../../roles/packer/tasks/validate.yml
 - include: check-ansible-version.yml
   when: _dev_env_ansible_installed is not defined

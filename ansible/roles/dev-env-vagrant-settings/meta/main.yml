@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2015,2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,17 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Register a variable with the installed vagrant version
+# Depdenencies of the dev-env-vagrant-settings role
 ---
-
-- name: vagrant | _get_vagrant_version | Get installed Vagrant version
-  shell: >
-    vagrant --version | cut -d ' ' -f 2
-  register: vagrant_installed_version_result
-  changed_when: False
-  failed_when: False
-
-- name: vagrant | _get_vagrant_version | Set vagrant_installed_version
-  set_fact:
-    vagrant_installed_version: >
-      {{ vagrant_installed_version_result.stdout }}
+dependencies:
+  - role: dev-env
+  - role: ardana-cache

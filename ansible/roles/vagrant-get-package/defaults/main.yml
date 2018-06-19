@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,13 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Localy patch installed vagrant plugins
+# Default settings for Ardana artifacts server cached ISO retrieval.
 ---
 
-- name: vagrant | _install_patch_plugins | Patch Vagrant plugin files
-  with_fileglob:
-      - "vagrant-patch-plugins/*/*.patch"
-  patch: src={{ item }} basedir={{ ansible_env.HOME }}
-  when: vagrant_plugins[( ( item | dirname ) | basename ) |
-        regex_replace('^(.*)-([^-]+)$', '\\1')]["version"] ==
-        ( ( item | dirname ) | basename ) | regex_replace('^(.*)-([^-]+)$', '\\2')
+vagrant_package:
+  base_url: "{{ vagrant_download.url_base }}"
+  use_proxy: "{{ dev_env_site_config.ardana_artifacts_use_proxy | default('no') }}"
+  pkg_dir: "{{ vagrant_download.cache_dir }}"

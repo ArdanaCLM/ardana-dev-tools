@@ -42,6 +42,29 @@ full description of the layout of a service Ansible repo.
 There are a few important issues you should be aware of before
 getting started.
 
+### Support Linux distributions
+
+The following are fully supportted and expected to work without significant
+effort:
+
+* Ubuntu 16.04 (Xenial) and 14.04 (Trusty)
+* openSUSE Leap 42.3 and 42.2
+
+The following should probably work, but may require tweaks and/or manual
+intervention:
+
+* Ubuntu 18.04 (Bionic)
+* openSUSE Leap 15
+
+You should be able to get things working on these but will need to manually
+add appropriate zypper repos to your system to be sure.
+* SLE 12 SP3
+  * Need to ensure you have SLE Server is SCC registered to have access to
+    Pool & Update repos
+  * Need to add the SLE SDK Product/Addon
+  * Need [devel:languages:python](https://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP3/devel:languages:python.repo) for SLE 12 SP3
+  * Need a version of *jq*, version 1.5 or later, installed.
+
 ### Paswordless sudo must be setup
 
 It is assumed that you have setup passwordless sudo for your account.
@@ -112,26 +135,60 @@ The use of such an old version of vagrant is due to the need to share
 some of the CI testing resources with a legacy testing environment that
 expects this version of Vagrant.
 
-#### Developer mode and Vagrant version
+#### Development environments and Vagrant version
 NOTE: If you want to avoid this upgrade/downgrade of vagrant, you can set
-ARDANA_DEVELOPER=1 (or true) in your environment, and Vagrant 1.7.4 will be used.
-Additionally if you need to run a newer version of Vagrant on your system for
-other reasons you can additionally set ARDANA_VAGRANT_VERSION to the desired
-version in your environment. You may need to delete ~/.vagrant.d after doing
-so to ensure your plugins are built with the correct version of Vagrant.
+the ARDANA_VAGRANT_VERSION environment variable to the value of a newer
+supported version of Vagrant, e.g. 1.8.7.  For example
 
-For example
-
-    export ARDANA_DEVELOPER=true
     export ARDANA_VAGRANT_VERSION=1.8.7
 
-If you have an existing ~/.vagrant.d in your home directory that was generated
-on another system (for example, if you reinstall your machine or get a new
-one, it's a good idea to delete it prior to running the Ardana stack to ensure
-that the plugins are rebuilt with the current version of vagrant. If you've
-already installed the correct version of vagrant but aren't getting plugins,
-simply uninstall the vagrant package using the system package manager and
-rerun astack.sh.
+Additionally the *astack.sh* driven DevEnv uses Vagrant version specific
+plugin environments, located in *~/.cache-ardana/vagrant/<version>/home*.
+This means you can easily switch between Vagrant versions without having
+to remember to delete the *~/.vagrant.d* directory anymore. This is done by
+the *bin/ardana-env* script which sets up the VAGRANT_HOME env var to point
+to the appropriate home area for the selected ARDANA_VAGRANT_VERSION, which
+defaults to 1.7.2 if not specified, and subsequent *astack.sh* runs will
+use the ansible/dev-env-install.yml playbook that will detect that Vagrant
+plugins are missing/out-of-date, and re-install them.
+
+If you have upgraded you system, or copied your account from one system to
+another you may want/need to detele any vagrant home areas to ensure that
+they get rebuilt the next time you run astack.sh, e.g.
+
+    rm -rf ~/.cache-ardana/vagrant/*/home
+
+##### Supportted Vagrant versions
+
+Currently the Ardana DevEnv only supports the following Vagrant versions:
+
+1. 1.7.2 (Uses 1.7.4 to build the plugins)
+2. 1.7.4
+3. 1.8.7 (Probably any 1.8.x really)
+
+Newer versions of Vagrant will work for SLES only deployments, however
+RHEL compute networking is incorrectly configured when the VMs are being
+created leading to deployment errors.
+
+#### vagrant-libvirt dependency
+
+The primary Vagrant provider supported by Ardana is libvirt, requiring
+the vagrant-libvirt plugin.
+
+The default DevEnv/CI version (1.7 stream) is based on the rather old
+0.0.35 based released, customised with changes to support:
+
+* Using virtio-scsi as the SCSI controller model, rather than the normal
+LSI default.
+* Redirecting the console PTY device to a file via the added libvirt.serial
+action.
+
+The newer Vagrant (1.8+) streams now select the latest version of the
+vagrant-libvirt plugin currently available (0.0.43), dynamically patching
+it to add support for specifying virtio-scsi as the default SCSI controller
+model; this is currently required because the locally built Vagrant box
+images we create are virtio-scsi based and will fail to boot if brought
+up with the LSI model SCSI controller.
 
 ### Ansible version
 

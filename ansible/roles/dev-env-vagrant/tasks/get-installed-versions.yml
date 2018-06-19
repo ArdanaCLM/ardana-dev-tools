@@ -1,0 +1,106 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Check to see if vagrant is installed and, if found, save the version
+# in the 'vagrant_installed_version' fact.
+---
+
+- name: dev-env-vagrant | get-installed-versions | Get installed Vagrant version
+  shell: >
+    vagrant --version | cut -d ' ' -f 2
+  register: _vagrant_version_result
+  changed_when: False
+  failed_when: False
+
+- name: dev-env-vagrant | get-installed-versions | Set vagrant_installed_version
+  set_fact:
+    vagrant_installed_version: "{{ _vagrant_version_result.stdout }}"
+
+- name: dev-env-vagrant | get-installed-versions | Report version if installed
+  debug:
+    msg: "Installed Vagrant version: {{ vagrant_installed_version }}"
+  when: vagrant_installed_version != ""
+
+- name: dev-env-vagrant | get-installed-versions | Check if plugins.json exists
+  stat:
+    path: "{{ vagrant_plugins_json }}"
+  register: plugins_json_stat_result
+
+- name: dev-env-vagrant | get-installed-versions | Load plugins.json if found
+  set_fact:
+    _plugins_json: >
+      {{ lookup('file', vagrant_plugins_json) |
+         from_json | default(dict(version=1, installed={})) }}
+  when:
+    - plugins_json_stat_result.stat.exists
+
+- name: dev-env-vagrant | get-installed-versions | Handle plugins.json not found
+  set_fact:
+    _plugins_json:
+      version: 1
+      installed: {}
+  when:
+    - not plugins_json_stat_result.stat.exists
+
+- debug: var=_plugins_json
+
+- name: dev-env-vagrant | get-installed-versions | Fail if plugins.json version not 1
+  fail:
+    msg: >
+      Detected version mis-match for the ${VAGANT_HOME}/plugins.json file;
+      currently we only support the version 1 plugins.json layout.
+  when: _plugins_json.version | int != 1
+
+- name: dev-env-vagrant | get-installed-versions | Determine installed plugins
+  set_fact:
+    vagrant_installed_plugins: >
+      {{ _plugins_json.installed }}
+
+- name: dev-env-vagrant | get-installed-versions | Report installed plugins if any
+  debug:
+    var: vagrant_installed_plugins
+  when:
+    - vagrant_installed_plugins | length > 0
+
+- name: dev-env-vagrant | get-installed-versions | Determine plugins to install/update
+  set_fact:
+    vagrant_missing_plugins: >
+      {%- set _missing = []  %}
+      {%- for plugin in vagrant_settings.plugins %}
+      {%-   if vagrant_installed_plugins[plugin.name] is not defined %}
+      {%-     set _ = _missing.append(plugin) %}
+      {%-   else %}
+      {%-     set _installed = vagrant_installed_plugins[plugin.name] %}
+      {%-     if _installed.installed_gem_version is defined %}
+      {%-       set gem_version = _installed.installed_gem_version %}
+      {%-     else %}
+      {%-       set gem_version = _installed.gem_version %}
+      {%-     endif %}
+      {%-     if _installed.vagrant_version != vagrant_plugins_version %}
+      {%-       set _ = _missing.append(plugin) %}
+      {%-     elif plugin.version is defined %}
+      {%-       if gem_version != plugin.version %}
+      {%-         set _ = _missing.append(plugin) %}
+      {%-       endif %}
+      {%-     endif %}
+      {%-   endif %}
+      {%- endfor %}
+      {{- _missing -}}
+
+- name: dev-env-vagrant | get-installed-versions | Report missing plugins if any
+  debug:
+    var: vagrant_missing_plugins
+  when:
+    - vagrant_missing_plugins | length > 0

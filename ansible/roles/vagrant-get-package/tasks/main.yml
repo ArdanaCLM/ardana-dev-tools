@@ -13,10 +13,18 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for managing Ardana cache area
+# Tasks performed by the vagrant-get-package role
 ---
 
-ardana_cache_base_dir: "{{ product_cache_base_directory }}"
-ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
-ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"
-ardana_cache_vagrant_dir: "{{ ardana_cache_base_dir }}/vagrant/downloads"
+# Download the runtime vagrant package
+- include: get-vagrant-package.yml
+  vars:
+    vagrant_download_version: "{{ vagrant_settings.versions.runtime }}"
+
+# Download the plugins vagrant package if not the same as the runtime
+- include: get-vagrant-package.yml
+  vars:
+    vagrant_download_version: "{{ vagrant_settings.versions.plugins }}"
+  when:
+    - vagrant_settings.versions.plugins is defined
+    - vagrant_settings.versions.plugins != vagrant_settings.versions.runtime

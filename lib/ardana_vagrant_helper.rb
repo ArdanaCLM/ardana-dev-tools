@@ -23,11 +23,15 @@ require 'open-uri'
 
 if (Gem::Version.new('1.7.2') <= Gem.loaded_specs['vagrant'].version) and
    (Gem.loaded_specs['vagrant'].version <= Gem::Version.new('1.7.4'))
-  STDERR.puts "Applying ansible provisioner patch."
+  STDERR.puts "Applying ansible patches for Vagrant 1.7.x."
   require_relative 'ansible_provisioner_patch'
+  require_relative 'guest_redhat_configure_networks_patch'
 end
-require_relative 'fog_libvirt_patch'
-require_relative 'guest_redhat_configure_networks_patch'
+if Gem.loaded_specs['fog'] and
+   (Gem.loaded_specs['fog-libvirt'].version == Gem::Version.new('0.3.0'))
+  STDERR.puts "Applying fog-libvirt 0.3.0 patch"
+  require_relative 'fog_libvirt_patch'
+end
 
 module Ardana
   class Config
@@ -653,13 +657,17 @@ module Ardana
         end
       end
 
+      # If running in Legacy CI mode, or using Cloud8 deployment mode,
+      # and the provider is libvirt, and the vagrant-libvirt plugin has
+      # the "hack" implementing serial device configuration, then setup
+      # VM console logs to redirect to specified file.
       if ENV.fetch("CI", "no").downcase == "yes" or @ardana[:cloud8][:deployer]
         vm.provider :libvirt do |libvirt, override|
           libvirt.serial :type => "file",
             :source => {
               :path => File.absolute_path(
                 ( ENV['CONSOLE_LOG_DIR'] || "#{@dev_tool_path}/logs/console" ) + "/#{name}.log")
-            }
+            } if libvirt.respond_to?('serial')  # if vagrant-libvirt hack present
         end
       end
     end

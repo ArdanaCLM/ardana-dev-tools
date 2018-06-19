@@ -33,11 +33,24 @@ get_distro_family()
             cut -d= -f2 | \
             tr -d '"' | \
             tr -d "'" | \
+            cut -d " " -f1 | \
             tr -d '[:space:]'
     elif grep -qs 'ID="sles"' /etc/os-release
     then
         echo suse
     fi
+}
+
+is_opensuse_leap()
+{
+    [[ -r /etc/os-release ]] && \
+        grep -qs "^NAME=.openSUSE Leap.$" /etc/os-release
+}
+
+is_opensuse_leap15()
+{
+    is_opensuse_leap && \
+        grep -qs "^VERSION=.15[.][0-9]\+.$" /etc/os-release
 }
 
 is_ubuntu()
@@ -94,11 +107,34 @@ case "${distro_family}" in
     ;;
 esac
 
+# Need git to interogate branch state
+[[ -x /usr/bin/git ]] || req_pkgs+=( git-core )
+
 # Need gcc to build wheels
 [[ -x /usr/bin/gcc ]] || req_pkgs+=( gcc )
 
+# Need rsync to mirror repos
+[[ -x /usr/bin/rsync ]] || req_pkgs+=( rsync )
+
+# Need wget to restrieve files via URLs
+[[ -x /usr/bin/wget ]] || req_pkgs+=( wget )
+
 # Need virtualenv command
-[[ -x ${venv_cmd} ]] || req_pkgs+=( python-virtualenv )
+if [[ ! -x ${venv_cmd} ]]
+then
+    if is_opensuse_leap15
+    then
+        req_pkgs+=( python2-setuptools python2-virtualenv )
+    else
+        req_pkgs+=( python-virtualenv )
+    fi
+fi
+
+# Need to explicitly install python2-setuptools on openSUSE Leap 15
+if is_opensuse_leap15 && [[ ! -d /usr/share/doc/packages/python2-setuptools ]]
+then
+    req_pkgs+=( python2-setuptools python2-virtualenv )
+fi
 
 # Need osc to be able to build Cloud8 RPMs
 osc_cmd=/usr/bin/osc
@@ -135,15 +171,40 @@ then
     ${pkg_install} "${req_pkgs[@]}" 1>&2
 fi
 
+#
+# Common settings
+#
+ardana_cache="${HOME}/.cache-ardana"
+bootstrap_venvs="${ardana_cache}/venvs"
+
+#
+# Vagrant plugin location settings
+#
+vagrant_version=${ARDANA_VAGRANT_VERSION:-1.7.2}
+vagrant_base=${ardana_cache}/vagrant/${vagrant_version}
+vagrant_home=${vagrant_base}/home
+# We could inherit any existing vagrant home setting by
+# uncommenting the following line, but that would mean
+# that if a user switched to a new vagrant version after
+# having eval'd ardana-env's output, they would not get
+# and updated VAGRANT_HOME setting, and would then be
+# installing vagrant plugins for the newer version in
+# the older version's home area.
+#vagrant_home=${VAGRANT_HOME:-${vagrant_base}/home}
+
+# Ensure the specified vagrant_home exists
+mkdir -p ${vagrant_home}
+
+echo "Setting VAGRANT_HOME to '${vagrant_home}'" 1>&2
+echo "VAGRANT_HOME=${vagrant_home};"
+echo "export VAGRANT_HOME;"
 
 #
 # Ansible bootstrap venv setup
 #
 
 # Ansible settings
-ardana_cache="${HOME}/.cache-ardana"
 ansible_version=1.9.6
-bootstrap_venvs="${ardana_cache}/venvs"
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
 
 # Create the bootstrap ansible venv if it doesn't exist

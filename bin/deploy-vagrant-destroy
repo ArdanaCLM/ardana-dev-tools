@@ -37,6 +37,7 @@ VAGRANT_CLOUD="${PWD##*/}"
 [[ "${VAGRANT_CLOUD}" != "build-vagrant" ]] && VAGRANT_CLOUD="cloud"
 
 ./ardana-vagrant destroy \
+    --force \
     --debug \
     2>${VAGRANT_LOG_DIR}/${VAGRANT_CLOUD}-vagrant-destroy.log \
     "${@}"

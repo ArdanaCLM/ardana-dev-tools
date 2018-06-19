@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -22,14 +22,20 @@
   connection: local
   roles:
     - dev-env
-    - vagrant
     - packer
     - artifacts
   tasks:
     - include: roles/artifacts/tasks/setup.yml
     - include: roles/dev-env/tasks/install.yml
-    - include: roles/vagrant/tasks/install.yml
     - include: roles/packer/tasks/install.yml
-    # make sure the validate task is the last one executed
-    # to allow any information notify triggers to appear last
+
+- include: dev-env-vagrant-install.yml
+
+# make sure the validate task is the last one executed
+# to allow any information notify triggers to appear last
+- hosts: localhost
+  connection: local
+  roles:
+    - dev-env
+  tasks:
     - include: roles/dev-env/tasks/validate.yml

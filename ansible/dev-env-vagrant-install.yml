@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017-2018 SUSE LLC
+# (c) Copyright 2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,13 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+# Top level playbook to install/setup the vagrant environment
+---
 
-- name: vagrant | main | Sort plugins dictionary
-  sort_plugins_dict:
-    plugins="{{ vagrant_plugins }}"
-    sort_attribute="order"
-  register: sort_results
+- hosts: localhost
+  connection: local
+  roles:
+    - vagrant-get-package
+    - role: dev-env-vagrant
+      vagrant_role_mode: "install"
 
-- name: vagrant | main | Store sorted plugins list
-  set_fact:
-    vagrant_sorted_plugins: "{{ sort_results.plugins }}"

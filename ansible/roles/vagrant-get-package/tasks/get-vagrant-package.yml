@@ -1,0 +1,54 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks for retrieving Vagrant packages from Hashicorp servers into
+# the Ardana cache area.
+---
+
+- name: vagrant-get-package | get-vagrant-package | Set _vagrant_ver fact
+  set_fact:
+    _vagrant_ver: "{{ vagrant_download_version | default('1.7.2') }}"
+
+- name: vagrant-get-package | get-vagrant-package | Ensure relevant directories exist
+  file:
+    path: "{{ item.dir }}"
+    state: directory
+  with_items:
+    - dir: "{{ vagrant_download.cache_dir }}"
+
+- name: vagrant-get-package | get-vagrant-package | Set package and sha256 names (SLES)
+  set_fact:
+    _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.rpm"
+  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
+
+- name: vagrant-get-package | get-vagrant-package | Set package and sha256 names (Debian)
+  set_fact:
+    _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.deb"
+  when: ansible_os_family | lower == 'debian'
+
+- name: vagrant-get-package | get-vagrant-package | Set sha256 name
+  set_fact:
+    _vagrant_sha: "vagrant_{{ _vagrant_ver }}_SHA256SUMS"
+
+- name: vagrant-get-package | get-vagrant-package | Get the RHEL OS ISO
+  include: ../../ardana-cache/tasks/get-cached-file.yml
+  vars:
+    _file:
+      name: "{{ _vagrant_pkg }}"
+      sha256: "{{ _vagrant_pkg.sha256 | default('') }}"
+      url_path: "{{ vagrant_package.base_url}}/{{ _vagrant_ver }}"
+      sha256url: "{{ vagrant_package.base_url}}/{{ _vagrant_ver }}/{{ _vagrant_sha }}"
+      dir: "{{ vagrant_package.pkg_dir }}"
+      use_proxy: "{{ vagrant_package.use_proxy }}"

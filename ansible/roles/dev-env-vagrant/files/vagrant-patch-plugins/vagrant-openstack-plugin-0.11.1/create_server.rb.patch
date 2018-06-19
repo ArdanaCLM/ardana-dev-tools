@@ -1,5 +1,5 @@
---- .vagrant.d/gems/gems/vagrant-openstack-plugin-0.11.1/lib/vagrant-openstack-plugin/action/create_server.rb	2015-03-03 19:46:30.166688299 +0000
-+++ .vagrant.d/gems/gems/vagrant-openstack-plugin-0.11.1/lib/vagrant-openstack-plugin/action/create_server.rb	2015-03-03 19:42:16.615807383 +0000
+--- gems/vagrant-openstack-plugin-0.11.1/lib/vagrant-openstack-plugin/action/create_server.rb	2015-03-03 19:46:30.166688299 +0000
++++ gems/vagrant-openstack-plugin-0.11.1/lib/vagrant-openstack-plugin/action/create_server.rb	2015-03-03 19:42:16.615807383 +0000
 @@ -20,7 +20,7 @@ module VagrantPlugins
            config   = env[:machine].provider_config
  
