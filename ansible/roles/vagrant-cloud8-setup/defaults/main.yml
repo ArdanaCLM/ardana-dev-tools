@@ -59,6 +59,22 @@ c8setup:
     # rsync mirror based repos
     #
 
+    # SLES12 SP3 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
+                   ('updates' in sles.config.enabled_repos) }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
+                   ('pool' in sles.config.enabled_repos) }}"
+
     # SUSE OpenStack Cloud 8 Repos
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud8.artifacts.repos.soc8.staging.name }}"
       path: "{{ cloud8.artifacts.repos.soc8.staging.alias }}"
@@ -128,14 +144,12 @@ c8setup:
       name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}-http"
       alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}-http"
       distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
-                   ('updates' in cloud8.config.enabled_repos) }}"
+      enabled: "{{ sles.artifacts.repos.sles12sp3.updates.enabled | bool }}"
     - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
       name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}-http"
       alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}-http"
       distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
-                   ('pool' in cloud8.config.enabled_repos) }}"
+      enabled: "{{ sles.artifacts.repos.sles12sp3.pool.enabled | bool }}"
 
     # SUSE OpenStack Cloud 8 Repos
     # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S for both modes.
@@ -169,13 +183,7 @@ c8setup:
                    (cloud8.config.soc_mode | bool) }}"
 
     # HPE Helion OpenStack Cloud 8 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.soc8.staging.name }}"
-      name: "{{ cloud8.artifacts.repos.soc8.staging.name }}-http"
-      alias: "{{ cloud8.artifacts.repos.soc8.staging.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud8.artifacts.repos.soc8.staging.enabled | bool) and
-                   ('staging' in cloud8.config.enabled_repos) and
-                   (cloud8.config.hos_mode | bool) }}"
+    # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S for both modes.
     - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud8.artifacts.repos.hos8.devel.name }}"
       name: "{{ cloud8.artifacts.repos.hos8.devel.name }}-http"
       alias: "{{ cloud8.artifacts.repos.hos8.devel.alias }}-http"
