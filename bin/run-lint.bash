@@ -26,17 +26,17 @@ eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 SCRIPT_DIR=$(readlink -e $(dirname $0))
 source ${SCRIPT_DIR}/libci.sh
 
-# Verify that we can actually download from the git and pypi servers.
+# Verify that we can actually download from the git server.
 wget --spider -v -t3 $GOZER_GIT_MIRROR
-wget --spider -v -t3 $PYPI_MIRROR_URL
 
 VENV=$DEVTOOLS/tools/venvs/ansible
 
 # Setup dev install
 if [ ! -e $VENV ]; then
   mkdir -p $VENV
-  virtualenv --no-site-packages $VENV
-  $VENV/bin/pip install --index-url=$PYPI_MIRROR_URL ansible
+  virtualenv --python=python2 --no-site-packages $VENV
+  $VENV/bin/pip install -U pip
+  $VENV/bin/pip install -r ${DEVTOOLS}/requirements.txt
 fi
 
 # Setup slave

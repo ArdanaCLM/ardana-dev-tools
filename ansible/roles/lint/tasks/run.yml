@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -18,41 +18,43 @@
 ---
 
 - name: lint | run | Check for duplicate playbook names
-  shell:
-    python '{{ lint_no_duplicates }}' '*/*yml'
+  shell: >
+    {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */*yml
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate role names
-  shell:
-    python '{{ lint_no_duplicates }}' '*/roles/*'
+  shell: >
+    {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */roles/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate modules
-  shell:
-    python '{{ lint_no_duplicates }}' '*/library/*'
+  shell: >
+    {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */library/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate sosreport plugins
-  shell:
-    python '{{ lint_no_duplicates }}' '*/sos.d/*'
+  shell: >
+    {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */sos.d/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Yaml syntax check
-  command: "{{ lint_parse_yaml }} ."
+  command: >
+    {{ lint_venv }}/bin/python {{ lint_parse_yaml }} .
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Yaml syntax check for host_vars
-  shell: "{{ lint_parse_yaml }} */host_vars/*"
+  shell: >
+    {{ lint_venv }}/bin/python {{ lint_parse_yaml }} */host_vars/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
