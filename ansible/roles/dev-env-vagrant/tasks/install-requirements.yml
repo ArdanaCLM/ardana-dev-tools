@@ -13,19 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant package for Debian family
+# Install any dependencies required by the vagrant package for the
+# current platform.
 ---
 
-- name: dev-env-vagrant | install-package-debian | Removing existing vagrant package
-  become: yes
-  apt:
-    name: vagrant
-    state: absent
+- name: dev-env-vagrant | install-requirements | Install Vagrant requirements (SUSE)
+  include: install-requirements-suse.yml
   when:
-    - vagrant_current_version != ""
+    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
 
-- name: dev-env-vagrant | install-package-debian | Install vagrant package
-  become: yes
-  apt:
-    deb: "{{ vagrant_download.cache_dir }}/vagrant_{{
-             vagrant_required_version }}_x86_64.deb"
+- name: dev-env-vagrant | install-requirements | Install Vagrant requirements (Debian)
+  include: install-requirements-debian.yml
+  when:
+    - ansible_os_family | lower == "debian"

@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -34,14 +34,22 @@
   command: vconfig set_name_type VLAN_PLUS_VID_NO_PAD
 
 - name: dev-env | route_provider_nets | Find bridge name of mgmt-net interface
-  shell: >
-    ifconfig |
-    grep -B1 {{ dev_env_provider_net.bridge_ip }} |
-    awk '{print $1; exit}'
-  register: net_if
+  set_fact:
+    bridge_if: >
+      {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
+      {%- set _if_fact = 'ansible_' + _if_name %}
+      {%- set _if = hostvars[inventory_hostname][_if_fact] %}
+      {%-   if _if.ipv4 is defined %}
+      {%-     if _if.ipv4.address is defined %}
+      {%-       if _if.ipv4.address == dev_env_provider_net.bridge_ip %}
+      {{- _if.device }}
+      {%-       endif %}
+      {%-     endif %}
+      {%-   endif %}
+      {%- endfor %}
 
 - name: dev-env | route_provider_nets | Create vlans on virtual bridge
-  command: vconfig add {{ net_if.stdout }} {{ item.vlan }}
+  command: vconfig add {{ bridge_if }} {{ item.vlan }}
   with_items: "{{ dev_env_provider_net.octavia_net }}"
 
 - name: dev-env | route_provider_nets | Bring up the ip link for vlans
@@ -53,11 +61,22 @@
   with_items: "{{ dev_env_provider_net.octavia_net }}"
 
 - name: dev-env | route_provider_nets | Find the bridge name for Ardana net
-  shell: ifconfig | grep -B1 192.168.245.1 | awk '{print $1; exit}'
-  register: ardana_net_if
+  set_fact:
+    ardana_bridge_if: >
+      {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
+      {%- set _if_fact = 'ansible_' + _if_name %}
+      {%- set _if = hostvars[inventory_hostname][_if_fact] %}
+      {%-   if _if.ipv4 is defined %}
+      {%-     if _if.ipv4.address is defined %}
+      {%-       if _if.ipv4.address == "192.168.245.1" %}
+      {{- _if.device }}
+      {%-       endif %}
+      {%-     endif %}
+      {%-   endif %}
+      {%- endfor %}
 
 - name: dev-env | route_provider_nets | Enable packet forwarding
   shell: >
     iptables -I FORWARD 1 -d 192.168.245.0/24
-    -o {{ ardana_net_if.stdout }} -j ACCEPT
+    -o {{ ardana_bridge_if }} -j ACCEPT
   failed_when: false

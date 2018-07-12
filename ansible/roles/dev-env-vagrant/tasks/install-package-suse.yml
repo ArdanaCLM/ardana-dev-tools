@@ -13,17 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant package and dependencies for SUSE
+# Install the specified vagrant package for SUSE family
 ---
-
-- name: dev-env-vagrant | install-package-suse | Install dependencies
-  become: yes
-  zypper:
-    state: present
-    name: "{{ item }}"
-  with_items: "{{ vagrant_settings.pkgs.suse }}"
-  when:
-    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
 
 - name: dev-env-vagrant | install-package-suse | Removing existing vagrant package
   become: yes
@@ -32,7 +23,6 @@
     state: absent
   when:
     - vagrant_current_version != ""
-    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
 
 - name: dev-env-vagrant | install-package-suse | Install required vagrant package
   become: yes
@@ -43,5 +33,3 @@
       install
       "{{ vagrant_download.cache_dir }}/vagrant_{{
           vagrant_required_version }}_x86_64.rpm"
-  when:
-    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"

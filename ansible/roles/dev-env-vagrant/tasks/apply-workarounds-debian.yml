@@ -13,19 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant package for Debian family
+# Apply any Debian family specific workarounds for vagrant version
 ---
 
-- name: dev-env-vagrant | install-package-debian | Removing existing vagrant package
-  become: yes
-  apt:
-    name: vagrant
-    state: absent
-  when:
-    - vagrant_current_version != ""
+- name: dev-env-vagrant | apply-workarounds-debian | Check for workarounds?
+  set_fact:
+    _workarounds: >
+      {{ vagrant_settings.workarounds.debian | default({}) }}
 
-- name: dev-env-vagrant | install-package-debian | Install vagrant package
-  become: yes
-  apt:
-    deb: "{{ vagrant_download.cache_dir }}/vagrant_{{
-             vagrant_required_version }}_x86_64.deb"
+- name: dev-env-vagrant | apply-workarounds-debian | No workarounds found?
+  set_fact:
+    _workarounds: >
+      {{ {} }}
+  when:
+    _workarounds is not defined
+
+# Currently no known workarounds required for the Debian family
