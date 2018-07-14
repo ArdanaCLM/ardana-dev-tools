@@ -1,0 +1,188 @@
+#!/bin/bash -eu
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Utility script that can be used to setup the Ardana DevEnv on a system
+# independently of running the astack.sh command. This script also allows
+# the user to specify the versions of Ansible and Vagrant to be setup on
+# the command line, overriding the default settings. To accomplish this
+# the script internally sets the appropriate environment variables and
+# then evaluates the ardana-env script to setup the Ansible bootstrap
+# virtualenv and the Vagrant home area, and then invokes the appropriate
+# playbook that sets up the rest of the environment.
+#
+# To faciliate easily switching between Vagrant versions you can use the
+# --vagrant-only switch to run the dev-env-vagrant-install.yml playbook
+# instead of the full dev-env-install.yml.
+#
+# Additionally a --clean option can be specified and will be passed to
+# the ardana-env command which will remove the existing Ansible venv and
+# Vagrant home areas to force a re-install of the relevant tooling.
+#
+# The output of this command it intended to be evaluated by the caller
+# to update their environment settings.
+#
+
+set -eu
+set -o pipefail
+
+cmd_path="$(readlink -e "${BASH_SOURCE[0]}")"
+cmd_name="$(basename "${cmd_path}")"
+cmd_dir="$(dirname "${cmd_path}")"
+top_dir="$(dirname "${cmd_dir}")"
+play_dir="${top_dir}/ansible"
+
+opts_array=(
+    ansible:
+    clean
+    env-only
+    vagrant:
+    vagrant-only
+)
+
+declare -A opts_help
+opts_help["ansible:"]="Specify version of ansible to setup & use."
+opts_help["clean"]="Create a new, clean environment."
+opts_help["env-only"]="Generate env var settings only."
+opts_help["vagrant:"]="Specify version of vagrant to setup & use."
+opts_help["vagrant-only"]="Setup only the vagrant environment."
+
+stdout()
+{
+    echo "${@}"
+}
+
+stderr()
+{
+    echo 1>&2 "${@}"
+}
+
+usage()
+{
+    stderr "Usage: ${cmd_name} [OPTIONS]"
+    stderr "Where:"
+    stderr "    -h, --help"
+    stderr "            Displays this message."
+    for opt in ${opts_array[@]}
+    do
+        stderr "    --${opt//:/}"
+        stderr "            ${opts_help[${opt}]}"
+    done
+
+    exit 0
+}
+
+# join opts_array members with ","
+printf -v long_opts ",%s" "${opts_array[@]:1}"
+long_opts="help,${opts_array[0]}${long_opts}"
+
+TEMP=$(getopt -o -h -l "${long_opts}" -n "${cmd_name}" -- "$@")
+if [ $? != 0 ] ; then stderr "Terminating..." ; exit 1 ; fi
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+# Initialise option variables
+ansible_version=
+clean_setup=
+vagrant_version=
+vagrant_only=
+env_only=
+
+# Iterate through the options
+while true
+do
+    case "${1}" in
+    (--ansible)
+        ansible_version="${2}"
+        shift 2
+        ;;
+    (--clean)
+        clean_setup=true
+        shift
+        ;;
+    (--env-only)
+        env_only=true
+        shift
+        ;;
+    (-h|--help)
+        usage
+        ;;
+    (--vagrant)
+        vagrant_version="${2}"
+        shift 2
+        ;;
+    (--vagrant-only)
+        vagrant_only=true
+        shift
+        ;;
+    (--)
+        shift
+        break
+        ;;
+    (*)
+        break
+        ;;
+    esac
+done
+
+if [[ -n "${vagrant_only:-}" ]]
+then
+    playbook=dev-env-vagrant-install.yml
+else
+    playbook=dev-env-install.yml
+fi
+
+# Has a specific Ansible version been specified
+if [[ -n "${ansible_version:-}" ]]
+then
+    export ARDANA_ANSIBLE_VERSION=${ansible_version}
+
+    # Generate env settings on stdout
+    stderr "Setting 'ARDANA_ANSIBLE_VERSION=${ansible_version}' in environment."
+    stdout "ARDANA_ANSIBLE_VERSION=${ansible_version};"
+    stdout "export ARDANA_ANSIBLE_VERSION;"
+fi
+
+# Has a specific Vagrant version been specified
+if [[ -n "${vagrant_version:-}" ]]
+then
+    export ARDANA_VAGRANT_VERSION=${vagrant_version}
+
+    # Generate env settings on stdout
+    stderr "Setting 'ARDANA_VAGRANT_VERSION=${vagrant_version}' in environment."
+    stdout "ARDANA_VAGRANT_VERSION=${vagrant_version};"
+    stdout "export ARDANA_VAGRANT_VERSION;"
+fi
+
+# If we aren't just generating env settings then setup the specified env
+if [[ -z "${env_only:-}" ]]
+then
+    # Initialise ansible venv and create vagrant home dir
+    eval "$(${cmd_dir}/ardana-env ${clean_setup:+--clean})"
+
+    # Remove existing tools/venvs/ansible virtualenv if --clean specified
+    if [[ -n "${clean_setup:-}" ]]
+    then
+        stderr "Cleaning existing Ansible venv in tools area..."
+        rm -rf ${top_dir}/tools/venvs/ansible
+    fi
+
+    # run the specified playbook redirecting to stderr allowing
+    # this script's output to be evaluated.
+    stderr "Running playbook '${playbook}' to setup environment..."
+    ansible-playbook -i ${play_dir}/hosts/localhost ${play_dir}/${playbook} 1>&2
+fi
+
+# vim:shiftwidth=4:tabstop=4:expandtab

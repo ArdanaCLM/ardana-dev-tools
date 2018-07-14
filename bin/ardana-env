@@ -16,10 +16,15 @@
 #
 # Bootstrap the runtime environment to enable running Ardana development
 # environment:
-#   * ensure that the bootstrap ansible venv exists and is in PATH
+#   * ensure that the bootstrap ansible venv exists and is in PATH, and
+#     output required shell commands to set it up correctly in the users
+#     environment.
+#   * create the Vagrant version specific home area if needed and output
+#     required shell commands to set it up correctly in the users
+#     environment.
 #
 # The output of this command it intended to be evaluated by the caller
-# to update their environment.
+# to update their environment settings.
 #
 
 set -eu
@@ -192,8 +197,20 @@ vagrant_home=${vagrant_base}/home
 # the older version's home area.
 #vagrant_home=${VAGRANT_HOME:-${vagrant_base}/home}
 
+# Have we been told to create a "clean" environment?
+# If so then delete the existing vagrant home here
+if [[ "${1:-}" == "--clean" ]]
+then
+    echo 1>&2 "Cleaning out existing Vagrant ${vagrant_version} home..."
+    rm -rf "${vagrant_home}"
+fi
+
 # Ensure the specified vagrant_home exists
-mkdir -p ${vagrant_home}
+if [[ ! -d "${vagrant_home}" ]]
+then
+    echo 1>&2 "Creating Vagrant ${vagrant_version} home..."
+    mkdir -p ${vagrant_home}
+fi
 
 echo "Setting VAGRANT_HOME to '${vagrant_home}'" 1>&2
 echo "VAGRANT_HOME=${vagrant_home};"
@@ -204,12 +221,21 @@ echo "export VAGRANT_HOME;"
 #
 
 # Ansible settings
-ansible_version=1.9.6
+ansible_version=${ARDANA_ANSIBLE_VERSION:-1.9.6}
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
+
+# Have we been told to create a "clean" environment?
+# If so then delete the existing ansible venv here
+if [[ "${1:-}" == "--clean" ]]
+then
+    echo 1>&2 "Cleaning out existing Ansible ${ansible_version} venv..."
+    rm -rf "${bootstrap_ansible}"
+fi
 
 # Create the bootstrap ansible venv if it doesn't exist
 if [[ ! -d "${bootstrap_ansible}" ]]
 then
+    echo 1>&2 "Creating Ansible ${ansible_version} venv..."
     ${venv_cmd} --python python2.7 "${bootstrap_ansible}" 1>&2
     ${bootstrap_ansible}/bin/pip install --upgrade pip wheel 1>&2
 fi
@@ -217,7 +243,7 @@ fi
 # Install specified ansible version in the bootstrap venv if necessary
 if [[ ! -x "${bootstrap_ansible}/bin/ansible-playbook" ]];
 then
-    ${bootstrap_ansible}/bin/pip install "ansible==1.9.6" 1>&2
+    ${bootstrap_ansible}/bin/pip install "ansible==${ansible_version}" 1>&2
 fi
 
 # Check if ansible bootstrap venv already in path, and if not, add it

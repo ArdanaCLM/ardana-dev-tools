@@ -18,21 +18,40 @@
 # Ardana Developer Tools
 
 This repo contains all of the tools needed to setup a system as an Ardana
-development environment.
+development environment (DevEnv).
 
-The development environment uses [Vagrant](https://docs.vagrantup.com/v2/why-vagrant/)
-to create build & test environment, with [Ansible](http://docs.ansible.com/)
-being used to manage the configuration of the Vagrant VMs, including driving
-the deployment of clouds using Ardana, which is itself implemented in Ansible.
+The DevEnv uses [Vagrant](https://docs.vagrantup.com/v2/why-vagrant/)
+to create build & test environments in libvirt managed VMs, with
+[Ansible](http://docs.ansible.com/) being used to manage the configuration
+of the Vagrant VMs, including driving the deployment of clouds using Ardana,
+which is itself implemented in Ansible.
 
-This document contains a getting-started guide for the Ardana developer environment.
-The remainder of the documentation related to Ardana is located in the top-level doc
-dir on this repo. Key documentation items are:
+## Setting up the Ardana DevEnv
+You can setup the DevEnv by running the *bin/astack.sh* script, which will
+always attempt to setup your DevEnv _unless_ you specify the *--no-setup*
+option, before trying to stand up a test cloud.
 
+Or if you just want to setup the DevEnv without standing up a test cloud
+then you can run the *bin/dev-env-setup* script.
+
+In either case you may be told that you need to re-login if the setup
+process needed to add you to any relevant system administration groups.
+See below for more details.
+
+## Documentation
+This README contains a getting-started guide for the Ardana DevEnv.
+The remainder of the documentation related to Ardana is located in the
+top-level doc dir on this repo.
+
+Key documentation items are:
 - [Developer workflow](doc/dev-workflow.md): When you have the environment
 up and running,  this provides details on the general Ardana developer workflow
 for testing changes in different parts of the Ardana Openstack release.
+*NOTE*: This is somewhat out of date and needs updating.
 - [Trouble-shooting](doc/troubleshooting.md): For known issues and workarounds.
+*NOTE*: This is somewhat out of date and needs updating, with most of the
+troubleshooting issues now being automatically addressed/resolved by the
+setup process.
 - [Ardana Ansible Guide](doc/ardana-ansible-guide/ardana-ansible-guide.md): A set of docs
 providing instructions on the writing of Ansible code for services, including a
 full description of the layout of a service Ansible repo.
@@ -75,18 +94,28 @@ If not you can do so by running a command like the following:
 
 ### First run may require re-login
 
-The first time you run astack.sh, or the ansible dev-env-install.yml
-playbook, if libvirt and KVM weren't already installed, then you may
-get an error due to your account not being a member of the required
-groups for access to Libvirt & KVM system resources.
+The first time you run astack.sh, or the dev-env-setup script or the
+ansible dev-env-install.yml playbook, if the libvirt and KVM services
+weren't already installed, or you aren't a member of the associated
+groups, then you may get an error due to your account not being a
+member of the required groups for access to Libvirt & KVM system
+resources.
 
-These system groups are usually setup when installing the system
-packages which provide these services, which the setup process will
-have now installed, and thus may not have existed when you originally
-logged into the system.
+Since the system groups are usually setup when installing the relevant
+system packages which provide these services, if the DevEnv setup process
+has just installed the packages, or you are not already a member of the
+associated group, your existing login session won't be a member of the
+groups, even though the setup process will have now added you.
 
-You just need to log out and log back in, and run the command again to
-proceed.
+To rectify this you will need to log out and log back in again, or
+otherwise start a new session. Note that if you have logged in via a
+graphical desktop environemnt this will require you to log out of the
+graphical desktop sesssion.
+
+Once you have logged in again, and confirmed that your account has the
+required group membership by running the *id -nG* command, you can the
+re-run the astack.sh, dev-env-setup or dev-env-install.yml playbook to
+complete the setup process.
 
 ### Deployment Style
 
@@ -192,9 +221,10 @@ up with the LSI model SCSI controller.
 
 ### Ansible version
 
-The Ardana OpenStack ansible playbooks, especially those in
-ardana/ardana-dev-tools.git, have not been updated to work with Ansible 2.x,
-and will only work with Ansible 1.9.
+The Ardana OpenStack ansible playbooks, as well as those in the DevEnv
+(ardana/ardana-dev-tools.git repo) repo, have not been updated to work
+with Ansible 2.x, and currently are only verified to work correctly with
+Ansible 1.9.
 
 A utility, ardana-env, is provided in the ardana/ardana-dev-tools.git
 repo's bin directory, which will setup the runtime environment with an
@@ -210,16 +240,22 @@ on installing Ansible in a Python virtual environment in the
 this limitation.
 
 
-## Cleaning up your test environment
+## Cleaning up your test system environment
 
-Before trying to run another cloud deployment, run the cleanup-slave
-script found in ardana-dev-tools/bin; this should clean up everything
-on your system and leave it ready for a fresh deployment.
+Before trying to run another cloud deployment, especially when switching
+to a different cloud model, please run the cleanup-slave script found in
+ardana-dev-tools/bin; this should clean up everything on your system and
+leave it ready for a fresh deployment.
 
-Warning: that the cleanup-slave is quite destructive and if there are
+If you just want to recreate the same cloud again, you can instead use
+then *--pre-destroy* with the *astack.sh* command which will ensure that
+any existing instance of the Vagrant cloud is destroyed before bringing
+up the specified cloud.
+
+_*WARNING*_: The cleanup-slave is quite destructive and if there are
 other, non-Ardana, vagrant libvirt VM's running on the system it will
 likely remove them, or break their network configurations, if they exist
-in the default namespaces.
+in the default libvirt namespaces.
 
 
 ## Deploy Ardana using astack.sh
@@ -260,7 +296,7 @@ Add the following parameters for more options:
                             inputs; will fail if you haven't previously
 			    downloaded and cached the required artifacts)
     --no-build             (Don't build venvs, reuse existing packages)
-    --pre-destroy          (Destroy and existing instance of the vagrant
+    --pre-destroy          (Destroy any existing instance of the Vagrant
                             cloud before trying to deploy it)
     --no-config            (Don't automatically compile the cloud model and
                             prepare the scratch area after previsioning cloud;
@@ -284,8 +320,8 @@ Add the following parameters for more options:
 
 ### Useful tools
 
-Once a cloud has been deployed, astack.sh will ensure that the files are
-created under the ardana-vagrant-models/$cloud-vagrant directory that can
+Once a cloud has been deployed, astack.sh will ensure that these files are
+created under the ardana-vagrant-models/${cloud}-vagrant directory that can
 make it easier to work with an astack managed cloud.
 
 #### astack-ssh-config
@@ -410,7 +446,8 @@ For example,
 
     export ARDANA_SITE=provo
 
-NOTE: Currently the only defined site is Provo.
+*NOTE*: Currently the only defined site is Provo, which is therefore the
+default site, so this step isn't necessary.
 
 ### Steps to manually setup and verify the developer environment
 
