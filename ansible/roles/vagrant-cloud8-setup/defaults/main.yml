@@ -39,12 +39,14 @@ c8setup:
       path: "OS"
       name: "{{ sles.artifacts.iso.os.name }}"
       alias: "{{ sles.artifacts.iso.os.alias }}"
+      iso_link: "{{ sles.artifacts.iso.os.link }}"
       distro: sles
       enabled: true
     - dev: /dev/sr1
       path: "C8"
       name: "{{ cloud8.artifacts.iso[_c8_flavour].media1.name | replace('.iso', '') }}"
       alias: "{{ cloud8.artifacts.iso[_c8_flavour].media1.alias }}"
+      iso_link: "{{ cloud8.artifacts.iso[_c8_flavour].media1.link }}"
       enabled: true
       distro: sles
     - dev: /dev/sr2
@@ -52,6 +54,7 @@ c8setup:
       name: "{{ rhel.artifacts.iso.os.name }}"
       alias: "{{ rhel.artifacts.iso.os.alias }}"
       gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+      iso_link: "{{ rhel.artifacts.iso.os.link }}"
       distro: rhel
       enabled: true
   repos:

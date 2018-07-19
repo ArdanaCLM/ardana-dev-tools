@@ -468,10 +468,12 @@ fi
 
 if [ -z "${SKIP_EXTRA_PLAYBOOKS}" -o -n "$COBBLER_NODES" \
      -o -n "$COBBLER_ALL_NODES" ]; then
-    # If requested via arguments, upload the distro ISOs to the deployer
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
-        $DEVTOOLS/ansible/upload-distro-isos-to-deployer.yml \
-        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+    if [ -z "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
+        # If requested via arguments, upload the distro ISOs to the deployer
+		ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+            $DEVTOOLS/ansible/upload-distro-isos-to-deployer.yml \
+            -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+    fi
 
     $SCRIPT_HOME/run-in-deployer.sh \
         "$SCRIPT_HOME/deployer/cobbler-deploy.sh" "$ARDANAUSER" || logfail deploy

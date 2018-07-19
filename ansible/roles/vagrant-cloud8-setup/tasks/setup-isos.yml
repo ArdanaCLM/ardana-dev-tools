@@ -48,3 +48,16 @@
     - item.stat.exists
     - item.item.enabled | bool
   with_items: _isos_attached_result.results
+
+- name: vagrant-cloud8-setup | setup-isos | Setup ISO symlinks
+  become: yes
+  file:
+    name: "{{ image_build_user_home }}/{{ item.item.iso_link }}"
+    src: "{{ item.item.dev }}"
+    state: link
+  when:
+    - not (item | skipped)
+    - item.stat.exists
+    - item.item.enabled | bool
+    - item.item.iso_link is defined
+  with_items: _isos_attached_result.results
