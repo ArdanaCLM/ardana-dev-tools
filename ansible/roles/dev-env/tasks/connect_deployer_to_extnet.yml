@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -34,14 +34,22 @@
   command: vconfig set_name_type VLAN_PLUS_VID_NO_PAD
 
 - name: dev-env | connect_deployer_to_extnet | Find the bridge name of ext-net
-  shell: >
-    ifconfig |
-    grep -B1 {{ dev_env_ext_net.bridge_ip }} |
-    awk '{print $1; exit}'
-  register: net_if
+  set_fact:
+    bridge_if: >
+      {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
+      {%- set _if_fact = 'ansible_' + _if_name %}
+      {%- set _if = hostvars[inventory_hostname][_if_fact] %}
+      {%-   if _if.ipv4 is defined %}
+      {%-     if _if.ipv4.address is defined %}
+      {%-       if _if.ipv4.address == dev_env_ext_net.bridge_ip %}
+      {{- _if.device }}
+      {%-       endif %}
+      {%-     endif %}
+      {%-   endif %}
+      {%- endfor %}
 
 - name: dev-env | connect_deployer_to_extnet | Create a vlan on virtual bridge
-  command: vconfig add {{ net_if.stdout }} {{ dev_env_ext_net.vlan }}
+  command: vconfig add {{ bridge_if }} {{ dev_env_ext_net.vlan }}
 
 - name: dev-env | connect_deployer_to_extnet | Bring up the ip link for vlan
   command: ip link set vlan{{ dev_env_ext_net.vlan }} up

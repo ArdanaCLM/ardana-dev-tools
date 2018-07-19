@@ -13,8 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant package, including any dependencies,
-# for the current platform.
+# Install the specified vagrant package for the current platform.
 ---
 
 - name: dev-env-vagrant | install-package | Report version being installed

@@ -13,19 +13,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant package for Debian family
+# Install the Debian family requirements for the vagrant package
 ---
 
-- name: dev-env-vagrant | install-package-debian | Removing existing vagrant package
+- name: dev-env-vagrant | install-requirements-debian | Install dependencies
   become: yes
   apt:
-    name: vagrant
-    state: absent
-  when:
-    - vagrant_current_version != ""
-
-- name: dev-env-vagrant | install-package-debian | Install vagrant package
-  become: yes
-  apt:
-    deb: "{{ vagrant_download.cache_dir }}/vagrant_{{
-             vagrant_required_version }}_x86_64.deb"
+    state: present
+    name: "{{ item }}"
+  with_items: "{{ vagrant_requirements.pkgs.debian }}"

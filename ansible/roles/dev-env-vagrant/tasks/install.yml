@@ -16,7 +16,10 @@
 # Tasks requires to install vagrant and specified plugins
 ---
 
-- name: dev-env-vagrant | install | Report desired Vagrant version if installed
+- name: dev-env-vagrant | install | Install Vagrant requirements
+  include: install-requirements.yml
+
+- name: dev-env-vagrant | install | Report desired Vagrant version
   debug:
     msg: "Installing Vagrant {{ vagrant_runtime_version }} environment"
 
@@ -32,6 +35,11 @@
   when:
     - vagrant_plugins_version != vagrant_installed_version
 
+- name: dev-env-vagrant | install | Apply Vagrant workarounds if needed
+  include: apply-workarounds.yml
+  when:
+    - vagrant_settings.workarounds is defined
+
 - name: dev-env-vagrant | install | Install Vagrant plugins using build version
   include: install-plugins.yml
 
@@ -43,4 +51,10 @@
     vagrant_current_version: "{{ vagrant_plugins_version }}"
     vagrant_required_version: "{{ vagrant_runtime_version }}"
   when:
+    - vagrant_runtime_version != vagrant_plugins_version
+
+- name: dev-env-vagrant | install | Apply Vagrant workarounds if needed
+  include: apply-workarounds.yml
+  when:
+    - vagrant_settings.workarounds is defined
     - vagrant_runtime_version != vagrant_plugins_version

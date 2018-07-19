@@ -40,6 +40,19 @@ vagrant_download:
   url_base: "https://releases.hashicorp.com/vagrant"
   cache_dir: "{{ ardana_cache_vagrant_dir }}"
 
+vagrant_requirements:
+  pkgs:
+    suse:
+      - gcc-c++
+      - libvirt-devel
+      - make
+      - patch
+      - pkg-config
+    debian:
+      - build-essential
+      - libvirt-dev
+      - pkg-config
+
 vagrant_series_settings:
   series:
     # For 1.7 series we need to build plugins with 1.7.4 because in
@@ -64,17 +77,6 @@ vagrant_series_settings:
           patch:
             file: "vagrant-openstack-plugin-0.11.1/create_server.rb.patch"
             subdir: "gems"
-      pkgs:
-        suse:
-          - gcc-c++
-          - libvirt-devel
-          - make
-          - patch
-          - pkg-config
-        debian:
-          - build-essential
-          - libvirt-dev
-          - pkg-config
     "1.8":
       versions:
         plugins: "{{ vagrant_version }}"
@@ -87,17 +89,14 @@ vagrant_series_settings:
           patch:
             file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
             subdir: "gems"
-      pkgs:
-        suse:
-          - pkg-config
-        debian:
-          - build-essential
-          - pkg-config
-          - libvirt-dev
     "1.9":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
+      workarounds:
+        suse:
+          libreadline:
+            "42.3": 6
       plugins:
         - name: "vagrant-proxyconf"
           version: "1.5.2"
@@ -106,17 +105,14 @@ vagrant_series_settings:
           patch:
             file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
             subdir: "gems/2.3.4"
-      pkgs:
-        suse:
-          - pkg-config
-        debian:
-          - build-essential
-          - pkg-config
-          - libvirt-dev
     "2.0":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
+      workarounds:
+        suse:
+          libreadline:
+            "15.0": 7
       plugins:
         - name: "vagrant-proxyconf"
           version: "1.5.2"
@@ -125,17 +121,14 @@ vagrant_series_settings:
           patch:
             file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
             subdir: "gems/2.4.4"
-      pkgs:
-        suse:
-          - pkg-config
-        debian:
-          - build-essential
-          - pkg-config
-          - libvirt-dev
     "2.1":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
+      workarounds:
+        suse:
+          libreadline:
+            "15.0": 7
       plugins:
         - name: "vagrant-proxyconf"
           version: "1.5.2"
@@ -144,13 +137,6 @@ vagrant_series_settings:
           patch:
             file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
             subdir: "gems/2.4.4"
-      pkgs:
-        suse:
-          - pkg-config
-        debian:
-          - build-essential
-          - pkg-config
-          - libvirt-dev
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"
 

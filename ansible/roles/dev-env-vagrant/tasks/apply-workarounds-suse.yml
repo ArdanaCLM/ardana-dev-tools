@@ -1,0 +1,53 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Apply any SUSE family specific workarounds for vagrant version
+#
+# Due to using an embedded Vagrant RPM built for CentOS/RHEL platforms we
+# sometimes need to implement workarounds/tweaks to the installed Vagrant
+# tree to avoid problems building vagrant plugins
+---
+
+- name: dev-env-vagrant | apply-workarounds-suse | Check for workarounds?
+  set_fact:
+    _workarounds: >
+      {{ vagrant_settings.workarounds.suse | default({}) }}
+
+- name: dev-env-vagrant | apply-workarounds-suse | No workarounds found?
+  set_fact:
+    _workarounds: >
+      {{ {} }}
+  when:
+    _workarounds is not defined
+
+# As per https://github.com/hashicorp/vagrant/issues/8986 we can hit issues
+# where an embedded libreadline.so.X isn't viable on openSUSE releases but
+# the can be worked around by renaming the offending file with a .disabled
+# extension; this causing the plugin build process to resolve the missing
+# dependency using the equivalent system libraries.
+- name: dev-env-vagrant | apply-workarounds-suse | Need libreadline workaround?
+  become: yes
+  shell: |
+    lrso_pre=/opt/vagrant/embedded/lib/libreadline.so
+    lrso_ver={{ _workarounds.libreadline[ansible_distribution_version] }}
+    lrso=${lrso_pre}.${lrso_ver}
+
+    if [ -e "${lrso}" ]; then
+      mv ${lrso} ${lrso}.disabled
+    fi
+  when:
+    - _workarounds is defined
+    - _workarounds.libreadline is defined
+    - ansible_distribution_version in _workarounds.libreadline
