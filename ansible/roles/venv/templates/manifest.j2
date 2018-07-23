@@ -11,10 +11,6 @@ environment:
 {% endfor %}
   deployer_version: {{ deployer_version }}
   pip_mirror: {{ pip_mirror }}
-{% if ansible_os_family | lower == 'debian' %}
-  hlinux_baseline:
-    {{ apt_repos.baseline | to_yaml | indent(4) }}
-{% endif %}
 
 # Git source SHA1(s)
 git:

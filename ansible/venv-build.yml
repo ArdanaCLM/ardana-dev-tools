@@ -54,7 +54,7 @@
         # then this will limit the packages structure if the packages are available
         # for the OS. Currently we don't need cinder venv package for RHEL so
         # if the user specifies -e '{"packages":["cinder"]}' then we only build
-        # cinder on hlinux.
+        # cinder on SLES.
         # See the venv_os_FOO.yml file for the per-os-flavour definition of
         # packages_dist_os.
         _venv_packages: "{{ packages_dist_os |

@@ -1,8 +1,0 @@
-#!/bin/bash
-set -uex
-set -o pipefail
-SCRIPTDIR=$(dirname $0)
-
-install-packages acpid
-install -m 766 -o root -g root ${SCRIPTDIR}/powerbtn.sh /etc/acpi/powerbtn.sh
-install -m 644 -o root -g root ${SCRIPTDIR}/powerbtn /etc/acpi/events/powerbtn

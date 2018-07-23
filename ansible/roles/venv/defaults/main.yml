@@ -55,9 +55,6 @@ venv_sshd_config_settings:
   - regexp: "^#?\\s*MaxStartups\\s+"
     line: "MaxStartups {{ _venv_sshd_max_sessions }}:30:{{ _venv_sshd_max_sessions }}"
 
-# For legacy we don't include distro info in the directory
-# name. The default is hlinux
-venv_cache_dir_debian: "{{ dev_env_scratch_dir }}/debian"
 venv_cache_dir_redhat: "{{ dev_env_scratch_dir }}/redhat"
 venv_cache_dir_suse : "{{ dev_env_scratch_dir }}/suse"
 

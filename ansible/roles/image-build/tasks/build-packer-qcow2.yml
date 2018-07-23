@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Create a hlinux qcow2
+# Create a qcow2 for specified image_build_name
 ---
 
 - name: image-build | build-packer-qcow2 | Create local directories if necessary

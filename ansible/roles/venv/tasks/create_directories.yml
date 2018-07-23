@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -37,18 +37,6 @@
     dest: "{{ VENV.WHEEL_DIR }}"
     state: absent
   when: _venv_ardana_sources_result.changed
-
-- name: venv | create_directories | Check hlinux version reference
-  template:
-    src:  hlinux.j2
-    dest: "{{ VENV.STATE_DIR }}/hlinux.version"
-  register: _venv_hlinux_repo_result
-
-- name: venv | create_directories | Clear down persistant wheel cache if new hlinux version found
-  file:
-    dest: "{{ VENV.WHEEL_DIR }}"
-    state: absent
-  when: _venv_hlinux_repo_result.changed
 
 - name: venv | create_directories | Clear down virtual environments from stale builds
   file:

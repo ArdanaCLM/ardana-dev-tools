@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Called by upgrade CI to attach the correct hlinux ISO to the deployer
+# Called by upgrade CI to attach the correct ISO to the deployer
 # we want to upgrade.
 # This needs to be called with -e cloud=blah and optionally with
 # -e deployernode=deployer
@@ -23,12 +23,12 @@
 - hosts: localhost
   connection: local
   roles:
-    - apt-repos
+    - dev-env-cloud8
   tasks:
     - name: vagrant-attach-upgrade-iso | Run virsh command to attach new ISO
       shell: |
         virsh attach-disk {{ cloud }}-vagrant_{{ deployernode | default('deployer') }} \
-            {{ hlinux_iso }} hda --type cdrom --mode readonly
+            {{ ardana_images_dir }}/cloud8.iso hda --type cdrom --mode readonly
       register: attach_disk_result
       # Required for an intermitant eject QEMU bug in version 2.5.0 (ubuntu 16.04)
       until: (attach_disk_result | success)

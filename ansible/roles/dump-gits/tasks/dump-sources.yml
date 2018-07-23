@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,8 +16,6 @@
 #
 # Dump out the source git locations
 ---
-- include_vars: roles/image-build/defaults/git-repos.yml
-
 - name: dump-gits | dump-sources | Write out manifest of all git sources
   delegate_to: localhost
   template:

@@ -31,8 +31,6 @@
         vagrant_vm_cdrom_dev: "{{ vagrant_vm_sdk_dev }}"
         vagrant_vm_cdrom_mount_path: "{{ vagrant_vm_sdk_mount_path }}"
       when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
-    - include: roles/vagrant-vm/tasks/setup-apt.yml
-      when: ansible_os_family | lower == 'debian'
     - include: roles/vagrant-vm/tasks/setup-yum.yml
       when: ansible_os_family | lower == 'redhat'
     - include: roles/vagrant-vm/tasks/setup-zypper.yml
@@ -42,11 +40,3 @@
             dev_env_use_sles12_net_repos|bool
     - include: roles/vagrant-vm/tasks/setup-sles-extras-repos.yml
       when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
-    - include: roles/vagrant-vm/tasks/setup-persistent-filesystem.yml
-      vars:
-        device: "/dev/vda"
-        persistent_cache_qcow2: "persistent-ardana-cache-hlinux.qcow2"
-        persistent_dir: "/tmp/persistent"
-        persistent_min_size: 11000000
-        persistent_cleanup_min_size: 7340032
-      when: ansible_os_family | lower == 'debian'

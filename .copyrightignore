@@ -22,3 +22,6 @@ tools/elements/ardanauser/install.d/50-user
 ansible/roles/lint/files/requirements.txt
 ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-openstack-plugin-0.11.1/create_server.rb.patch
 ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch
+build-vagrant/README.md
+ansible/roles/venv/templates/manifest.j2
+ansible/roles/artifact-publisher/README.md

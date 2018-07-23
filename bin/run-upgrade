@@ -204,7 +204,7 @@ export ARDANA_SLES_ARTIFACTS=1
 if test -n "$CI" -a "$cloud" = "standard" || test -n "$ARDANA_RHEL_COMPUTE_NODES" \
                                          || test -n "$ARDANA_SLES_COMPUTE_NODES" ; then
 
-    # This script gets the latest hLinux iso including RHEL ISO and SLES ISO.
+    # This script gets the latest Cloud8 iso including RHEL ISO and SLES ISO.
     $SCRIPT_HOME/build-distro-artifacts
 fi
 

@@ -26,14 +26,10 @@ sites_default:
     apt:
       host: apt.suse.provo.cloud
       port:
-      repo_path: apt/hlinux-deejay.us.rdlabs.hpecorp.net/
     artefact:
       host: tarballs.suse.provo.cloud
       port:
       use_proxy: no
-    hlinux_iso:
-      host: tarballs.suse.provo.cloud
-      path: mirror-hlinux/hlinux-deejay.usa.hp.com/hLinux-iso/archive/blaster
     ardana_artifacts_host: http://ardana.suse.provo.cloud
     ibs:
       #host: ibs-mirror.prv.suse.net

@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Package build artefacts into the hlinux ISO
+# Package build artefacts into the product ISO
 ---
 - name: isogen | isogen | Validate isogen environment
   fail:
@@ -30,10 +30,6 @@
     output_iso: "{{ isogen_working_dir }}/output/{{ output_version }}.iso"
 
 - debug: var=output_iso
-
-- set_fact:
-    input_iso: "{{ hlinux_iso }}"
-  when: not isogen_produce_sles_iso
 
 - set_fact:
     input_iso: "{{ sles12_iso }}"

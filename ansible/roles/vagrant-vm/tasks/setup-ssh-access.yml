@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -29,9 +29,3 @@
     dest: "~/.ssh/authorized_keys"
     line: "{{ item }}"
   with_lines: cat id_rsa.pub
-
-- name: vagrant-vm | setup-ssh-access | Add default hostname to /etc/hosts
-  become: yes
-  lineinfile:
-    dest: /etc/hosts
-    line: "127.0.0.1 hlinux"

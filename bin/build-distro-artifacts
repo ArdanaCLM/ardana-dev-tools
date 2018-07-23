@@ -27,15 +27,5 @@ source $(dirname $0)/libci.sh
 
 pushd $DEVTOOLS/ansible
 ansible-playbook -i hosts/localhost get-ardana-artifacts.yml
-ansible-playbook -i hosts/localhost get-hlinux-iso.yml
-ansible-playbook -i hosts/localhost get-guest-images.yml
 # Build the image after getting the artifacts
 ansible-playbook -i hosts/localhost image-build-vagrant-box.yml
-export BUILD_HLINUX_OVA=${BUILD_HLINUX_OVA:-}
-if [ -n "${BUILD_HLINUX_OVA}" ]; then
-  $DEVTOOLS/bin/pre-ova-build.bash
-  ansible-playbook -i hosts/localhost image-build-ova.yml \
-                                        -e qcow2_build_tool="DIB"
-else
-  ansible-playbook -i hosts/localhost get-ova-file.yml
-fi

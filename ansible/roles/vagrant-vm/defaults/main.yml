@@ -31,8 +31,6 @@ vagrant_vm_cdrom_dev: /dev/sr0
 vagrant_vm_sdk_mount_path: /media/sdk
 vagrant_vm_sdk_dev: /dev/sr1
 
-vagrant_vm_existing_apt_repo: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/hlinux/"
-
 vagrant_vm_yum_repo_name: DVD
 vagrant_vm_yum_repo_url: "file://{{ vagrant_vm_cdrom_mount_path }}"
 

@@ -23,7 +23,6 @@ deployer_ansible_dir: "{{ deployer_build_dir }}/ansible"
 deployer_apt_dir: "{{ deployer_build_dir }}/apt"
 deployer_config_dir: "{{ deployer_build_dir }}/config"
 deployer_input_model_dir: "{{ dev_env_scratch_dir }}/input-model"
-deployer_hlinux_venv_dir: "{{ deployer_build_dir }}/venvs"
 deployer_ardana_extensions_dir: "{{ deployer_build_dir }}/ardana-extensions"
 
 _deployer_timestamp: "-{{ '%Y%m%dT%H%M%SZ' | time_format }}"
@@ -48,7 +47,6 @@ deployer_filter_plugins:
 deployer_ansible_tarball: "{{ deployer_version }}/ansible.tgz"
 deployer_config_tarball: "{{ deployer_version }}/config.tgz"
 deployer_input_model_tarball: "{{ deployer_version }}/ardana-input-model.xz"
-deployer_hlinux_venv_tarball: "{{ deployer_version }}/hlinux_venv.tar"
 deployer_ardana_extensions_tarball: "{{ deployer_version }}/ardana-extensions.tgz"
 deployer_init_script: "{{ deployer_version }}/ardana-init.bash"
 
@@ -171,7 +169,6 @@ _deployer_virtual_configuration:
     line: "max_connections\\1= 1000"
 
 _deployer_iso_mounts:
-  hlinux: /media/cdrom0
   rhel: /media/rhel
   sles: /media/sles
   sles_sdk: /media/sles_sdk

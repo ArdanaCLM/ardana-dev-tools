@@ -2,7 +2,7 @@ Build-box vagrant environment
 =============================
 
 This is currently a cheap-as-chips vagrant environment that sets
-up a single hlinux-based buildbox.
+up SLES or RHEL buildboxes.
 
 The venv-packaging (and potentially other stuff requiring a
 scratch environment) uses this as a staging machine for builds.

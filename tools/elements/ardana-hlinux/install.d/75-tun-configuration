@@ -1,5 +1,0 @@
-#!/bin/bash
-
-if ! grep -q '^tun$' /etc/modules; then
-    echo tun >> /etc/modules
-fi

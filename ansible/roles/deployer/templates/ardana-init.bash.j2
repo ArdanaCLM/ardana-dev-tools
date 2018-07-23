@@ -99,15 +99,9 @@ fi
 sudo mkdir -p "${ansible_package_dir}"
 sudo mkdir -p "${ansible_service_dir}"
 # Extract the Ansible venv from the venv tarball.
-if [ "${OS,,}" == "sles" ]; then
-   sudo tar xOf "${ardana_output_dir}/{{ deployer_sles12_venv_tarball }}" \
-     "./ansible-{{ deployer_version }}.tgz" |
-     sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
-else
-   sudo tar xOf "${ardana_output_dir}/{{ deployer_hlinux_venv_tarball }}" \
-     "./ansible-{{ deployer_version }}.tgz" |
-     sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
-fi
+sudo tar xOf "${ardana_output_dir}/{{ deployer_sles12_venv_tarball }}" \
+  "./ansible-{{ deployer_version }}.tgz" |
+  sudo tar zx --owner "root" --group "root" -C "${ansible_package_dir}"
 
 sudo ln -sf "${ansible_package_dir}" "${ansible_service_dir}/venv"
 sudo rm -f "${ansible_generic_service_dir}"
@@ -165,8 +159,7 @@ ansible-playbook -i hosts/localhost ansible-init.yml -e \
 popd &>/dev/null
 
 # Create base venv package manifest
-declare -a dir_list=( {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.hlinux[ansible_architecture] }} \
-                      {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.rhel[ansible_architecture] }} \
+declare -a dir_list=( {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.rhel[ansible_architecture] }} \
                       {{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/{{ package_venv_locations.sles[ansible_architecture] }} )
 for dir in "${dir_list[@]}"; do
     if [ -e "$dir/packages" ]; then

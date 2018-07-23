@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,7 +20,7 @@
 # This gets converted to box in covert-qcow2-to-box.yml
 - include: _get_artifact.yml
   vars:
-    artifact_url_use_proxy: "{{ hlinux_iso_url_use_proxy }}"
+    artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/saved_qcow2s/RHEL"
     artifact: "rhel-7-user-{{ image_build_user }}.qcow2"
     artifact_alias: "{{ artifact }}"

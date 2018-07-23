@@ -862,12 +862,6 @@ module Ardana
       @config.proxy.http = ENV["http_proxy"] if ENV["http_proxy"]
       @config.proxy.https = ENV["https_proxy"] if ENV["https_proxy"]
       @config.proxy.no_proxy = ENV["no_proxy"] if ENV["no_proxy"]
-
-      # BUG-626 - override the http proxies for now. We are in effect
-      # configuring apt to go direct to apt host so proxies are been
-      # bypassed.
-      @config.apt_proxy.http = ""
-      @config.apt_proxy.https = ""
     end
 
     #

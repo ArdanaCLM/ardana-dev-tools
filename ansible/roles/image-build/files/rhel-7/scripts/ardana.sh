@@ -1,1 +1,1 @@
-../../hlinux/scripts/ardana.sh
+../../sles-12/scripts/ardana.sh

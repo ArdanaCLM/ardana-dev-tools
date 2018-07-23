@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -17,57 +17,10 @@
 # Ardana image-build variables
 ---
 
-ironic_deploy_elements:
-  hlinux:
-   - "ardana-hlinux"
-   - "apt-sources"
-   - "ironic-agent"
-#   - "iso"
-#   - "grub2"
-   - "proliant-tools"
+guest_images: []
 
-image_build_elements:
-  hlinux:
-    - "ardana-hlinux"
-    - "apt-sources"
-    - "ardanauser"
-    - "vm"
+guest_images_metadata: {}
 
-  octavia-amphora-haproxy:
-    - "ardana-hlinux"
-    - "apt-sources"
-    - "vm"
-    - "amphora-agent"
-    - "haproxy-octavia"
-    - "keepalived-octavia"
-    - "pip-manifest"
-    - "ardana-pip-and-virtualenv"
-    - "pyroute2"
-    - "no-resolvconf"
-    - "remove-documentation"
-    - "remove-translations"
+guest_images_service_type: {}
 
-image_build_options:
-  hlinux: "-p parted,gdisk -l {{ vagrant_vm_vg }}"
-  octavia-amphora-haproxy: "-p parted"
-
-image_build_names:
-  hlinux: hlinux
-  octavia-amphora-haproxy: octavia-amphora-x64-haproxy
-
-guest_images:
-  - octavia-amphora-haproxy
-
-guest_images_metadata:
-  octavia-amphora-haproxy:
-    agent-version: HOS-3.0.0-liberty
-
-guest_images_service_type:
-  octavia-amphora-haproxy: octavia
-
-guest_images_archive:
-  octavia-amphora-haproxy:
-    alias: "octavia-amphora-haproxy"
-    filename: "octavia-amphora-haproxy-guest-image.tgz"
-    path: "/octavia/octavia-amphora-haproxy-guest-image_01-260.tgz"
-    sha256: "f91ef0a03249d7cfe8f4492245ba67b9d49afaa97006113695258dabeea5f9a6"
+guest_images_archive: {}

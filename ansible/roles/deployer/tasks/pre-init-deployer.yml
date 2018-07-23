@@ -197,13 +197,3 @@
     line: '\1C.DEFAULT_MAX_FAIL_PCT\2'
     backrefs: yes
     state: present
-
-- name: deployer | pre-init-deployer | Upload OVA image into deployer
-  become: yes
-  copy:
-    src: "{{ image_build_output_dir}}/ova/hlinux.ova"
-    dest: "{{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ deployer_version }}/ova_images/hlinux.ova"
-    owner: "{{ image_build_user }}"
-    group: "{{ image_build_user }}"
-    mode: 0644
-  when: "{{ lookup('env', 'BUILD_HLINUX_OVA') | default(False, true) }}"

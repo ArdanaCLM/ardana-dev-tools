@@ -1,6 +1,0 @@
-#!/bin/bash
-set -uex
-set -o pipefail
-SCRIPTDIR=$(dirname $0)
-
-touch /etc/init.d/.legacy-bootordering

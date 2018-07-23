@@ -1,5 +1,0 @@
-#!/bin/bash
-cat <<EOF > /etc/dpkg/dpkg.cfg.d/02_notranslations
-path-exclude /usr/share/locale/*
-path-include /usr/share/locale/en*
-EOF

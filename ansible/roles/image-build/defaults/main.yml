@@ -30,32 +30,7 @@ _image_timestamp: "{{ '%Y%m%dT%H%M%SZ' | time_format() }}"
 _image_suffix: "{{ image_version_suffix | default() }}"
 image_version: "1.0.{{ image_version_update | default(_image_timestamp + _image_suffix) }}"
 
-image_build_hlinux_box: "{{ dev_env_working_dir }}/hlinux.box"
-
 image_build_log_dir: "{{ lookup('env', 'WORKSPACE') | default(dev_env_working_dir, true) }}/logs/image-build/"
-# Files to include in the artifact
-image_artifact_sources: "boot.qcow2 sources.list"
-
-image_build_venv: "{{ dev_env_working_dir }}/tools/venvs/dib-venv"
-
-image_build_apt_sources: "{{ image_build_output_dir }}/sources.list"
-
-image_build_dib_env:
-    PATH: "{{ dev_env_working_dir }}/tools/diskimage-builder/bin:{{ image_build_venv }}/bin:{{ lookup('env', 'PATH') }}"
-    ELEMENTS_PATH: "{{ dev_env_working_dir }}/tools/elements"
-    DIB_DEBIAN_DISTRO_NAME: "hlinux"
-    DIB_APT_SOURCES: "{{ image_build_apt_sources }}"
-    DIB_DISTRIBUTION_MIRROR: "{{ apt_repos.baseline | apt_distribution }}"
-    DIB_RELEASE: "{{ apt_repos.baseline.codename }}"
-    DIB_DEBIAN_DEBOOTSTRAP_SCRIPT: "{{ dev_env_working_dir }}/tools/debootstrap/hLinux"
-    DIB_DEBIAN_USE_CACHED_IMAGE: "1"
-    DIB_IMAGE_CACHE: "{{ image_build_output_dir }}"
-    OVERWRITE_OLD_IMAGE: "1"
-    ARDANAUSER: "{{ image_build_user }}"
-    DIB_REPOLOCATION_amphora_agent: "{{ dev_env_default_git_server }}/openstack/octavia.git"
-    DIB_REPOREF_amphora_agent: "{{ dev_env_artifact_branch }}"
-    DIB_PYPI_MIRROR_URL: "{{ pip['base_url'] }}/simple"
-    DIB_PYPI_TRUSTED_HOST: "{{ pip['host'] }}"
 
 image_build_packer_env:
     PATH: "{{ packer_path }}:{{ lookup('env', 'PATH') }}"
@@ -73,17 +48,5 @@ images_build_images:
         vagrant_box_name: sles12box
         vagrant_box_desc: This box contains SLES 12
         install_template: sles-12/autoyast.xml
-    hlinux:
-        box: "hlinux.box"
-        vagrant_box_name: hlinuxbox
-        vagrant_box_desc: This box contains hLinux
-        install_template: hlinux/preseed.cfg
-        guest: :debian
 
 vagrant_vm_vg: ardana-vg
-
-ironic_deploy_image_name: "ironic-deploy"
-
-# hlinux ova disk size in GB
-ova_disk_size: "{{ lookup('env','HLINUX_OVA_DISK_SIZE')|default('40', true) }}"
-ova_username: "{{ lookup('env','HLINUX_OVA_USER_NAME')|default('stack', true) }}"

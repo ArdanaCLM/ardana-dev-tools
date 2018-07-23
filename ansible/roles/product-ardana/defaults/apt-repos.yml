@@ -18,27 +18,7 @@
 # where we can re-use else where.
 ---
 
-apt_repos:
-  baseline:
-    archive: "hLinuxArchive/2017/hos4.0.4_ga-1/"
-    codename: cattleprod
-    dists:
-      - main
-      - contrib
-      - non-free
-    mirror: "http://{{ dev_env_site_config['apt']['host'] }}{%- if dev_env_site_config['apt']['port'] is not none -%}:{% endif %}{{ dev_env_site_config['apt']['port'] }}/{{ dev_env_site_config['apt']['repo_path'] }}"
-#    mirror: "http://hlinux-deejay.us.rdlabs.hpecorp.net/"
-
-_hlinux_iso: "{{ dev_env_site_config.hlinux_iso | default({'path': 'hLinux-iso/archive/blaster', 'host': 'hlinux-deejay.us.rdlabs.hpecorp.net'}) }}"
-hlinux_iso_url_base: "http://{{ _hlinux_iso.host }}/{{ _hlinux_iso.path }}"
-
-hlinux_iso_url_use_proxy: "{{ dev_env_site_config['artefact']['use_proxy'] | default('no') }}"
-
-hlinux_iso_archive: "hLinux-cattleprod-amd64-blaster-netinst-20170928-4.0.4_ga-1.iso"
-
-hlinux_ova_archive:
-  path: "/ova/hLinux-template-20160919T121725.ova"
-  sha256: "70315cbe3f7f91a62bdefdd08448a9c66083452866137f8ea0442e2f52fe4aab"
+artifact_site_use_proxy: "{{ dev_env_site_config['artefact']['use_proxy'] | default('no') }}"
 
 yum_extras_archive:
   path: "/yum-extras/yum-extras-rhel73-20180129-2019.tgz"

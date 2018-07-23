@@ -1,7 +1,7 @@
 Vagrant.configure("2") do |config|
   {% if images_build_images[image_build_name].guest is defined -%}
-  # vagrant cannot auto detect hlinux guests as debian, so supply this
-  # if it's configured for the given box
+  # vagrant sometimes cannot auto detect guests as debian based, so
+  # supply this if it's configured for the given box
   config.vm.guest = {{ images_build_images[image_build_name].guest }}
   {% endif %}
 

@@ -101,51 +101,24 @@ mkdir -p $SCRATCH_INITRD
 if [[ $ISO_SRC = *://* ]]; then
     # Fetch url.
     # Todo: Cache the iso  (under $HOME/.cache/ardana/... ?)
-    HLINUX_ISO=$ISOGEN/$(basename $ISO_SRC)
-    echo "Fetching $ISO_SRC to $HLINUX_ISO..."
-    wget -O$HLINUX_ISO $ISO_SRC
+    BASE_ISO=$ISOGEN/$(basename $ISO_SRC)
+    echo "Fetching $ISO_SRC to $BASE_ISO..."
+    wget -O$BASE_ISO $ISO_SRC
 else
-    HLINUX_ISO=$ISO_SRC
+    BASE_ISO=$ISO_SRC
 fi
 
 cd $ISOGEN
 
 ISO_MOUNT=$(mktemp -d /tmp/create_iso.mount.XXXX)
-sudo mount -o loop $HLINUX_ISO $ISO_MOUNT
+sudo mount -o loop $BASE_ISO $ISO_MOUNT
 pushd $ISO_MOUNT
 tar cf - $(ls -1 -A) | ( cd $SCRATCH; tar xfp -)
 popd
 sudo umount $ISO_MOUNT
 rmdir $ISO_MOUNT
 
-if [ -f $SCRATCH/initrd.gz ]; then
-    # Hlinux ISO
-    cp $SCRATCH/initrd.gz $SCRATCH_INITRD
-    pushd $SCRATCH_INITRD
-    gunzip initrd.gz
-    mkdir -p extracted
-    cd extracted
-    sudo cpio -id < ../initrd
-
-    sudo cp ./preseed.cfg $PRESEED_DIR/preseed.orig
-    sudo cp $PRESEED_DIR/preseed.cfg .
-    sudo cp $SCRIPT_DIR/configure_network.sh ./sbin
-    sudo cp $SCRIPT_DIR/configure_partitioning ./sbin
-    sudo cp $SCRIPT_DIR/configure_kdump ./sbin
-    sudo cp $SCRIPT_DIR/update_fcoe_udev.py ./sbin
-    sudo cp $SCRIPT_DIR/configure_fcoe_udev ./sbin
-    sudo mkdir -p ./files
-    sudo cp $FILES_DIR/* files
-
-    sudo find . | cpio --create --format='newc' > ../newinitrd
-    cd ..
-    gzip newinitrd
-    sudo cp newinitrd.gz $SCRATCH/initrd.gz
-
-    ls -l $SCRATCH/initrd.gz
-
-    popd
-elif [ -f $SCRATCH/boot/x86_64/loader/isolinux.bin ]; then
+if [ -f $SCRATCH/boot/x86_64/loader/isolinux.bin ]; then
     sudo cp -f $SLES_FILES_DIR/isolinux.cfg $SCRATCH/boot/x86_64/loader/
     sudo cp -f $SLES_FILES_DIR/sles12sp3-autoyast.xml $SCRATCH/
     sudo cp -f $SLES_FILES_DIR/add_nic.xslt $SCRATCH/

@@ -1,6 +1,0 @@
-#!/bin/bash
-
-set -e
-
-echo "# apt repositories" | sudo tee ${TARGET_ROOT}/etc/apt/sources.list
-

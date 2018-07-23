@@ -1,7 +1,0 @@
-#!/bin/bash
-
-if [ -d /etc/modprobe.d ]; then
-    cat > /etc/modprobe.d/nbd.conf <<-EOF
-	options nbd max_part=16 nbds_max=64
-	EOF
-fi

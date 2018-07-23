@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -50,9 +50,7 @@
       {%- set _mnts = _deployer_iso_mounts %}
       {%- set _map = [] %}
       {%- for res in _isoinfo_result.results %}
-      {%-   if res.stdout | lower | startswith('hlinux') %}
-      {%-     set _ = _map.append(dict(dev=res.item, dir=_mnts.hlinux)) %}
-      {%-   elif res.stdout | lower | startswith('rhel-') %}
+      {%-   if res.stdout | lower | startswith('rhel-') %}
       {%-     set _ = _map.append(dict(dev=res.item, dir=_mnts.rhel)) %}
       {%-   elif res.stdout | lower | startswith('sle-') %}
       {%-     if '-sdk-' not in res.stdout | lower %}

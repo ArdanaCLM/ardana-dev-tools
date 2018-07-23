@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -50,7 +50,7 @@ def branched_cache_path(source, branch=None):
 
 
 # This is now only used for managing the external URL content that
-# we package up and diskimage-builder.
+# we package up.
 def cache_path(url, base, alternative=None):
     if alternative:
         url = alternative

@@ -18,7 +18,7 @@
 
 - include: _get_artifact.yml
   vars:
-    artifact_url_use_proxy: "{{ hlinux_iso_url_use_proxy }}"
+    artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/RHEL"
     artifact: "RHEL-7.3-20170728-Server-x86_64-dvd.iso"
     artifact_alias: "{{ artifact }}"

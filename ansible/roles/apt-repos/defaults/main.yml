@@ -18,10 +18,6 @@
 
 ardana_images_dir: "{{ product_cache_directory }}/images"
 
-hlinux_iso: "{{ ardana_images_dir }}/hlinux.iso"
-
-ironic_deploy_image_filename: "ironic-deploy-20160609_103319.tgz"
-
 # Optional RHEL support.
 # Location on build host where to find the yum tarball containing the extras repo.
 rhel7_yum_extras_tarball: "{{ ardana_images_dir }}/rhel7-yum{{ yum_extras_archive.path | splitext | last }}"

@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -16,18 +16,12 @@
 #
 # Track all of the versions in the deployer package generated
 ---
-- name: deployer | _write_deployer_manifest | Include other sources info
-  include_vars: "{{ item }}"
-  with_items:
-    - ../../image-build/defaults/git-repos.yml
-
 - name: deployer | _write_deployer_manifest | Register git details
   command: git rev-parse --verify HEAD
   args:
     chdir: "{{ item.value | find_local_repo }}"
   with_dict: deployer_git_repositories | default({}) |
       update(deployer_input_model_repositories | default({})) |
-      update(image_build_git_repositories | default({})) |
       update(deployer_ardana_extensions_repositories | default({}))
   register: _deployer_ansible_sha1_result
 
