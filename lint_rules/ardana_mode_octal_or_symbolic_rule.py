@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,34 +24,45 @@ from ansiblelint import AnsibleLintRule
 class ArdanaModeOctalOrSymbolicRule(AnsibleLintRule):
     id = 'ARDANAANSIBLE0011'
     shortdesc = 'mode must be symbolic, variable or a 4-digit octal'
-    description = ('mode when specified for file, copy and template tasks, '
-                   'must be symbolic (e.g. "u=rw,g=r,o=r"), '
-                   'a variable (e.g. "{{ mode }}") '
-                   'or a 4-digit octal (e.g. 0700, "0700")')
+    description = ('mode must be specified for file, copy and template tasks, '
+                   'and it must be either symbolic (e.g. "u=rw,g=r,o=r"), '
+                   'a variable (e.g. "{{ mode }}"), '
+                   'a 4-digit octal (e.g. 0700, "0700"), '
+                   'or a 5-digit octal (e.g. 01770) if sticky bit is set')
     tags = ['formatting']
     _commands = ['file', 'copy', 'template']
     _ignore_states = ['absent', 'link']
 
     @staticmethod
     def validate_mode(mode):
-        # convert symbolic to octal
-        def rwx_to_oct(string):
-            retval = 0
-            for match, decimal in zip('rwx', [4, 2, 1]):
-                retval += decimal if match in string else 0
-            return retval
-        matched = re.match("u=([rwx]+),g=([rwx]+),o=([rwx]+)", mode)
-        if matched:
-            mode = "0" + ''.join(str(rwx_to_oct(i)) for i in matched.groups())
+        def is_octal_string(string):
+            return re.match('^0[0-7]+', string)
 
-        matched = re.match("0([4567])([04567])([04567])", mode)
-        if not matched:
-            return True
-        user, group, other = (int(i) for i in matched.groups())
+        def is_valid_octal_mode(string):
+             if len(string) == 4:
+                 return re.match('^0[0-7]?[0-7]?[0-7]?$', string)
+             else:
+                 # If this is not a 4-digit octal, we are assuming user
+                 # is specifying the sticky bit.
+                 # The second number must be 1 for sticky bit
+                 return re.match('^01[0-7]?[0-7]?[0-7]?$', string)
 
-        if user < group or group < other:
+        def is_valid_symbolic_mode(string):
+            parts = string.split(',')
+            for part in parts:
+                # NOTE(gyee): This should match the most popular symbolic
+                # representations out there. 't' matches sticky bit and 'X'
+                # matches special execute bit. See
+                # https://en.wikipedia.org/wiki/Chmod
+                if not re.match('^[ugoa]*[+-=]?[rwxXt]+$', part):
+                    return False
             return True
-        return False
+
+        if is_octal_string(mode):
+            return not is_valid_octal_mode(mode)
+        else:
+            return not is_valid_symbolic_mode(mode)
+
 
     def matchtask(self, file, task):
         if sys.modules['ardana_noqa'].skip_match(file):
