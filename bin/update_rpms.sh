@@ -162,14 +162,13 @@ function fix_ardana_rpm {
             BUILD_RPM=python-ardana-configurationprocessor
             ;;
         ardana*)
-            :
             ;;
         *)
             BUILD_RPM=ardana-${REPO/-ansible/}
     esac
 
     cd $OSC_DIR
-    UPDATE_RPM="yes"
+    UPDATE_OSC="yes"
 
     #
     # ardana-configuration-processo is just a special case,
@@ -192,14 +191,15 @@ function fix_ardana_rpm {
     # build code.
     #
     if [[ -d ${ARDANA_OSC_PROJ}/$BUILD_RPM ]]; then
+        (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM}; $IOSC update)
         CPOIO_FILE=$(find ${ARDANA_OSC_PROJ}/${BUILD_RPM}/. -name "*git*.obscpio" | grep -v '\.osc/')
         ARCH_PREFIX=$(basename $CPOIO_FILE .obscpio)
         if grep $ARCH_PREFIX $ARDANA_RPM_LIST_PRUNE; then
-            UPDATE_RPM="no"
+            UPDATE_OSC="no"
         fi
     fi
 
-    if [[ "$UPDATE_RPM" = "yes" ]]; then
+    if [[ "$UPDATE_OSC" = "yes" ]]; then
         rm -rf ${ARDANA_OSC_PROJ}/$BUILD_RPM
         [[ $($IOSC co ${ARDANA_OSC_PROJ}/$BUILD_RPM) ]] || return 1
         CPOIO_FILE=$(find ${ARDANA_OSC_PROJ}/${BUILD_RPM}/. -name "*git*.obscpio" | grep -v '\.osc/')
