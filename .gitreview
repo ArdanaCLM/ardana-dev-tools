@@ -2,5 +2,5 @@
 host=gerrit.suse.provo.cloud
 port=29418
 project=ardana/ardana-dev-tools.git
-defaultbranch=master
 defaultremote=ardana
+defaultbranch=stable/pike
