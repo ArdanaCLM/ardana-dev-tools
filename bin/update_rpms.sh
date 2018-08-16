@@ -34,7 +34,7 @@
 
 eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 
-PUBLISHED_RPMS=${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-staging/suse/noarch/}
+PUBLISHED_RPMS=${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-9-devel-staging/suse/noarch/}
 WORKSPACE=$(cd $(dirname $0)/../.. ; pwd)
 echo WORKSPACE $WORKSPACE
 
@@ -131,7 +131,7 @@ Ardana Lifecycle Management Configuration Processor
 '
 
 IOSC='osc -A https://api.suse.de'
-CURRENT_OSC_PROJ=${CURRENT_OSC_PROJ:-Devel:Cloud:8:Staging}
+CURRENT_OSC_PROJ=${CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
 
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
