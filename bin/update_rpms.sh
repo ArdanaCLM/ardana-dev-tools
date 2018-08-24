@@ -191,7 +191,7 @@ function fix_ardana_rpm {
     # build code.
     #
     if [[ -d ${ARDANA_OSC_PROJ}/$BUILD_RPM ]]; then
-        (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM}; $IOSC update)
+        (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM}; $IOSC update; $IOSC clean)
         CPOIO_FILE=$(find ${ARDANA_OSC_PROJ}/${BUILD_RPM}/. -name "*git*.obscpio" | grep -v '\.osc/')
         ARCH_PREFIX=$(basename $CPOIO_FILE .obscpio)
         if grep $ARCH_PREFIX $ARDANA_RPM_LIST_PRUNE; then
