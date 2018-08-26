@@ -36,9 +36,9 @@ DEPLOYERNODE="$(get_deployer_node)"
 # all the virtual configuration during the vagrant provision below.
 $SCRIPT_HOME/run-in-deployer.sh $SCRIPT_HOME/deployer/clear-ardana-git-for-upgrade.sh
 
-# release.iso -> cloud8.iso
+# release.iso -> cloudX.iso
 # This script moved to an ansible playbook so that we correctly
-# find the location of the cloud8 iso to use.
+# find the location of the cloudX iso to use.
 ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
     $DEVTOOLS/ansible/vagrant-attach-upgrade-iso.yml \
         -e cloud=$CLOUDNAME -e deployernode=$DEPLOYERNODE

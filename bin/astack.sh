@@ -49,10 +49,10 @@ usage() {
     echo "--disable-no-log      -- Remove no_log entries from ansible code"
     echo "                         before deploying to make debugging easier."
     echo "--c8|--cloud8-deployer"
-    echo "                      -- Use Cloud8 deployer setup (default)"
+    echo "                      -- Use SOC/CLM 8 deployer setup (default)"
     echo "--c8-hos              -- Enable HPE Helion OpenStack Cloud mode"
     echo "--c8-soc              -- Enable SUSE OpenStack Cloud mode (default)"
-    echo "--c8-caching          -- Enable caching proxy, running on Cloud8"
+    echo "--c8-caching          -- Enable caching proxy, running on SOC/CLM 8"
     echo "                         deployer, that will be used to access all"
     echo "                         non-local repos"
     echo "--c8-mirror           -- Enable local mirroring of repos (default"
@@ -64,12 +64,27 @@ usage() {
     echo "--c8-updates          -- Use updates & pool repos"
     echo "--c8-pool             -- Use pool repo only"
     echo "--c8-artifacts|cloud8-artifacts"
-    echo "                      -- Use Cloud8 artifacts"
+    echo "                      -- Use SOC/CLM 8 artifacts"
     echo "--c8-qa-tests         -- Enable running of additional QA tests in"
     echo "                         Cloud8 deployments; implicitly enables "
     echo "                         --run-tests"
+    echo "--c9|--cloud9-deployer"
+    echo "                      -- Use SOC/CLM 9 deployer setup (default)"
+    echo "--c9-caching          -- Enable caching proxy, running on SOC/CLM 9"
+    echo "                         deployer, that will be used to access all"
+    echo "                         non-local repos"
+    echo "--c9-mirror           -- Enable local mirroring of repos (default"
+    echo "                         if caching proxy not enabled)"
+    echo "--c9-staging          -- Use staging (DC9S), updates & pool repos"
+    echo "                         (default)"
+    echo "--c9-devel            -- Use devel (DC9), updates & pool repos"
+    echo "--c9-updates-test     -- Use updates-test, updates & pool repos"
+    echo "--c9-updates          -- Use updates & pool repos"
+    echo "--c9-pool             -- Use pool repo only"
+    echo "--c9-artifacts|cloud9-artifacts"
+    echo "                      -- Use SOC/CLM 9 artifacts"
     echo "--legacy              -- Use Lagacy deployer setup, building venvs"
-    echo "                         locally; mutually exclusive with Cloud8"
+    echo "                         locally; mutually exclusive with SOC/CLM"
     echo "                         deployment setup."
     echo "--rhel                -- Include any RHEL artifacts"
     echo "--rhel-compute        -- Switch compute nodes to use rhel"
@@ -166,7 +181,7 @@ feature_ansible() {
 }
 
 # Update RPMs if needed.
-if [ -n "${ARDANA_CLOUD8_DEPLOYER}" ]; then
+if [ -n "${ARDANA_CLOUD_DEPLOYER}" ]; then
     # skip this if NO_UPDATE_RPMS is set
     [ -n "${NO_UPDATE_RPMS:-}" ] || ${SCRIPT_HOME}/update_rpms.sh
 fi
@@ -312,7 +327,7 @@ if [ -z "$NO_BUILD" -a -z "$DEPLOYER_TARBALL" ]; then
     # artifacts should already have been build so skip
     $SCRIPT_HOME/build-venv.sh \
         ${CI:+--ci} \
-        ${ARDANA_CLOUD8_ARTIFACTS:+--cloud8} \
+        ${ARDANA_CLOUD_ARTIFACTS:+--cloud} \
         ${ARDANA_RHEL_ARTIFACTS:+--rhel} \
         ${ARDANA_SLES_ARTIFACTS:+--sles} \
         --no-artifacts \
@@ -375,16 +390,16 @@ logsubunit --inprogress deploy
 
 generate_ssh_config "FORCE"
 
-if [[ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]]; then
+if [[ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]]; then
     # ensure we have up-to-date input model sources if not using
     # a locally cloned ardana-input-model
     ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
         $DEVTOOLS/ansible/get-input-model-sources.yml
 
-    # setup the cloud8 nodes using a similar process to how
+    # setup the SOC/CLM nodes using a similar process to how
     # the customer would in a real deployment
     ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
-        $DEVTOOLS/ansible/cloud8-setup.yml \
+        $DEVTOOLS/ansible/cloud-setup.yml \
         -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
 fi
 
@@ -418,7 +433,7 @@ fi
 
 # If using caching proxy on deployer node, need to update firewall
 # rules to permit access to it.
-if [ -n "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
+if [ -n "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \
         "$SCRIPT_HOME/deployer/add-squid-firewall-rules.sh" "$CLOUDNAME" || logfail deploy
 fi
@@ -468,7 +483,7 @@ fi
 
 if [ -z "${SKIP_EXTRA_PLAYBOOKS}" -o -n "$COBBLER_NODES" \
      -o -n "$COBBLER_ALL_NODES" ]; then
-    if [ -z "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
+    if [ -z "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
         # If requested via arguments, upload the distro ISOs to the deployer
 		ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
             $DEVTOOLS/ansible/upload-distro-isos-to-deployer.yml \
@@ -565,8 +580,8 @@ logsubunit --success deploy
 
 if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
     run_in_args=""
-    # only set --ci option to run-in-deployer if not a Cloud8 deployment
-    if [ \( -n "$CI" \) -a \( -z "${ARDANA_CLOUD8_DEPLOYER}" \)]; then
+    # only set --ci option to run-in-deployer if not a SOC/CLM deployment
+    if [ \( -n "$CI" \) -a \( -z "${ARDANA_CLOUD_DEPLOYER}" \)]; then
         run_in_args="--ci"
     fi
 

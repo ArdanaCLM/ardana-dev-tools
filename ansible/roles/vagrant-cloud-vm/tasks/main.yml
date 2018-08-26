@@ -13,19 +13,13 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# Tasks performed by the vagrant-cloud-vm role.
 ---
 
-- include: mirror-sles-repo.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
+- include: ../../vagrant-vm/tasks/setup-ssh-access.yml
 
-- include: mirror-cloud-repo.yml
+- include: ../../vagrant-vm/tasks/setup-root-partition.yml
+
+- include: setup-proxy-cache.yml
   when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
-  tags:
-    - skip-repos
+    - ardana_proxy_cache_volume is defined

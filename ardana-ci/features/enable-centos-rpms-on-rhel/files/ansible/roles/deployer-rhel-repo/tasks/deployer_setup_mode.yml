@@ -23,14 +23,14 @@
   stat:
     path: "{{ item }}"
   with_items:
-    - "{{ c8setup_mode_detection_paths }}"
-  register: _c8setup_mode_detection_paths_result
+    - "{{ clmsetup_mode_detection_paths }}"
+  register: _clmsetup_mode_detection_paths_result
 
 - name: deployer-rhel-repo | deployer_setup_mode | Set fact if any c8 repo
         mirror or mode detection path exists
   set_fact:
-    _c8setup_mode_path_exists: true
-  with_items: _c8setup_mode_detection_paths_result.results
+    _clmsetup_mode_path_exists: true
+  with_items: _clmsetup_mode_detection_paths_result.results
   when:
     - item.stat is defined
     - item.stat.exists
@@ -43,7 +43,7 @@
   set_fact:
     cloudsetup_legacy_mode: false
   when:
-    - _c8setup_mode_path_exists | bool
+    - _clmsetup_mode_path_exists | bool
     - devtools_rhel_setup | bool
 
 - name: deployer-rhel-repo | deployer_setup_mode | Set fact for cloud setup
@@ -51,7 +51,7 @@
   set_fact:
     cloudsetup_legacy_mode: true
   when:
-    - not ( _c8setup_mode_path_exists | bool )
+    - not ( _clmsetup_mode_path_exists | bool )
     - devtools_rhel_setup | bool
 
 - name: deployer-rhel-repo | deployer_setup_mode | Set fact for cloud setup in
@@ -59,7 +59,7 @@
   set_fact:
     cloudsetup_legacy_mode: false
   when:
-    - not ( _c8setup_mode_path_exists | bool )
+    - not ( _clmsetup_mode_path_exists | bool )
     - not ( devtools_rhel_setup | bool )
 
 - debug:

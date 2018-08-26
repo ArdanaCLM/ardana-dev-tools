@@ -39,6 +39,13 @@ usage() {
     echo "--c8-devel          -- USE DC8 repos"
     echo "--c8-staging        -- USE DC8S repos"
     echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"
+    echo "--c8-updates-test   -- USE Cloud8 Pool + Update-tests repos"
+    echo "--c9                -- Configure options to run in Cloud9 mode"
+    echo "--c9-mirror         -- Enable Cloud9 repo mirroring"
+    echo "--c9-devel          -- USE DC9 repos"
+    echo "--c9-staging        -- USE DC9S repos"
+    echo "--c9-updates        -- USE Cloud9 Pool + Updates repos"
+    echo "--c9-updates-test   -- USE Cloud9 Pool + Update-tests repos"
     echo "--no-setup          -- Don't run dev-env-install.yml"
     echo "--no-artifacts      -- Don't retrieve/build artifacts, reuse existing"
     echo "--no-build          -- Don't build venvs, reuse existing packages"
@@ -59,6 +66,13 @@ long_opts=(
     c8-soc
     c8-staging
     c8-updates
+    c8-updates-test
+    c9
+    c9-devel
+    c9-mirror
+    c9-staging
+    c9-updates
+    c9-updates-test
     ci
     help
     legacy
@@ -91,11 +105,12 @@ MODE=
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --c8)
-            MODE=cloud8
+        --c8|-c9)
+            MODE=soc
+            args+=( $1 )
             shift ;;
-        --c8-*)
-            MODE=cloud8
+        --c8-*|-c9-*)
+            MODE=soc
             args+=( $1 )
             shift ;;
         --rhel-compute)
@@ -119,13 +134,12 @@ while true ; do
 done
 
 # Configure vagrant user account settings, etc, based on mode,
-# defaulting to cloud8 mode if none specified.
-[[ -z "${MODE}" ]] && MODE=cloud8
+# defaulting to SOC/CLM mode if none specified.
+[[ -z "${MODE}" ]] && MODE=soc
 case "${MODE}" in
-(cloud8)
+(soc)
     _user=ardana
     _home_base=/var/lib
-    args+=( --c8 )
     ;;
 esac
 

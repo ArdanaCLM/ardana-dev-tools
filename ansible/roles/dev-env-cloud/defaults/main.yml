@@ -1,0 +1,149 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# This file holds the top level configuration settings specific to the
+# SOC/CLM style deployment dev-env setup.
+---
+
+cloud_version: "{{ lookup('env', 'ARDANA_CLOUD_VERSION') | default(8, true) }}"
+
+# SOC/CLM deloyment settings
+cloud:
+  config:
+    arch: "x86_64"
+    caching_proxy: "{{ lookup('env', 'ARDANA_CLOUD_CACHING_PROXY') | default(False, true) }}"
+    enabled_repos: "{{ lookup('env', 'ARDANA_CLOUD_REPOS') | default(['staging'], true) }}"
+    mirror_repos: "{{ lookup('env', 'ARDANA_CLOUD_MIRROR') | default(False, true) }}"
+    hos_mode: "{{ lookup('env', 'ARDANA_CLOUD_HOS') | default(False, true) }}"
+    soc_mode: "{{ lookup('env', 'ARDANA_CLOUD_SOC') | default(False, true) }}"
+    iso_milestone:
+      "8": "-GM"
+      "9": "-M{{ lookup('env', 'ARDANA_CLOUD9_MILESTONE') | default(0, true) }}"
+  artifacts:
+    repos:
+      soc8:
+        # minimally tested
+        staging:
+          name: "SUSE-OpenStack-Cloud-8-devel-staging"
+          alias: "SOC8-Devel-Staging"
+          enabled: true
+        # moderately tested
+        devel:
+          name: "SUSE-OpenStack-Cloud-8-devel"
+          alias: "SOC8-Devel"
+          enabled: true
+        # heavily tested, candidate for inclusion in updates
+        updates-test:
+          name: "SUSE-OpenStack-Cloud-8-Updates-test"
+          alias: "SOC8-Updates-test"
+          enabled: true
+        # updates since release
+        updates:
+          name: "SUSE-OpenStack-Cloud-8-Updates"
+          alias: "SOC8-Updates"
+          enabled: true
+        # initial release
+        pool:
+          name: "SUSE-OpenStack-Cloud-8-Pool"
+          alias: "SOC8-Pool"
+          enabled: true
+      hos8:
+        # moderately tested
+        devel:
+          name: "HPE-Helion-OpenStack-8-devel"
+          alias: "HOS8-Devel"
+          enabled: true
+        # updates since release
+        updates:
+          name: "HPE-Helion-OpenStack-8-Updates"
+          alias: "HOS8-Updates"
+          enabled: true
+        # initial release
+        pool:
+          name: "HPE-Helion-OpenStack-8-Pool"
+          alias: "HOS8-Pool"
+          enabled: true
+      soc9:
+        # minimally tested
+        staging:
+          name: "SUSE-OpenStack-Cloud-9-devel-staging"
+          alias: "SOC9-Devel-Staging"
+          enabled: true
+        # moderately tested
+        devel:
+          name: "SUSE-OpenStack-Cloud-9-devel"
+          alias: "SOC9-Devel"
+          enabled: true
+        # heavily tested, candidate for inclusion in updates
+        updates-test:
+          name: "SUSE-OpenStack-Cloud-9-Updates-test"
+          alias: "SOC9-Updates-test"
+          enabled: true
+        # updates since release
+        updates:
+          name: "SUSE-OpenStack-Cloud-9-Updates"
+          alias: "SOC9-Updates"
+          enabled: true
+        # initial release
+        pool:
+          name: "SUSE-OpenStack-Cloud-9-Pool"
+          alias: "SOC9-Pool"
+          enabled: true
+    iso:
+      soc8:
+        media1:
+          name: "SUSE-OPENSTACK-CLOUD-8-x86_64-GM-DVD1.iso"
+          #pattern: "SUSE-OPENSTACK-CLOUD-8-x86_64-(GM-DVD|Build[0-9]+-Media)1"
+          alias: "C8"
+          # blank sha256 means fetch and use server value always
+          sha256: ""
+          link: "cloud8.iso"
+          path: "install/SLE-12-SP3-Cloud8"
+      hos8:
+        media1:
+          name: "HPE-HELION-OPENSTACK-8-x86_64-GM-DVD1.iso"
+          #pattern: "HPE-HELION-OPENSTACK-8-x86_64-(GM-DVD|Build[0-9]+-Media)1"
+          alias: "C8"
+          # blank sha256 means fetch and use server value always
+          sha256: ""
+          link: "cloud8.iso"
+          path: "install/SLE-12-SP3-Cloud8"
+      soc9:
+        media1:
+          #name: "SUSE-OPENSTACK-CLOUD-9-x86_64-GM-DVD1.iso"
+          pattern: "SUSE-OPENSTACK-CLOUD-9-x86_64-(GM-DVD|Build[0-9]+-Media)1"
+          alias: "C9"
+          # blank sha256 means fetch and use server value always
+          sha256: ""
+          link: "cloud9.iso"
+          path: "install/SLE-12-SP4-Cloud9"
+  deployer:
+    caching_proxy:
+      fs:
+        mount: /var/cache/proxy
+        type: ext4
+        user: squid
+        group: root
+      conf:
+        svc: squid
+        file: /etc/squid/squid.conf
+        type: aufs
+        L1: 16
+        L2: 256
+        port: 3128
+        max_size: "512 MB"
+        policy: "heap LFUDA"
+      pkgs:
+        - squid

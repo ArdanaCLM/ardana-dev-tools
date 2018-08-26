@@ -18,6 +18,6 @@
 
 - include: get-iso.yml
   when:
-    - dev_env_use_cloud8_artifacts | bool
+    - dev_env_use_cloud_artifacts | bool
   tags:
     - skip-isos

@@ -38,7 +38,7 @@ usage() {
     echo
     echo "--rhel         -- Build venv packages for RHEL"
     echo "--sles         -- Build venv packages for SLES"
-    echo "--cloud8       -- Use Cloud8 artifacts during venv build"
+    echo "--cloud        -- Use SOC/CLM artifacts during venv build"
     echo "--no-artifacts -- Don't fetch any required artifacts, assume we"
     echo "                  have them already."
     echo "--no-checkout  -- Don't checkout any git sources, assume we have"
@@ -48,7 +48,7 @@ usage() {
     echo "                  the specified packages."
 }
 
-TEMP=$(getopt -o h -l help,ci,cloud8,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
+TEMP=$(getopt -o h -l help,ci,cloud,rhel,sles,no-artifacts,no-checkout,rebuild,stop -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
@@ -62,7 +62,7 @@ while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
-        --cloud8) export ARDANA_CLOUD8_ARTIFACTS=1 ; shift ;;
+        --cloud) export ARDANA_CLOUD_ARTIFACTS=1 ; shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;

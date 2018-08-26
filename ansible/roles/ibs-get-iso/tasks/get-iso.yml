@@ -24,25 +24,32 @@
     - dir: "{{ ibs_iso.isos_dir }}"
     - dir: "{{ ibs_iso.images_dir }}"
 
-- name: ibs-get-iso | get-iso | Determine Cloud8 flavour to download
+- name: ibs-get-iso | get-iso | Determine SOC/CLM media to download
   set_fact:
-    _ibs_c8_media: "{{ cloud8.artifacts.iso[
-                       cloud8.config.hos_mode | bool | ternary('hos8', 'soc8')]
-                       .media1 }}"
+    _ibs_clm_media: "{{ cloud.artifacts.iso[
+                        ((cloud_version | int) == 9) |
+                        ternary('soc9',
+                                (cloud.config.hos_mode | bool) |
+                                ternary('hos8', 'soc8'))]
+                        .media1 }}"
 
-- name: ibs-get-iso | get-iso | Get the Cloud8 ISO
+- debug:
+    var: _ibs_clm_media
+
+- name: ibs-get-iso | get-iso | Get the SOC/CLM media
   include: ../../ardana-cache/tasks/get-cached-file.yml
   vars:
     _file:
-      name: "{{ _ibs_c8_media.name | default('') }}"
-      pattern: "{{ _ibs_c8_media.pattern | default('') }}"
-      sha256: "{{ _ibs_c8_media.sha256 | default('') }}"
-      url_path: "{{ ibs_iso.base_url}}/{{ _ibs_c8_media.path }}{{
-                    cloud8.config.iso_type }}"
-      sha256url: "{{ ibs_iso.base_url}}/{{ _ibs_c8_media.path }}{{
-                     cloud8.config.iso_type }}/{{ ibs_iso.sha256_shared }}"
+      name: "{{ _ibs_clm_media.name | default('') }}"
+      pattern: "{{ _ibs_clm_media.pattern | default('') }}"
+      sha256: "{{ _ibs_clm_media.sha256 | default('') }}"
+      url_path: "{{ ibs_iso.base_url}}/{{ _ibs_clm_media.path }}{{
+                    cloud.config.iso_milestone[cloud_version] }}"
+      sha256url: "{{ ibs_iso.base_url}}/{{ _ibs_clm_media.path }}{{
+                     cloud.config.iso_milestone[cloud_version] }}/{{
+                     ibs_iso.sha256_shared }}"
       dir: "{{ ibs_iso.isos_dir }}"
       link:
-        name: "{{ _ibs_c8_media.link | default('') }}"
+        name: "{{ _ibs_clm_media.link | default('') }}"
         dir: "{{ ibs_iso.images_dir }}"
       use_proxy: "{{ ibs_iso.use_proxy }}"

@@ -1,0 +1,48 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to refresh the configured package repos
+---
+
+- name: vagrant-cloud-setup | refresh-repos | Check deployer port 79 http access
+  get_url:
+    url: "http://{{ deployer_address }}:79/"
+    dest: /dev/null
+    force: yes
+    use_proxy: no
+  changed_when: false  # we don't consider this to ever "change"
+  when:
+    - inventory_hostname_short != deployer_node
+
+- name: vagrant-cloud-setup | refresh-repos | Check caching proxy active (local)
+  command: squidclient --ping -g 1 -I 1
+  changed_when: false  # we don't consider this to ever "change"
+  when:
+    - clmsetup.caching_proxy.enabled | bool
+    - inventory_hostname_short == deployer_node
+
+- name: vagrant-cloud-setup | refresh-repos | Check caching proxy active (remote)
+  get_url:
+    url: "http://{{ deployer_address }}:79/"
+    dest: /dev/null
+    force: yes
+    use_proxy: yes
+  environment:
+    http_proxy: "http://{{ deployer_address }}:3128/"
+  when:
+    - clmsetup.caching_proxy.enabled | bool
+    - inventory_hostname_short != deployer_node
+
+- include: _refresh-repos.yml

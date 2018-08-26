@@ -13,19 +13,21 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# Tasks to perform a refresh of the configured package repos
 ---
 
-- include: mirror-sles-repo.yml
+- name: vagrant-cloud-setup | _refresh-repos | Refresh repo caches (SLES)
+  become: yes
+  command: |
+    zypper --non-interactive --gpg-auto-import-keys refresh
   when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
+    - ardana_family == "suse"
 
-- include: mirror-cloud-repo.yml
+- name: vagrant-cloud-setup | _refresh-repos | Refresh repo caches (RHEL)
+  become: yes
+  command: |
+    yum makecache
   when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
+    - ardana_family == "redhat"
   tags:
-    - skip-repos
+    - rhel

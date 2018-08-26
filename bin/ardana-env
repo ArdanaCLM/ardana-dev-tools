@@ -141,7 +141,7 @@ then
     req_pkgs+=( python2-setuptools python2-virtualenv )
 fi
 
-# Need osc to be able to build Cloud8 RPMs
+# Need osc to be able to build SOC/CLM RPMs
 osc_cmd=/usr/bin/osc
 if [[ ! -x ${osc_cmd} ]] || ! version_at_least $(${osc_cmd} --version) 0.162
 then

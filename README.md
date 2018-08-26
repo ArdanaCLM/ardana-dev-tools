@@ -120,17 +120,17 @@ complete the setup process.
 ### Deployment Style
 
 Ardana supports two mutually exclusive styles of deployment:
-- Cloud8: Consume inputs built by the SUSE Open or Internal Build
+- SOC/CLM: Consume inputs built by the SUSE Open or Internal Build
 Services (OBS or IBS) to deploy a cloud
 - Legacy: Builds all inputs locally and uses them to deploy a cloud
 
-#### Cloud8 Deployment Style
-The Cloud8 deployment doesn't need to build the venvs locally; instead
+#### SOC/CLM Deployment Style
+The SOC/CLM deployment doesn't need to build the venvs locally; instead
 it uses RPMs containing pre-built venvs and the Ardana ansible sources
 to setup the deployer and bring up the cloud.
 
-Cloud8 mode is the default, and is implicitly implied if any of the
-various *--c8...* option flags are specified.
+SOC/CLM mode is the default, and is implicitly implied if any of the
+various *--c8...* or *--c9...* option flags are specified.
 
 This is the default deployment mode.
 
@@ -269,8 +269,8 @@ a legacy style Ardana cloud with a single command line:
 
     ./bin/astack.sh dac-min
 
-Alternatively you can deploy a new Cloud8 style cloud by including the
-*--c8* option, like:
+Alternatively you can deploy a new SOC/CLM style cloud by including the
+*--c8* or *--c9* option, like:
 
     ./bin/astack.sh --c8 dac-min
 
@@ -278,17 +278,23 @@ The cloud defaults to _dac-min_, which is a minimal footprint, fully featured
 cloud deployment.
 
 NOTE: You *must* specify the name of the cloud to be used as the last
-argument on the command line e.g. ./astack.sh ... std-min
+argument on the command line, after all other options, e.g.
+
+    ./astack.sh ... std-min
 
 Add the following parameters for more options:
 
-    --c8                   (Deploy a Cloud8 style cloud, rather than a legacy
+    --c9                   (Deploy a SOC/CLM 8 style cloud, rather than a legacy
                             style cloud; this will skip the venv build phase
-			    similar to the --no-build option, unless the
-			    --run-tests option has also been specified in
-			    which case it will build just the additional
-			    QA testing venvs using the legacy build process)
-    --c8-hos               (Deploy a Cloud8 cloud using HOS, rather than SOC,
+			    similar to the legacy --no-build option)
+    --c8                   (Deploy a SOC/CLM 8 style cloud, rather than a legacy
+                            style cloud; this will skip the venv build phase
+			    similar to the legacy --no-build option, unless the
+			    --run-tests option has also been specified along
+			    with the --c8-qa-tests option in which case it will
+			    build just the additional QA testing venvs using the
+			    legacy build process)
+    --c8-hos               (Deploy a SOC/CLM 8 cloud using HOS, rather than SOC,
                             branded repos; otherwise the same as the --c8
 			    option)
     --no-setup             (Don't run dev-env-install.yml)
@@ -360,9 +366,9 @@ ardana-dev-tools/ansible/hosts as the inventory file, so that ansible
 dynamically determines the appropriate inventory data for the running
 cloud from Vagrant, e.g.
 
-    % ./ardana-vagrant-ansible ../../ansible/cloud8-setup.yml
+    % ./ardana-vagrant-ansible ../../ansible/cloud-setup.yml
 
-If no arguments are specified it will run the cloud8-setup.yml playbook
+If no arguments are specified it will run the cloud-setup.yml playbook
 against the cloud; if you don't want to run the ardana-init command
 again, you can specify the --skip-ardana-init option.
 

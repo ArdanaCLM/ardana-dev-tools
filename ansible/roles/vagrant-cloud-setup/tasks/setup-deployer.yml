@@ -13,19 +13,34 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# Tasks to setup the deployer in SOC/CLM based cloud
 ---
 
-- include: mirror-sles-repo.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
+- include: setup-isos.yml
 
-- include: mirror-cloud-repo.yml
+- include: sync-mirrored-repos.yml
   when:
-    - dev_env_use_cloud_artifacts | bool
     - cloud.config.mirror_repos | bool
+
+- include: sync-override-repos.yml
+
+# TODO(fergal) Add support for sync'ing and unpacking tarball repos
+#- include: sync-tarball-repos.yml
+
+- include: setup-local-repos.yml
+
+- include: setup-caching-proxy.yml
+  when:
+    - cloud.config.caching_proxy | bool
+    - clmsetup.caching_proxy.enabled | bool
+
+- include: setup-proxied-repos.yml
+  when:
+    - cloud.config.caching_proxy | bool
+    - clmsetup.caching_proxy.enabled | bool
+
+- include: ardana-init.yml
   tags:
-    - skip-repos
+    - skip-ardana-init
+
+- include: sync-ansible-sources.yml

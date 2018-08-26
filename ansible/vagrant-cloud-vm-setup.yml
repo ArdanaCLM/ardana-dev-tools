@@ -13,19 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# Playbook used to minimally provision Vagrant VMs for use in a SOC/CLM
+# deployment.
 ---
 
-- include: mirror-sles-repo.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
-
-- include: mirror-cloud-repo.yml
-  when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
-  tags:
-    - skip-repos
+- hosts: all
+  roles:
+    - role: vagrant-cloud-vm

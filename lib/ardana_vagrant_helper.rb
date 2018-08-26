@@ -204,11 +204,12 @@ module Ardana
       @dev_tool_path = File.expand_path(File.dirname(__FILE__) + "/..")
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
       @ardana = {
-        :cloud8 => {
-          :artifacts => !ENV.fetch("ARDANA_CLOUD8_ARTIFACTS", "").empty?,
-          :deployer => !ENV.fetch("ARDANA_CLOUD8_DEPLOYER", "").empty?,
+        :cloud => {
+          :version => ENV.fetch("ARDANA_CLOUD_VERSION", "8"),
+          :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?,
+          :deployer => !ENV.fetch("ARDANA_CLOUD_DEPLOYER", "").empty?,
           :proxy_cache => {
-            :enabled => !ENV.fetch("ARDANA_CLOUD8_CACHING_PROXY", "").empty?,
+            :enabled => !ENV.fetch("ARDANA_CLOUD_CACHING_PROXY", "").empty?,
             :name => "persistent-proxy-cache.qcow2",
             :size => "33G",
             :bus => "scsi"
@@ -351,10 +352,11 @@ module Ardana
       end
     end
 
-    def set_sles_cloud8(iso_files)
-      iso_files.push( get_image_output_dir() + "/cloud8.iso" )
+    def set_sles_cloud(iso_files)
+      iso_files.push( get_image_output_dir() + "/cloud#{@ardana[:cloud][:version]}.iso" )
+      STDERR.puts "cloud_iso_file: #{iso_files[-1]}"
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-cloud8-artifacts.yml' to get the Cloud8 ISO"
+        raise "Run 'ansible-playbook -i hosts/localhost get-cloud-artifacts.yml' to get the Cloud ISO"
       end
     end
 
@@ -377,11 +379,11 @@ module Ardana
 
       if distros.include?("sles12")
         # SLES SDK only for legacy deployer or SLES build vm
-        if name.include? "build" or not @ardana[:cloud8][:deployer]
+        if name.include? "build" or not @ardana[:cloud][:deployer]
           set_sles_sdk(iso_files)
         end
-        # SLES Cloud8
-        set_sles_cloud8(iso_files) if @ardana[:cloud8][:artifacts]
+        # SLES Cloud
+        set_sles_cloud(iso_files) if @ardana[:cloud][:artifacts]
       end
 
       # RHEL
@@ -399,9 +401,9 @@ module Ardana
     end
 
     def provision_deployer(server: None, name: "deployer", distros: [], extra_vars: {}, disks: [])
-      # override the playbook used if in Cloud8 deployer mode
-      if @ardana[:cloud8][:deployer]
-        playbook = "vagrant-cloud8-vm-setup"
+      # override the playbook used if in Cloud deployer mode
+      if @ardana[:cloud][:deployer]
+        playbook = "vagrant-cloud-vm-setup"
       else
         playbook = "deployer-setup"
       end
@@ -521,20 +523,20 @@ module Ardana
           disks = []
           # add persistent volumes as appropriate
           if ((deployer_node == server_name) and
-              @ardana[:cloud8][:deployer] and
-              @ardana[:cloud8][:proxy_cache][:enabled])
+              @ardana[:cloud][:deployer] and
+              @ardana[:cloud][:proxy_cache][:enabled])
             # if using 'scsi' as the bus type the first additional disk on the
             # virtio-scsi controller gets probed last, so we add the proxy
             # cache persistent volume cache as the first disk
             disks.push({
-                         :path => @ardana[:cloud8][:proxy_cache][:name],
-                         :size => @ardana[:cloud8][:proxy_cache][:size],
-                         :bus => @ardana[:cloud8][:proxy_cache][:bus],
+                         :path => @ardana[:cloud][:proxy_cache][:name],
+                         :size => @ardana[:cloud][:proxy_cache][:size],
+                         :bus => @ardana[:cloud][:proxy_cache][:bus],
                          :allow_existing => true
                        })
 
             # The proxy cache volume lun will be X:0:0:<lun> for scsi.
-            @ardana[:cloud8][:proxy_cache][:lun] = disks.length
+            @ardana[:cloud][:proxy_cache][:lun] = disks.length
           end
 
           # Add the requested number of disks for this node type
@@ -546,10 +548,10 @@ module Ardana
 
           # Provisioning VM
           if deployer_node == server_name
-            if @ardana[:cloud8][:deployer] and @ardana[:cloud8][:proxy_cache][:enabled]
-              extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud8][:proxy_cache][:name],
-                            "ardana_proxy_cache_bus" => @ardana[:cloud8][:proxy_cache][:bus],
-                            "ardana_proxy_cache_lun" => @ardana[:cloud8][:proxy_cache][:lun]}
+            if @ardana[:cloud][:deployer] and @ardana[:cloud][:proxy_cache][:enabled]
+              extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud][:proxy_cache][:name],
+                            "ardana_proxy_cache_bus" => @ardana[:cloud][:proxy_cache][:bus],
+                            "ardana_proxy_cache_lun" => @ardana[:cloud][:proxy_cache][:lun]}
             else
               extra_vars = {}
             end
@@ -628,9 +630,9 @@ module Ardana
     end
 
     def setup_vm(vm: None, name: None, playbook: "vagrant-setup-vm", extra_vars: {}, disks: [])
-      # override the playbook used if in Cloud8 deployer mode
-      if @ardana[:cloud8][:deployer] and !(playbook.include? "build")
-        playbook = "vagrant-cloud8-vm-setup"
+      # override the playbook used if in Cloud deployer mode
+      if @ardana[:cloud][:deployer] and !(playbook.include? "build")
+        playbook = "vagrant-cloud-vm-setup"
       end
 
       vm.provider :libvirt do |libvirt, override|
@@ -657,11 +659,11 @@ module Ardana
         end
       end
 
-      # If running in Legacy CI mode, or using Cloud8 deployment mode,
+      # If running in Legacy CI mode, or using Cloud deployment mode,
       # and the provider is libvirt, and the vagrant-libvirt plugin has
       # the "hack" implementing serial device configuration, then setup
       # VM console logs to redirect to specified file.
-      if ENV.fetch("CI", "no").downcase == "yes" or @ardana[:cloud8][:deployer]
+      if ENV.fetch("CI", "no").downcase == "yes" or @ardana[:cloud][:deployer]
         vm.provider :libvirt do |libvirt, override|
           libvirt.serial :type => "file",
             :source => {

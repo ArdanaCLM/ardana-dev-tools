@@ -32,11 +32,11 @@ cloudsetup_legacy_mode: false
 devtools_rhel_setup: false
 
 _downloaded_rpms_list: []
-_c8setup_mode_path_exists: false
+_clmsetup_mode_path_exists: false
 
 # Paths which are expected to exist in C8 setup mode (not in legacy mode)
 # If any of these path is found on deployer, then its a non-legacy mode.
-c8setup_mode_detection_paths:
+clmsetup_mode_detection_paths:
  - "/usr/bin/ardana-init"
  - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/C8"
  - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/cloud8"

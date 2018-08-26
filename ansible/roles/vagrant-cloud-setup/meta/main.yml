@@ -13,19 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
 ---
-
-- include: mirror-sles-repo.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
-
-- include: mirror-cloud-repo.yml
-  when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
-  tags:
-    - skip-repos
+dependencies:
+  - role: dev-env
+  - role: dev-env-sles
+  - role: dev-env-rhel
+  - role: dev-env-cloud
+  - role: clouddata-mirror-setup
+  - role: package-constants
+  - role: vagrant-vm
+  - role: deployer
+  - role: venv

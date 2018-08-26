@@ -13,19 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# This file holds the top level configuration settings specific to the
+# RHEL distribution.
 ---
 
-- include: mirror-sles-repo.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
-
-- include: mirror-cloud-repo.yml
-  when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
-  tags:
-    - skip-repos
+# RHEL deployment settings
+rhel:
+  artifacts:
+    iso:
+      os:
+        name: "RHEL-7.3-20170728-Server-x86_64-dvd"
+        alias: "RHEL-OS"
+        path: "RHEL"
+        link: "rhel7.iso"

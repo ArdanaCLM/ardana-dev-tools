@@ -13,19 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the clouddata-mirror-repo role
+# Tasks to setup local caching proxy server
 ---
 
-- include: mirror-sles-repo.yml
+- include: _setup-squid.yml
   when:
-    - dev_env_use_sles12_artifacts | bool
-    - sles.config.mirror_repos | bool
-  tags:
-    - skip-repos
-
-- include: mirror-cloud-repo.yml
-  when:
-    - dev_env_use_cloud_artifacts | bool
-    - cloud.config.mirror_repos | bool
-  tags:
-    - skip-repos
+    - clmsetup.caching_proxy.enabled | bool

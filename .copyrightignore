@@ -16,8 +16,8 @@ isogen/sles/sles12sp3-autoyast.xml
 isogen/sles/add_nic.xslt
 Vagrantfile
 logs
-ansible/roles/vagrant-cloud8-setup/templates/rhel.repo.j2
-ansible/roles/vagrant-cloud8-setup/templates/squid.conf.j2
+ansible/roles/vagrant-cloud-setup/templates/rhel.repo.j2
+ansible/roles/vagrant-cloud-setup/templates/squid.conf.j2
 tools/elements/ardanauser/install.d/50-user
 ansible/roles/lint/files/requirements.txt
 ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-openstack-plugin-0.11.1/create_server.rb.patch

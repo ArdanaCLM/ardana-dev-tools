@@ -32,10 +32,12 @@
 - hosts: localhost
   connection: local
   roles:
-    - role: dev-env-cloud8
+    - role: dev-env-sles
+    - role: dev-env-rhel
+    - role: dev-env-cloud
 
     # mirror the clouddata repo
     - role: clouddata-mirror-repo
 
-    # retrieve the cloud8 iso
+    # retrieve the SOC/CLM iso
     - role: ibs-get-iso

@@ -35,9 +35,20 @@ long_opts=(
     c8-staging
     c8-updates
     c8-updates-test
+    c9
+    c9-artifacts
+    c9-caching
+    c9-devel
+    c9-mirror
+    c9-pool
+    c9-staging
+    c9-updates
+    c9-updates-test
     ci
     cloud8-artifacts
     cloud8-deployer
+    cloud9-artifacts
+    cloud9-deployer
     cobble-all-nodes
     cobble-nodes:
     cobble-rhel-compute
@@ -103,14 +114,17 @@ NO_SETUP=
 NO_ARTIFACTS=
 NO_BUILD=
 NO_UPDATE_RPMS=
+SOC_CLM_8=
+SOC_CLM_9=
 export ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
-export ARDANA_CLOUD8_ARTIFACTS=${ARDANA_CLOUD8_ARTIFACTS:-}
-export ARDANA_CLOUD8_DEPLOYER=${ARDANA_CLOUD8_DEPLOYER:-}
-export ARDANA_CLOUD8_REPOS=${ARDANA_CLOUD8_REPOS:-}
-export ARDANA_CLOUD8_CACHING_PROXY=${ARDANA_CLOUD8_CACHING_PROXY:-}
-export ARDANA_CLOUD8_MIRROR=${ARDANA_CLOUD8_MIRROR:-}
-export ARDANA_CLOUD8_HOS=${ARDANA_CLOUD8_HOS:-}
-export ARDANA_CLOUD8_SOC=${ARDANA_CLOUD8_SOC:-}
+export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
+export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
+export ARDANA_CLOUD_DEPLOYER=${ARDANA_CLOUD_DEPLOYER:-}
+export ARDANA_CLOUD_REPOS=${ARDANA_CLOUD_REPOS:-}
+export ARDANA_CLOUD_CACHING_PROXY=${ARDANA_CLOUD_CACHING_PROXY:-}
+export ARDANA_CLOUD_MIRROR=${ARDANA_CLOUD_MIRROR:-}
+export ARDANA_CLOUD_HOS=${ARDANA_CLOUD_HOS:-}
+export ARDANA_CLOUD_SOC=${ARDANA_CLOUD_SOC:-}
 export ARDANA_UPGRADE_NO_RHEL=${ARDANA_UPGRADE_NO_RHEL:-}
 export ARDANA_RHEL_ARTIFACTS=${ARDANA_RHEL_ARTIFACTS:-}
 export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}
@@ -187,44 +201,92 @@ while true ; do
             NO_LOG_DISABLE=1
             shift ;;
         --cloud8-artifacts)
-            export ARDANA_CLOUD8_ARTIFACTS=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_ARTIFACTS=1
             shift ;;
         --legacy)
             export ARDANA_LEGACY_DEPLOYER=1
             shift ;;
         --c8|--cloud8-deployer)
-            export ARDANA_CLOUD8_DEPLOYER=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_DEPLOYER=1
             shift ;;
         --c8-hos)
-            export ARDANA_CLOUD8_HOS=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_HOS=1
             shift ;;
         --c8-soc)
-            export ARDANA_CLOUD8_SOC=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_SOC=1
             shift ;;
         --c8-mirror)
-            export ARDANA_CLOUD8_MIRROR=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_MIRROR=1
             shift ;;
         --c8-caching)
-            export ARDANA_CLOUD8_CACHING_PROXY=1
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_CACHING_PROXY=1
             shift ;;
         --c8-staging)
-            export ARDANA_CLOUD8_REPOS='["staging"]'
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["staging"]'
             shift ;;
         --c8-devel)
-            export ARDANA_CLOUD8_REPOS='["devel"]'
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["devel"]'
             shift ;;
         --c8-updates-test)
-            export ARDANA_CLOUD8_REPOS='["updates-test", "updates", "pool"]'
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
             shift ;;
         --c8-updates)
-            export ARDANA_CLOUD8_REPOS='["updates", "pool"]'
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["updates", "pool"]'
             shift ;;
         --c8-pool)
-            export ARDANA_CLOUD8_REPOS='["pool"]'
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["pool"]'
             shift ;;
         --c8-qa-tests)
+            SOC_CLM_8=true
             RUN_TESTS=1
             C8_QA_TESTS=1
+            shift ;;
+        --cloud9-artifacts)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_ARTIFACTS=1
+            shift ;;
+        --c9|--cloud9-deployer)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_DEPLOYER=1
+            shift ;;
+        --c9-mirror)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_MIRROR=1
+            shift ;;
+        --c9-caching)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_CACHING_PROXY=1
+            shift ;;
+        --c9-staging)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["staging"]'
+            shift ;;
+        --c9-devel)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["devel"]'
+            shift ;;
+        --c9-updates-test)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
+            shift ;;
+        --c9-updates)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["updates", "pool"]'
+            shift ;;
+        --c9-pool)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["pool"]'
             shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --rhel-compute)
@@ -291,35 +353,52 @@ while true ; do
     esac
 done
 
-# Enable Cloud8 mode if any relevant Cloud8 options specified,
-# and legacy mode not enabled.
-if [ -n "${C8_QA_TESTS:-}" -o \
-     -n "${ARDANA_CLOUD8_HOS:-}" -o \
-     -n "${ARDANA_CLOUD8_SOC:-}" -o \
-     -n "${ARDANA_CLOUD8_REPOS:-}" -o \
-     -n "${ARDANA_CLOUD8_MIRROR:-}" -o \
-     -n "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
-    export ARDANA_CLOUD8_DEPLOYER=1
-fi
-
-# Legacy and Cloud8 modes are mutually exclusive
-if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" -a \
-     -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
-    echo "ERROR: Legacy and Cloud8 modes cannot be combined!"
+# Mising SOC_CLM_8 & SOC_CLM_9 options is not supported.
+if [ -n "${SOC_CLM_8:-}" -a \
+     -n "${SOC_CLM_9:-}" ]; then
+    echo "ERROR: Cannot mix --c8* & --c9* options!"
     exit 1
 fi
 
-# Default to Cloud8 mode if legacy mode not specified
-if [ -z "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
-    export ARDANA_CLOUD8_DEPLOYER=1
+# Enable SOC/CLM mode if any relevant SOC/CLM options specified,
+# and legacy mode not enabled.
+if [ -n "${C8_QA_TESTS:-}" -o \
+     -n "${ARDANA_CLOUD_HOS:-}" -o \
+     -n "${ARDANA_CLOUD_SOC:-}" -o \
+     -n "${ARDANA_CLOUD_REPOS:-}" -o \
+     -n "${ARDANA_CLOUD_MIRROR:-}" -o \
+     -n "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
+    export ARDANA_CLOUD_DEPLOYER=1
 fi
 
-# Select appropriate settings if cloud8 deployer selected
-if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
-    export ARDANA_CLOUD8_ARTIFACTS=1
+# Legacy and SOC/CLM modes are mutually exclusive
+if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" -a \
+     -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
+    echo "ERROR: Legacy and SOC/CLM modes cannot be combined!"
+    exit 1
+fi
+
+# Default to SOC/CLM mode if legacy mode not specified
+if [ -z "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
+    export ARDANA_CLOUD_DEPLOYER=1
+fi
+
+# Select appropriate settings if SOC/CLM deployer selected
+if [ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
+    # determine the version of SOC/CLM to deploy
+    if [ -n "${SOC_CLM_9:-}" ]; then
+        export ARDANA_CLOUD_VERSION=9
+    elif [ -n "${SOC_CLM_8:-}" ]; then
+        export ARDANA_CLOUD_VERSION=8
+    fi
+    # default to SOC/CLM 8
+    if [ -z "${ARDANA_CLOUD_VERSION:-}" ]; then
+        export ARDANA_CLOUD_VERSION=8
+    fi
+    export ARDANA_CLOUD_ARTIFACTS=1
     export ARDANA_SLES_CONTROL=1
 
-    # Cloud8 requires that we are using ardana user homed under
+    # SOC/CLM requires that we are using ardana user homed under
     # /var/lib/ardana
     export ARDANAUSER=ardana
     export ARDANA_USER_HOME_BASE=/var/lib
@@ -344,24 +423,24 @@ if [ -n "${ARDANA_CLOUD8_DEPLOYER:-}" ]; then
         export ARDANA_NO_SETUP_QA=1
     fi
 
-    # default to staging (DC8S) level of repos
-    if [ -z "${ARDANA_CLOUD8_REPOS:-}" ]; then
-        export ARDANA_CLOUD8_REPOS='["staging"]'
+    # default to staging (DCXS) level of repos
+    if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
+        export ARDANA_CLOUD_REPOS='["staging"]'
     fi
 
     # default to enabling mirroring if caching proxy not enabled.
-    if [ -z "${ARDANA_CLOUD8_MIRROR:-}" -a \
-         -z "${ARDANA_CLOUD8_CACHING_PROXY:-}" ]; then
-        export ARDANA_CLOUD8_MIRROR=1
+    if [ -z "${ARDANA_CLOUD_MIRROR:-}" -a \
+         -z "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
+        export ARDANA_CLOUD_MIRROR=1
     fi
 
-    # default to SOC8 mode if neither or both modes selected
-    if [ \( -z "${ARDANA_CLOUD8_HOS:-}" -a \
-            -z "${ARDANA_CLOUD8_SOC:-}" \) -o \
-         \( -n "${ARDANA_CLOUD8_HOS:-}" -a \
-            -n "${ARDANA_CLOUD8_SOC:-}" \) ]; then
-        export ARDANA_CLOUD8_SOC=1
-        export ARDANA_CLOUD8_HOS=
+    # default to SOC mode if neither or both modes selected
+    if [ \( -z "${ARDANA_CLOUD_HOS:-}" -a \
+            -z "${ARDANA_CLOUD_SOC:-}" \) -o \
+         \( -n "${ARDANA_CLOUD_HOS:-}" -a \
+            -n "${ARDANA_CLOUD_SOC:-}" \) ]; then
+        export ARDANA_CLOUD_SOC=1
+        export ARDANA_CLOUD_HOS=
     fi
 fi
 
