@@ -16,7 +16,7 @@
 # Tasks performed by the dev-env-vagrant role
 ---
 
-- name: dev-env-vagrant | main | Determine install or valdate mode?
+- name: dev-env-vagrant | main | Determine install or validate mode?
   set_fact:
     _vagrant_role_mode: "{{ vagrant_role_mode | default('install') }}"
 

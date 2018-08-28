@@ -25,3 +25,4 @@ ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-libvirt-plugin
 build-vagrant/README.md
 ansible/roles/venv/templates/manifest.j2
 ansible/roles/artifact-publisher/README.md
+zerodisk.sh

@@ -29,7 +29,7 @@
     _mirror:
       rsync_base: "{{ clouddata_repo.rsync_base}}"
       dir: "{{ clouddata_repo.mirrors_dir }}"
-      repos: "{{ sles.artifacts.repos.sles12sp3 }}"
+      repos: "{{ sles.artifacts.repos[sles_version] }}"
       enabled: "{{ sles.config.enabled_repos }}"
   when:
     - sles.config.mirror_repos | bool

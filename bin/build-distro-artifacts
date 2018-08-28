@@ -26,6 +26,6 @@ eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 source $(dirname $0)/libci.sh
 
 pushd $DEVTOOLS/ansible
-ansible-playbook -i hosts/localhost get-ardana-artifacts.yml
+[ -n "${NO_ARTIFACTS:-}" ] || ansible-playbook -i hosts/localhost get-ardana-artifacts.yml
 # Build the image after getting the artifacts
 ansible-playbook -i hosts/localhost image-build-vagrant-box.yml

@@ -76,7 +76,7 @@ if which vagrant ; then
     vagrant -q box list | \
         tr -d "(,)" | \
         awk -v provider=libvirt \
-        '$1 ~ /(hlinux(box)?|(sles12|rhel7)box)$/ && $2 == provider {
+        '$1 ~ /(hlinux(box)?|(sles12(sp[0-9])?|rhel7([0-9])?)box)$/ && $2 == provider {
                  print $1, $2, $3
              }' | while read box provider version; do
         vagrant box remove -f "$box" --provider $provider --box-version $version || true

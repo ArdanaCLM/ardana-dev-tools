@@ -20,13 +20,12 @@
 - hosts: localhost
   connection: local
   roles:
+    - role: dev-env-kvm
+      kvm_role_mode: "validate"
     - role: dev-env-vagrant
       vagrant_role_mode: "validate"
-
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env
+    - role: dev-env-packer
+      packer_role_mode: "validate"
   tasks:
     - include: roles/dev-env/tasks/validate.yml
     # do not include any additional tasks in this playbook

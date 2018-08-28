@@ -16,7 +16,17 @@
 # Tasks performed by the ibs-get-iso role
 ---
 
-- include: get-iso.yml
+- include: setup.yml
+  tags:
+    - skip-isos
+
+- include: get-sles-iso.yml
+  when:
+    - dev_env_use_sles12_artifacts | bool
+  tags:
+    - skip-isos
+
+- include: get-cloud-iso.yml
   when:
     - dev_env_use_cloud_artifacts | bool
   tags:

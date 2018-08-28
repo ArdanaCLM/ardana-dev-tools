@@ -81,6 +81,8 @@ long_opts=(
     run-tests-filter:
     skip-extra-playbooks
     sles
+    sles12sp3
+    sles12sp4
     sles-compute
     sles-compute-nodes:
     sles-control
@@ -132,6 +134,8 @@ export ARDANA_RHEL_COMPUTE=${ARDANA_RHEL_COMPUTE:-}
 export ARDANA_RHEL_COMPUTE_NODES=${ARDANA_RHEL_COMPUTE_NODES:-}
 export ARDANA_UPGRADE_NO_SLES=${ARDANA_UPGRADE_NO_SLES:-}
 export ARDANA_SLES_ARTIFACTS=${ARDANA_SLES_ARTIFACTS:-}
+export ARDANA_SLES_MAJOR=${ARDANA_SLES_MAJOR:-}
+export ARDANA_SLES_SP=${ARDANA_SLES_SP:-}
 export ARDANA_SLES_CONTROL=${ARDANA_SLES_CONTROL:-}
 export ARDANA_SLES_CONTROL_NODES=${ARDANA_SLES_CONTROL_NODES:-}
 export ARDANA_SLES_COMPUTE=${ARDANA_SLES_COMPUTE:-}
@@ -296,6 +300,16 @@ while true ; do
             ARDANA_RHEL_COMPUTE_NODES="${ARDANA_RHEL_COMPUTE_NODES:+${ARDANA_RHEL_COMPUTE_NODES}:}$2"
             shift 2 ;;
         --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
+        --sles12sp3)
+            export ARDANA_SLES_ARTIFACTS=1
+            export ARDANA_SLES_MAJOR=12
+            export ARDANA_SLES_SP=3
+            shift ;;
+        --sles12sp4)
+            export ARDANA_SLES_ARTIFACTS=1
+            export ARDANA_SLES_MAJOR=12
+            export ARDANA_SLES_SP=4
+            shift ;;
         --sles-deployer|--sles-control)
             export ARDANA_SLES_CONTROL=1
             shift ;;
@@ -352,6 +366,14 @@ while true ; do
         *) break ;;
     esac
 done
+
+# Default to SLES12SP3 if not specified
+if [ -z "${ARDANA_SLES_MAJOR:-}" ]; then
+    export ARDANA_SLES_MAJOR=12
+fi
+if [ -z "${ARDANA_SLES_SP:-}" ]; then
+    export ARDANA_SLES_SP=3
+fi
 
 # Mising SOC_CLM_8 & SOC_CLM_9 options is not supported.
 if [ -n "${SOC_CLM_8:-}" -a \

@@ -85,3 +85,8 @@ dev_env_in_developer:  "{{ lookup('env', 'ARDANA_DEVELOPER') | default(False, tr
 
 # Variable to indicate if we should setup QA run time env
 dev_env_no_setup_qa: "{{ lookup('env', 'ARDANA_NO_SETUP_QA') | default(False, true) }}"
+
+# DevEnv handles for product cache directories
+dev_env_product_artifacts: "{{ product_cache_directory }}/artifacts"
+dev_env_product_boxes: "{{ product_cache_directory }}/boxes"
+dev_env_product_images: "{{ product_cache_directory }}/images"

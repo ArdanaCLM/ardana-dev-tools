@@ -36,6 +36,7 @@ source ${ARDANA_ASTACK_ENV}
 VAGRANT_CLOUD="${PWD##*/}"
 [[ "${VAGRANT_CLOUD}" != "build-vagrant" ]] && VAGRANT_CLOUD="cloud"
 
+env ARDANA_CLEANUP_CI=true \
 ./ardana-vagrant destroy \
     --force \
     --debug \

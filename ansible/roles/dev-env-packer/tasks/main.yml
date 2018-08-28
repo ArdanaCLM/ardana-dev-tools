@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks performed by the dev-env-packer role
+---
+
+- name: dev-env-packer | main | Determine install or validate mode?
+  set_fact:
+    _packer_role_mode: "{{ packer_role_mode | default('install') }}"
+
+- name: dev-env-packer | main | Determine installed Packer version
+  include: get-installed-version.yml
+
+- name: dev-env-packer | main | Install Packer if needed
+  include: install.yml
+  when:
+    - _packer_role_mode == "install"
+    - packer_installed_version != packer_version
+  tags:
+    - skip-packer-install
+
+- name: dev-env-packer | main | Validate Packer runtime environment
+  fail:
+    msg: >
+      Packer is not installed/setup correctly; please run
+      bin/astack.sh without the --no-setup option, or specifically
+      run the ansible/dev-env-packer-install.yml playbook.
+  when:
+    - _packer_role_mode != "install"
+    - packer_installed_version != packer_version
+  tags:
+    - skip-packer-validate

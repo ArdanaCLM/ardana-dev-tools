@@ -1,0 +1,194 @@
+<?xml version="1.0"?>
+{#
+<!--
+ (c) Copyright 2017 Hewlett Packard Enterprise Development LP
+ (c) Copyright 2017-2018 SUSE LLC
+
+ Licensed to the Apache Software Foundation (ASF) under one or more
+ contributor license agreements.  See the NOTICE file distributed with
+ this work for additional information regarding copyright ownership.
+ The ASF licenses this file to You under the Apache License, Version 2.0
+ (the "License"); you may not use this file except in compliance with
+ the License.  You may obtain a copy of the License at
+
+     http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+#}
+<!DOCTYPE profile>
+<profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <deploy_image>
+    <image_installation config:type="boolean">false</image_installation>
+  </deploy_image>
+  <language>
+    <language>en_US</language>
+    <languages>en_GB,de_DE</languages>
+  </language>
+  <general>
+    <mode>
+      <confirm config:type="boolean">false</confirm>
+      <final_halt config:type="boolean">false</final_halt>
+      <final_reboot config:type="boolean">true</final_reboot>
+      <halt config:type="boolean">false</halt>
+      <second_stage config:type="boolean">true</second_stage>
+    </mode>
+    <signature-handling>
+      <accept_file_without_checksum config:type="boolean">false</accept_file_without_checksum>
+      <accept_non_trusted_gpg_key config:type="boolean">false</accept_non_trusted_gpg_key>
+      <accept_unknown_gpg_key config:type="boolean">false</accept_unknown_gpg_key>
+      <accept_unsigned_file config:type="boolean">false</accept_unsigned_file>
+      <accept_verification_failed config:type="boolean">false</accept_verification_failed>
+      <import_gpg_key config:type="boolean">false</import_gpg_key>
+    </signature-handling>
+    <storage/>
+  </general>
+  <software>
+    <install_recommended config:type="boolean">false</install_recommended>
+    <packages config:type="list">
+      <package>cron</package>
+      <package>dracut</package>
+      <package>eject</package>
+      <package>gcc</package>
+      <package>gdisk</package>
+      <package>gptfdisk</package>
+      <package>haveged</package>
+      <package>iputils</package>
+      <package>kdump</package>
+      <package>kernel-firmware</package>
+      <package>kexec-tools</package>
+      <package>man</package>
+      <package>openssh</package>
+      <package>python</package>
+      <package>python-xml</package>
+      <package>rsync</package>
+      <package>rsyslog</package>
+      <package>sudo</package>
+    </packages>
+  </software>
+  <kdump>
+    <add_crash_kernel config:type="boolean">true</add_crash_kernel>
+    <crash_kernel config:type="list">
+      <listentry>72M,low</listentry>
+      <listentry>128M,high</listentry>
+    </crash_kernel>
+  </kdump>
+  <networking>
+    <interfaces config:type="list">
+      <interface>
+        <bootproto>dhcp</bootproto>
+        <device>eth0</device>
+        <dhclient_set_default_route>yes</dhclient_set_default_route>
+        <dhclient_set_hostname>no</dhclient_set_hostname>
+        <dhclient_route_priority>100</dhclient_route_priority>
+        <startmode>auto</startmode>
+      </interface>
+    </interfaces>
+    <ipv6 config:type="boolean">true</ipv6>
+    <keep_install_network config:type="boolean">true</keep_install_network>
+    <managed config:type="boolean">false</managed>
+    <routing>
+      <ipv4_forward config:type="boolean">false</ipv4_forward>
+      <ipv6_forward config:type="boolean">false</ipv6_forward>
+    </routing>
+  </networking>
+  <partitioning config:type="list">
+    <drive>
+      <device>/dev/{{ image_build_root_device }}</device>
+      <disklabel>gpt</disklabel>
+          <initialize config:type="boolean">true</initialize>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext4</filesystem>
+          <mount>/boot</mount>
+          <size>512M</size>
+        </partition>
+        <partition>
+          <lvm_group>ardana-vg</lvm_group>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_DISK</type>
+      <use>all</use>
+    </drive>
+    <drive>
+      <device>/dev/ardana-vg</device>
+      <partitions config:type="list">
+        <partition>
+          <create config:type="boolean">true</create>
+          <format config:type="boolean">true</format>
+          <filesystem config:type="symbol">ext4</filesystem>
+          <lv_name>root</lv_name>
+          <mount>/</mount>
+          <size>3G</size>
+        </partition>
+      </partitions>
+      <type config:type="symbol">CT_LVM</type>
+      <use>all</use>
+    </drive>
+  </partitioning>
+  <scripts>
+    <init-scripts config:type="list">
+      <script>
+        <filename>autoyast-init-scripts-0.sh</filename>
+        <source><![CDATA[
+            systemctl enable sshd.service
+            systemctl start sshd.service
+            systemctl enable kdump rsyslog
+        ]]></source>
+      </script>
+      <script>
+        <filename>autoyast-init-scripts-1.sh</filename>
+        <source><![CDATA[
+# set flag
+#wget http://$http_server/preseed/timestamp -O /etc/cobbler_ardana_installed
+
+# {{ image_build_user }} access
+
+# All ssh from deployer
+mkdir --mode=700 {{ image_build_user_home }}/.ssh
+chown {{ image_build_user }}:{{ image_build_group }} {{ image_build_user_home }}/.ssh
+
+# Enable passwordless sudo access for {{ image_build_user }}
+echo "{{ image_build_user }} ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/{{ image_build_user }}
+chmod 0440 /etc/sudoers.d/{{ image_build_user }}
+
+# Make ssh faster by not waiting on DNS
+echo "UseDNS no" >> /etc/ssh/sshd_config
+
+# SSH
+sed -i "s,PasswordAuthentication no,PasswordAuthentication yes,g" /etc/ssh/sshd_config
+
+#
+rm /etc/resolv.conf
+
+        ]]></source>
+      </script>
+    </init-scripts>
+  </scripts>
+  <groups config:type="list">
+    <group>
+      <groupname>sudo</groupname>
+      <gid>1000</gid>
+      <userlist>{{ image_build_user }}</userlist>
+    </group>
+    <group>
+      <groupname>{{ image_build_user }}</groupname>
+      <gid>1001</gid>
+      <userlist>{{ image_build_user }}</userlist>
+    </group>
+  </groups>
+  <users config:type="list">
+    <user>
+      <username>{{ image_build_user }}</username>
+      <gid>1001</gid>
+      <user_password>{{ image_build_password | password_hash('sha512') }}</user_password><encrypted config:type="boolean">true</encrypted>
+      <home>{{ image_build_user_home }}</home>
+    </user>
+  </users>
+</profile>

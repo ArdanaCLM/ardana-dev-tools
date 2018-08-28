@@ -1,0 +1,32 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks performed by the dev-env-kvm role to ensure thet QEMU/KVM
+# is setup correctly on the host and validate it is ready to use.
+---
+- name: dev-env-kvm | main | Determine install or validate?
+  set_fact:
+    _kvm_role_mode: "{{ kvm_role_mode | default('install') }}"
+
+- name: dev-env-kvm | main | Install QEMU/KVM
+  include: install.yml
+  when:
+    - _kvm_role_mode == "install"
+
+- name: dev-env-kvm | main | Validate QEMU/KVM is setup
+  include: validate.yml
+  when:
+    - _kvm_role_mode != "install"
+

@@ -222,10 +222,22 @@ module Ardana
         },
         :sles => {
           :artifacts => !ENV.fetch("ARDANA_SLES_ARTIFACTS", "").empty?,
+          :major => ENV.fetch("ARDANA_SLES_MAJOR", "12"),
+          :sp => ENV.fetch("ARDANA_SLES_SP", "3"),
           :control => !ENV.fetch("ARDANA_SLES_CONTROL", "").empty?,
           :compute => !ENV.fetch("ARDANA_SLES_COMPUTE", "").empty?,
           :control_nodes => ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":"),
           :compute_nodes => ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":"),
+        }
+      }
+      _sles_version = "sles#{@ardana[:sles][:major]}"
+      _sles_version << "sp#{@ardana[:sles][:sp]}" if @ardana[:sles][:sp].to_i > 0
+      @distro_map = {
+        "sles" => {
+          :version => _sles_version
+        },
+        "rhel" => {
+          :version => "rhel7"
         }
       }
     end
@@ -298,30 +310,30 @@ module Ardana
           if serverInfo["role"].match("CONTROLLER")
             # check for blanket controller settings
             if sles_control_all
-              distro = "sles12"
+              distro = "sles"
             end
           elsif serverInfo["role"].match("COMPUTE")
             # check for blanket compute settings
             if sles_compute_all
-              distro = "sles12"
+              distro = "sles"
             elsif rhel_compute_all
-              distro = "rhel7"
+              distro = "rhel"
             end
           end
 
           # check for specific node distro directives
           if ( sles_nodes.include? serverInfo["id"] )
-            distro = "sles12"
+            distro = "sles"
           elsif ( rhel_nodes.include? serverInfo["id"] )
-            distro = "rhel7"
+            distro = "rhel"
           end
 
           # default to SLES if no distro selected
           if distro == ""
-            distro = "sles12"
+            distro = "sles"
           end
 
-          serverInfo["os-dist"] = distro
+          serverInfo["os-dist"] = @distro_map[distro][:version]
         end
       end
       return metal_cfg
@@ -339,14 +351,14 @@ module Ardana
     end
 
     def set_sles(iso_files)
-      iso_files.push( get_image_output_dir() + "/sles12sp3.iso" )
+      iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
     end
 
     def set_sles_sdk(iso_files)
-      iso_files.push( get_image_output_dir() + "/sles12sp3sdk.iso" )
+      iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}sdk.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
@@ -354,14 +366,13 @@ module Ardana
 
     def set_sles_cloud(iso_files)
       iso_files.push( get_image_output_dir() + "/cloud#{@ardana[:cloud][:version]}.iso" )
-      STDERR.puts "cloud_iso_file: #{iso_files[-1]}"
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
-        raise "Run 'ansible-playbook -i hosts/localhost get-cloud-artifacts.yml' to get the Cloud ISO"
+        raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the Cloud ISO"
       end
     end
 
     def set_rhel(iso_files)
-      iso_files.push( get_image_output_dir() + "/rhel7.iso" )
+      iso_files.push( get_image_output_dir() + "/#{@distro_map["rhel"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the RHEL ISO"
       end
@@ -373,11 +384,11 @@ module Ardana
       # /dev/sr0 - last release or bare SLES
       if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
         set_release(iso_files)
-      elsif distros.include?("sles12")
+      elsif distros.any?{|d| d.include?("sles")}
         set_sles(iso_files)
       end
 
-      if distros.include?("sles12")
+      if distros.any?{|d| d.include?("sles")}
         # SLES SDK only for legacy deployer or SLES build vm
         if name.include? "build" or not @ardana[:cloud][:deployer]
           set_sles_sdk(iso_files)
@@ -387,7 +398,7 @@ module Ardana
       end
 
       # RHEL
-      if distros.include?("rhel7")
+      if distros.any?{|d| d.include?("rhel")}
         set_rhel(iso_files)
       end
 
@@ -493,7 +504,7 @@ module Ardana
           node_type=MIDCONTROL_NODE
         end
 
-        if serverInfo["os-dist"] == "sles12" || serverInfo["os-dist"] == "rhel7"
+        if serverInfo["os-dist"] == "sles" || serverInfo["os-dist"] == "rhel"
           # RHEL & SLES support don't yet support booting from a release image.
           use_release_artifact = false
         end
@@ -573,12 +584,12 @@ module Ardana
 
     def add_build
       distros_info = {
-        "rhel7" => {
+        "rhel" => {
           :name => "build-rhel7",
           :enabled => @ardana[:rhel][:artifacts],
           :gfx_port => "5902"
         },
-        "sles12" => {
+        "sles" => {
           :name => "build-sles12",
           :enabled => @ardana[:sles][:artifacts],
           :gfx_port => "5901"
@@ -596,7 +607,7 @@ module Ardana
       end
 
       if machines.empty?
-        machines << distros_info["sles12"][:name]
+        machines << distros_info["sles"][:name]
       end
 
       machines.each do |machine|

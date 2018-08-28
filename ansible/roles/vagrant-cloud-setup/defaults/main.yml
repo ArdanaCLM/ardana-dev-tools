@@ -29,18 +29,23 @@ clmsetup:
     enabled: "{{ _proxy_mounts | count | bool }}"
     mounts: "{{ _proxy_mounts }}"
   server:
-    base: "{{ PACKAGE_CONSTANTS.REPO_DIR }}"
+    sles:
+      base: "/srv/www/"
+    rhel:
+      base: "{{ PACKAGE_CONSTANTS.REPO_DIR }}"
   distros:
     sles:
-      dir: "ardana/sles12/zypper"
+      dir: "suse-{{ sles_major }}.{{ sles_sp }}/x86_64/repos"
+      http: "SUSE-{{ sles_major }}-{{ sles_sp }}/x86_64/repos"
     rhel:
       dir: "ardana/rhel7/yum"
+      http: "ardana/rhel7/yum"
   isos:
     - dev: /dev/sr0
       path: "OS"
-      name: "{{ sles.artifacts.iso.os.name }}"
-      alias: "{{ sles.artifacts.iso.os.alias }}"
-      iso_link: "{{ sles.artifacts.iso.os.link }}"
+      name: "{{ sles.artifacts.iso[sles_version].os.name }}"
+      alias: "{{ sles.artifacts.iso[sles_version].os.alias }}"
+      iso_link: "{{ sles.artifacts.iso[sles_version].os.link }}"
       distro: sles
       enabled: true
     - dev: /dev/sr1
@@ -63,21 +68,57 @@ clmsetup:
     # rsync mirror based repos
     #
 
+    # SLES12 SP4 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates_test.enabled | bool) and
+                   ('updates-test' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.updates.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.updates.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
+                   ('updates' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.pool.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.pool.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.pool.enabled | bool) and
+                   ('pool' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+
     # SLES12 SP3 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
+      path: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates_test.enabled | bool) and
+                   ('updates-test' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
       path: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
       name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}"
       alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
       distro: sles
       enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
-                   ('updates' in sles.config.enabled_repos) }}"
+                   ('updates' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
       path: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
       name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}"
       alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
       distro: sles
       enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
-                   ('pool' in sles.config.enabled_repos) }}"
+                   ('pool' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
 
     # SUSE OpenStack Cloud 9 Repos
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.staging.name }}"
@@ -95,6 +136,14 @@ clmsetup:
       distro: sles
       enabled: "{{ (cloud.artifacts.repos.soc9.devel.enabled | bool) and
                    ('devel' in cloud.config.enabled_repos) and
+                   (_clm_version == 'soc9') }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates_test.name }}"
+      path: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+      name: "{{ cloud.artifacts.repos.soc9.updates_test.name }}"
+      alias: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+      distro: sles
+      enabled: "{{ (cloud.artifacts.repos.soc9.updates_test.enabled | bool) and
+                   ('updates-test' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc9') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates.name }}"
       path: "{{ cloud.artifacts.repos.soc9.updates.alias }}"
@@ -130,6 +179,14 @@ clmsetup:
       enabled: "{{ (cloud.artifacts.repos.soc8.devel.enabled | bool) and
                    ('devel' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc8') }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates_test.name }}"
+      path: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+      name: "{{ cloud.artifacts.repos.soc9.updates_test.name }}"
+      alias: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+      distro: sles
+      enabled: "{{ (cloud.artifacts.repos.soc9.updates_test.enabled | bool) and
+                   ('updates-test' in cloud.config.enabled_repos) and
+                   (_clm_version == 'soc9') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.updates.name }}"
       path: "{{ cloud.artifacts.repos.soc8.updates.alias }}"
       name: "{{ cloud.artifacts.repos.soc8.updates.name }}"
@@ -177,17 +234,51 @@ clmsetup:
     # Caching proxy based repos
     #
 
+    # SLES12 SP4 Repos
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.updates_test.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
+                   ('updates-test' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.updates.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.updates.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
+                   ('updates' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.pool.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp4.pool.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp4.pool.enabled | bool) and
+                   ('pool' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp4') }}"
+
     # SLES12 SP3 Repos
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
+      name: "{{ sles.artifacts.repos.sles12sp3.updates_test.name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}-http"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
+                   ('updates-test' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
     - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
       name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}-http"
       alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}-http"
       distro: sles
-      enabled: "{{ sles.artifacts.repos.sles12sp3.updates.enabled | bool }}"
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
+                   ('updates' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
     - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
       name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}-http"
       alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}-http"
       distro: sles
-      enabled: "{{ sles.artifacts.repos.sles12sp3.pool.enabled | bool }}"
+      enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
+                   ('pool' in sles.config.enabled_repos) and
+                   (sles_version == 'sles12sp3') }}"
 
     # SUSE OpenStack Cloud 9 Repos
     - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.staging.name }}"
@@ -219,7 +310,6 @@ clmsetup:
                    ('pool' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc9') }}"
 
-    # HPE Helion OpenStack Cloud 8 Repos
     # SUSE OpenStack Cloud 8 Repos
     # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S for both modes.
     - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.staging.name }}"
@@ -281,9 +371,9 @@ clmsetup:
     # PTF repo.
     #
     - override: "{{ dev_env_working_dir | dirname }}/NEW_RPMS"
-      path: "C8-Local"
+      path: "C{{ cloud_version }}-Overrides"
       name: "Locally built overrides packages"
-      alias: "C8-Local"
+      alias: "C{{ cloud_version }}-Overrides"
       priority: 98
       distro: sles
       enabled: True

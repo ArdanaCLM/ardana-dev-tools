@@ -17,6 +17,5 @@
 # Validate the developer environment
 ---
 
-- include: ../../../roles/packer/tasks/validate.yml
 - include: check-ansible-version.yml
   when: _dev_env_ansible_installed is not defined
