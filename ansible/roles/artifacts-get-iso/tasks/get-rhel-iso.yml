@@ -30,7 +30,7 @@
     _rhel_os: "{{ rhel.artifacts.iso.os }}"
 
 - name: artifacts-get-rhel-iso | get-rhel-iso | Get the RHEL OS ISO
-  include: ../../ardana-cache/tasks/get-cached-file.yml
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _rhel_os.name }}.iso"

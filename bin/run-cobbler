@@ -105,16 +105,16 @@ MODE=
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --c8|-c9)
+        --c8|--c9)
             MODE=soc
             args+=( $1 )
             shift ;;
-        --c8-*|-c9-*)
+        --c8-*|--c9-*)
             MODE=soc
             args+=( $1 )
             shift ;;
         --rhel-compute)
-            args+=( --cobble-rhel-compute )
+            args+=( --cobble-rhel-compute --rhel-compute )
             shift ;;
         --sles-control)
             args+=( --cobble-sles-control )

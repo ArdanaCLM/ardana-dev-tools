@@ -13,7 +13,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks requires to install vagrant and specified plugins
+# Tasks required to install vagrant and specified plugins
 ---
 
 - name: dev-env-vagrant | install | Install Vagrant requirements

@@ -1,1 +1,1 @@
-../../rhel-7/scripts/vagrant.sh
+../../common/scripts/vagrant.sh

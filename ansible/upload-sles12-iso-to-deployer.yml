@@ -1,6 +1,6 @@
 #
 # (c) Copyright 2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -22,6 +22,6 @@
   tasks:
     - include: roles/deployer/tasks/_upload_iso_to_deployer.yml
       vars:
-        upload_iso: "{{ sles12_iso }}"
+        upload_iso: "{{ dev_env_product_images }}/{{ sles_version }}.iso"
         media_dir: "{{ _deployer_iso_mounts.sles|default('sles') }}"
       when: dev_env_use_sles12_artifacts|bool

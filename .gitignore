@@ -27,10 +27,10 @@ artifacts-list.txt
 deployer-repos/
 hlinuxbox.json
 hlinux.box
-rhel7box.json
-rhel7.box
-sles12box.json
-sles12.box
+rhel*box.json
+rhel*.box
+sles*box.json
+sles*.box
 *.iso
 *.log
 scratch-*
@@ -40,6 +40,7 @@ openstack-vagrant-models/*-vagrant/deploy-vagrant-ssh-config
 ansible/*.retry
 ansible/roles/image-build/files/*/http/*.cfg
 ansible/roles/image-build/files/*/http/*.xml
+ansible/roles/image-build/files/*/http/Vagrantfile
 astack-ssh-config
 venv_report.yaml
 AUTHORS
@@ -47,3 +48,4 @@ ChangeLog
 doc/build/*
 ardana-vagrant-models/*/verify-bm.sh
 ardana-vagrant-models/*/deploy-vagrant-ssh-config
+ansible/packer_cache/*

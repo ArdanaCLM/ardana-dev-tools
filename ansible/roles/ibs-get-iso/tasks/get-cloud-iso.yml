@@ -13,18 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks for retrieving an IBS ISO via the Ardana ISO cache.
+# Tasks for retrieving Cloud ISO from IBS via the Ardana ISO cache.
 ---
 
-- name: ibs-get-iso | get-iso | Ensure relevant directories exist
-  file:
-    path: "{{ item.dir }}"
-    state: directory
-  with_items:
-    - dir: "{{ ibs_iso.isos_dir }}"
-    - dir: "{{ ibs_iso.images_dir }}"
-
-- name: ibs-get-iso | get-iso | Determine SOC/CLM media to download
+- name: ibs-get-iso | get-cloud-iso | Determine SOC/CLM media to download
   set_fact:
     _ibs_clm_media: "{{ cloud.artifacts.iso[
                         ((cloud_version | int) == 9) |
@@ -36,8 +28,8 @@
 - debug:
     var: _ibs_clm_media
 
-- name: ibs-get-iso | get-iso | Get the SOC/CLM media
-  include: ../../ardana-cache/tasks/get-cached-file.yml
+- name: ibs-get-iso | get-cloud-iso | Get the SOC/CLM media
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _ibs_clm_media.name | default('') }}"

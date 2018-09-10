@@ -16,13 +16,6 @@
 # Tasks performed by the artifacts-get-iso role
 ---
 
-- include: get-sles-iso.yml
-  when:
-    - dev_env_use_sles12_artifacts | bool
-  tags:
-    - skip-sles-isos
-    - skip-isos
-
 - include: get-rhel-iso.yml
   when:
     - dev_env_use_rhel7_artifacts | bool

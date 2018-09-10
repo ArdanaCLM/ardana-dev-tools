@@ -1,0 +1,1 @@
+../../sles-12/scripts/cleanup.sh

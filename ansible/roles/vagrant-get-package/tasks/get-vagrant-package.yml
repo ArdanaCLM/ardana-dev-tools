@@ -28,12 +28,12 @@
   with_items:
     - dir: "{{ vagrant_download.cache_dir }}"
 
-- name: vagrant-get-package | get-vagrant-package | Set package and sha256 names (SLES)
+- name: vagrant-get-package | get-vagrant-package | Set package name (SLES)
   set_fact:
     _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.rpm"
   when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
 
-- name: vagrant-get-package | get-vagrant-package | Set package and sha256 names (Debian)
+- name: vagrant-get-package | get-vagrant-package | Set package name (Debian)
   set_fact:
     _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.deb"
   when: ansible_os_family | lower == 'debian'
@@ -42,8 +42,8 @@
   set_fact:
     _vagrant_sha: "vagrant_{{ _vagrant_ver }}_SHA256SUMS"
 
-- name: vagrant-get-package | get-vagrant-package | Get the RHEL OS ISO
-  include: ../../ardana-cache/tasks/get-cached-file.yml
+- name: vagrant-get-package | get-vagrant-package | Get the Vagrant package
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _vagrant_pkg }}"

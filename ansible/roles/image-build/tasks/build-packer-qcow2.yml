@@ -17,6 +17,11 @@
 # Create a qcow2 for specified image_build_name
 ---
 
+- name: image-build | build-packer-qcow2 | Determine image build http dir
+  set_fact:
+    image_build_http_dir: >
+      {{ playbook_dir }}/roles/image-build/files/{{ image_build_name }}/http
+
 - name: image-build | build-packer-qcow2 | Create local directories if necessary
   file:
     path: "{{ item }}"
@@ -24,8 +29,9 @@
     recurse: yes
   with_items:
     - "{{ image_build_output_dir }}"
+    - "{{ image_build_boxes_dir }}"
     - "{{ image_build_log_dir }}"
-    - "{{ playbook_dir }}/roles/image-build/files/{{ image_build_name }}/http"
+    - "{{ image_build_http_dir }}"
 
 - name: image-build | build-packer-qcow2 | Generate inputs to the image building
   shell: |
@@ -51,21 +57,58 @@
 - name: image-build | build-packer-qcow2 | Generate install script
   delegate_to: localhost
   template:
-    src: "roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2"
-    dest: "{{ playbook_dir }}/roles/image-build/files/{{ image_build_name }}/http/{{ images_build_images[image_build_name].install_template | basename }}"
+    src: "{{ playbook_dir }}/roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2"
+    dest: "{{ image_build_http_dir }}/{{ images_build_images[image_build_name].install_template | basename }}"
   when: image_inputs_check_result | failed and images_build_images[image_build_name].install_template is defined
+
+- name: image-build | build-packer-qcow2 | Create box Vagrantfile
+  delegate_to: localhost
+  template:
+    src: "{{ playbook_dir }}/roles/image-build/templates/vagrant-box/Vagrantfile.j2"
+    dest: "{{ image_build_http_dir }}/Vagrantfile"
+  register: _image_build_vagrantfile_result
+
+- name: image-build | build-packer-qcow2 | Construct ISO sha256 checksum name
+  set_fact:
+    image_build_iso_checksum_file: >
+      {{ image_build_iso | realpath }}.sha256
+- name: image-build | build-packer-qcow2 | Check for ISO sha256 checksum
+  stat:
+    path: "{{ image_build_iso_checksum_file }}"
+  register: _sha256_checksum_stat_result
+
+- name: image-build | build-packer-qcow2 | Read checksum if found
+  set_fact:
+    image_build_iso_checksum: "{{ lookup('file', image_build_iso_checksum_file).split()[0] }}"
+    image_build_iso_checksum_type: "sha256"
+  when:
+    - _sha256_checksum_stat_result.stat.exists
+
+- name: image-build | build-packer-qcow2 | Use defaults if not found
+  set_fact:
+    image_build_iso_checksum: "{{ images_build_images[image_build_name].iso_checksum }}"
+    image_build_iso_checksum_type: "{{ images_build_images[image_build_name].iso_checksum_type }}"
+  when:
+    - not _sha256_checksum_stat_result.stat.exists
 
 - name: image-build | build-packer-qcow2 | Run packer
   shell: |
     set -eu
+    echo start
 
     image_output="{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}"
+    boxes_output="{{ image_build_boxes_dir }}"
     image_name="{{ image_build_name }}.qcow2"
-    rm -rf "{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}/"
+    rm -rf "${image_output}/"
 
-    packer build \
+    {{ packer_cmd }} build \
         -var "iso_url=file://{{ image_build_iso }}" \
+        -var "iso_checksum={{ image_build_iso_checksum }}" \
+        -var "iso_checksum_type={{ image_build_iso_checksum_type }}" \
+        -var "box_distro={{ image_build_name }}" \
         -var "output_directory=${image_output}/" \
+        -var "boxes_directory=${boxes_output}/" \
+        -var "vagrantfile_template={{ image_build_http_dir }}/Vagrantfile" \
         -var "username={{ image_build_user }}" \
         -var "password={{ image_build_password }}" \
         -var "disk_size={{ image_build_disk_size }}" \

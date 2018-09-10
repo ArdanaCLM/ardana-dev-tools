@@ -23,6 +23,7 @@ image_build_group: "{{ lookup('env','ARDANAUSER')|default('ardana', true) }}"
 image_build_uid: 1001
 image_build_root_device: sda
 
+image_build_boxes_dir: "{{ product_cache_directory }}/boxes"
 image_build_output_dir: "{{ product_cache_directory }}/images"
 
 # Version the artifact
@@ -33,7 +34,6 @@ image_version: "1.0.{{ image_version_update | default(_image_timestamp + _image_
 image_build_log_dir: "{{ lookup('env', 'WORKSPACE') | default(dev_env_working_dir, true) }}/logs/image-build/"
 
 image_build_packer_env:
-    PATH: "{{ packer_path }}:{{ lookup('env', 'PATH') }}"
     PACKER_LOG: "1"
     PACKER_LOG_PATH: "{{ image_build_log_dir }}/packer.log"
 
@@ -48,5 +48,15 @@ images_build_images:
         vagrant_box_name: sles12box
         vagrant_box_desc: This box contains SLES 12
         install_template: sles-12/autoyast.xml
+    sles12sp3:
+        box: "sles12sp3.box"
+        vagrant_box_name: sles12sp3box
+        vagrant_box_desc: This box contains SLES 12 SP3
+        install_template: sles12sp3/autoyast.xml
+    sles12sp4:
+        box: "sles12sp4.box"
+        vagrant_box_name: sles12sp4box
+        vagrant_box_desc: This box contains SLES 12 SP4
+        install_template: sles12sp4/autoyast.xml
 
 vagrant_vm_vg: ardana-vg

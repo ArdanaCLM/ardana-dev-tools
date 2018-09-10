@@ -17,11 +17,11 @@
 # Build the vagrant image for the developer environment
 ---
 
-- include: image-build-setup.yml
-
 - hosts: localhost
   connection: local
   roles:
+    - dev-env-sles
+    - dev-env-rhel
     - image-build
     - apt-repos
   tasks:
@@ -30,23 +30,44 @@
         image_build_iso: "{{ rhel7_iso }}"
         image_build_name: rhel-7
         image_build_disk_size: 4120
-      when: dev_env_use_rhel7_artifacts|bool
+      when:
+        - dev_env_use_rhel7_artifacts|bool
 
     - include: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: rhel-7
         image_build_box: "{{ images_build_images['rhel-7'].box }}"
-      when: dev_env_use_rhel7_artifacts|bool
+      when:
+        - dev_env_use_rhel7_artifacts|bool
 
     - include: roles/image-build/tasks/build-packer-qcow2.yml
       vars:
         image_build_iso: "{{ sles12_iso }}"
         image_build_name: sles-12
         image_build_disk_size: 4120
-      when: dev_env_use_sles12_artifacts|bool
+      when:
+        - dev_env_use_sles12_artifacts|bool
+        - false
 
     - include: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: sles-12
         image_build_box: "{{ images_build_images['sles-12'].box }}"
-      when: dev_env_use_sles12_artifacts|bool
+      when:
+        - dev_env_use_sles12_artifacts|bool
+        - false
+
+    - include: roles/image-build/tasks/build-packer-qcow2.yml
+      vars:
+        image_build_iso: "{{ dev_env_product_images }}/{{ sles_version }}.iso"
+        image_build_name: "{{ sles_version }}"
+        image_build_disk_size: 4120
+      when:
+        - dev_env_use_sles12_artifacts|bool
+
+    - include: roles/image-build/tasks/convert-qcow2-to-box.yml
+      vars:
+        image_build_name: "{{ sles_version }}"
+        image_build_box: "{{ images_build_images[sles_version].box }}"
+      when:
+        - dev_env_use_sles12_artifacts|bool

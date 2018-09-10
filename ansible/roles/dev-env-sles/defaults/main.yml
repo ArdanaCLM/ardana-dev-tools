@@ -17,14 +17,40 @@
 # SLES distribution.
 ---
 
+sles_major: "{{ lookup('env', 'ARDANA_SLES_MAJOR') | default(12, true) }}"
+sles_sp: "{{ lookup('env', 'ARDANA_SLES_SP') | default(3, true) }}"
+sles_version: "sles{{ sles_major }}{{
+                      ((sles_sp | int) > 0) |
+                      ternary('sp' ~ sles_sp, '') }}"
+
 # SLES deployment settings
 sles:
   config:
     enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
+    iso_milestone:
+      "sles12sp3": "-GM"
+      "sles12sp4": "-TEST"
   artifacts:
     repos:
+      sles12sp4:
+        updates_test:
+          name: "SLES12-SP4-Updates-test"
+          alias: "SLE12SP4-Updates-test"
+          enabled: true
+        updates:
+          name: "SLES12-SP4-Updates"
+          alias: "SLE12SP4-Updates"
+          enabled: true
+        pool:
+          name: "SLES12-SP4-Pool"
+          alias: "SLE12SP4-Pool"
+          enabled: true
       sles12sp3:
+        updates_test:
+          name: "SLES12-SP3-Updates-test"
+          alias: "SLE12SP3-Updates-test"
+          enabled: true
         updates:
           name: "SLES12-SP3-Updates"
           alias: "SLE12SP3-Updates"
@@ -34,13 +60,25 @@ sles:
           alias: "SLE12SP3-Pool"
           enabled: true
     iso:
-      os:
-        name: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1"
-        alias: "SLES-OS"
-        path: "SLE"
-        link: "sles12sp3.iso"
-      sdk:
-        name: "SLE-12-SP3-SDK-DVD-x86_64-GM-DVD1"
-        alias: "SLES-SDK"
-        path: "SLE"
-        link: "sles12sp3sdk.iso"
+      sles12sp4:
+        os:
+          #name: "SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
+          name: "SLE-12-SP4-Server-DVD-x86_64-TEST-DVD1.iso"
+          pattern: "SLE-12-SP4-Server-DVD-x86_64-(GM-DVD|Build[0-9]+-Media)1.iso"
+          alias: "SLES-OS"
+          sha256: ""
+          path: "install/SLE-12-SP4-Server"
+          link: "sles12sp4.iso"
+      sles12sp3:
+        os:
+          name: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso"
+          alias: "SLES-OS"
+          sha256: ""
+          path: "install/SLE-12-SP3-Server"
+          link: "sles12sp3.iso"
+        sdk:
+          name: "SLE-12-SP3-SDK-DVD-x86_64-GM-DVD1.iso"
+          alias: "SLES-SDK"
+          sha256: ""
+          path: "install/SLE-12-SP3-SDK"
+          link: "sles12sp3sdk.iso"

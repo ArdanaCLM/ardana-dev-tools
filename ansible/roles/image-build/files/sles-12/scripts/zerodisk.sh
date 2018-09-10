@@ -1,1 +1,1 @@
-../../rhel-7/scripts/zerodisk.sh
+../../common/scripts/zerodisk.sh

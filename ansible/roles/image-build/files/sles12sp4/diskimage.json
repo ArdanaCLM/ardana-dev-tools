@@ -1,0 +1,94 @@
+{
+  "variables": {
+    "image_name": "sles12sp4.qcow2",
+    "box_distro": "sles12sp4",
+    "iso_url": "file://{{ env `HOME` }}/sles12sp4/sles12sp4.iso",
+    "iso_checksum": "1927d1b8b320839a59c69025385c61105634c83761580ca699a70334937de658",
+    "iso_checksum_type": "sha256",
+    "disk_size": "4120",
+    "output_directory": "{{ env `PWD` }}/output",
+    "boxes_directory": "{{ env `PWD` }}/boxes",
+    "vagrantfile_template": "{{ env `PWD` }}/Vagrantfile",
+    "base_dir": "{{ env `PWD` }}/",
+    "username": "{{ env `ARDANAUSER` }}",
+    "password": "{{ env `ARDANAUSER` }}",
+    "home_base": "{{ env `ARDANA_USER_HOME_BASE` }}",
+    "http_proxy": "{{ env `http_proxy` }}",
+    "https_proxy": "{{ env `https_proxy` }}",
+    "no_proxy": "{{ env `no_proxy` }}",
+    "HTTP_PROXY": "{{ env `HTTP_PROXY` }}",
+    "HTTPS_PROXY": "{{ env `HTTPS_PROXY` }}",
+    "NO_PROXY": "{{ env `NO_PROXY` }}"
+  },
+
+  "builders": [
+    {
+      "name": "{{ user `image_name` }}",
+      "output_directory": "{{ user `output_directory` }}",
+      "type": "qemu",
+      "iso_url": "{{ user `iso_url` }}",
+      "iso_checksum": "{{ user `iso_checksum` }}",
+      "iso_checksum_type": "{{ user `iso_checksum_type` }}",
+      "disk_size": "{{ user `disk_size` }}",
+      "disk_cache": "unsafe",
+      "disk_discard": "unmap",
+      "disk_interface": "virtio-scsi",
+      "format": "qcow2",
+      "headless": true,
+      "accelerator": "kvm",
+      "http_directory": "{{ user `base_dir` }}/http",
+      "ssh_username": "{{ user `username` }}",
+      "ssh_password": "{{ user `password` }}",
+      "ssh_wait_timeout": "1200s",
+      "shutdown_command": "echo '/sbin/halt -h -p' > shutdown.sh; echo '{{ user `password` }}'|sudo -S sh 'shutdown.sh'",
+      "boot_command": [
+        "<esc><enter><wait>",
+        "linux netdevice=eth0 netsetup=dhcp install=cd:/<wait>",
+        " autoyast=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoyast.xml<wait>",
+        " self_update=0<wait>",
+        "<enter><wait>"
+      ],
+      "qemuargs": [
+        [ "-m", "1024M" ]
+      ]
+    }
+  ],
+
+  "provisioners": [
+    {
+      "type": "shell",
+      "environment_vars": [
+        "VAGRANT_USER={{ user `username` }}",
+        "HOME_BASE={{ user `home_base` }}",
+        "http_proxy={{ user `http_proxy` }}",
+        "https_proxy={{ user `https_proxy` }}",
+        "no_proxy={{ user `no_proxy` }}",
+        "HTTP_PROXY={{ user `HTTP_PROXY` }}",
+        "HTTPS_PROXY={{ user `HTTPS_PROXY` }}",
+        "NO_PROXY={{ user `NO_PROXY` }}"
+      ],
+      "execute_command": "echo '{{ user `password` }}'|{{ .Vars }} sudo -E -S sh '{{ .Path }}'",
+      "scripts": [
+        "{{ user `base_dir` }}/scripts/base.sh",
+        "{{ user `base_dir` }}/scripts/vagrant.sh",
+        "{{ user `base_dir` }}/scripts/ardana.sh",
+        "{{ user `base_dir` }}/scripts/cleanup.sh",
+        "{{ user `base_dir` }}/scripts/zerodisk.sh"
+      ]
+    }
+  ],
+
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "compression_level": 9,
+      "output": "{{ user `boxes_directory` }}/{{ user `box_distro` }}-{{ user `username` }}_{{ .Provider }}.box",
+      "keep_input_artifact": true,
+      "override": {
+        "libvirt": {
+          "vagrantfile_template": "{{ user `vagrantfile_template` }}"
+        }
+      }
+    }
+  ]
+}

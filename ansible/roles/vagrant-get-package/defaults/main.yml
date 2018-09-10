@@ -13,7 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for Ardana artifacts server cached ISO retrieval.
+# Default settings for Vagrant package retrieval from Hashicorp service
+# vi Ardana cache.
 ---
 
 vagrant_package:

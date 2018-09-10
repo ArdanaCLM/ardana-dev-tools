@@ -297,6 +297,8 @@ Add the following parameters for more options:
     --c8-hos               (Deploy a SOC/CLM 8 cloud using HOS, rather than SOC,
                             branded repos; otherwise the same as the --c8
 			    option)
+    --sles12sp3            (Use SLES12 SP3 based Vagrant boxes, repos, artifacts)
+    --sles12sp4            (Use SLES12 SP4 based Vagrant boxes, repos, artifacts)
     --no-setup             (Don't run dev-env-install.yml)
     --no-artifacts         (Don't try to download any ISOs, qcow2 or other
                             inputs; will fail if you haven't previously
@@ -467,7 +469,6 @@ Now run the following commands:
 
     cd ansible
     ansible-playbook -i hosts/localhost dev-env-install.yml
-    ansible-playbook -i hosts/localhost image-build-setup.yml
 
 
 At this point you should also check that you have rights to access libvirt as a normal

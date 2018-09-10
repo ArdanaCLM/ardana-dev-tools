@@ -31,7 +31,7 @@
     _sles_sdk: "{{ sles.artifacts.iso.sdk }}"
 
 - name: artifacts-get-sles-iso | get-sles-iso | Get the SLES OS ISO
-  include: ../../ardana-cache/tasks/get-cached-file.yml
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _sles_os.name }}.iso"
@@ -45,7 +45,7 @@
       use_proxy: "{{ artifacts_iso.use_proxy }}"
 
 - name: artifacts-get-sles-iso | get-sles-iso | Get the SLES SDK ISO
-  include: ../../ardana-cache/tasks/get-cached-file.yml
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _sles_sdk.name }}.iso"

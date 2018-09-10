@@ -91,6 +91,8 @@ usage() {
     echo "--rhel-compute-nodes nodes"
     echo "                      -- Colon separated list of nodes to be setup"
     echo "                         as RHEL computes. (repeatable)"
+    echo "--sles12sp3           -- Use SLES12 SP3 as the SLES distro"
+    echo "--sles12sp4           -- Use SLES12 SP4 as the SLES distro"
     echo "--sles                -- Include any SLES artifacts"
     echo "--sles-control        -- Switch control nodes to use sles"
     echo "--sles-control-nodes nodes"

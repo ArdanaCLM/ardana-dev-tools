@@ -1,12 +1,15 @@
 {
   "variables": {
     "image_name": "sles-12.qcow2",
+    "box_distro": "sles12sp3",
     "iso_url": "file://{{ env `HOME` }}/sles-12/sles12sp3.iso",
     "disk_size": "4120",
     "output_directory": "{{ env `PWD` }}/output",
+    "boxes_directory": "{{ env `PWD` }}/boxes",
+    "vagrantfile_template": "{{ env `PWD` }}/Vagrantfile",
     "base_dir": "{{ env `PWD` }}/",
-    "username": "stack",
-    "password": "stack",
+    "username": "{{ env `ARDANAUSER` }}",
+    "password": "{{ env `ARDANAUSER` }}",
     "home_base": "{{ env `ARDANA_USER_HOME_BASE` }}",
     "http_proxy": "{{ env `http_proxy` }}",
     "https_proxy": "{{ env `https_proxy` }}",
@@ -70,6 +73,20 @@
         "{{ user `base_dir` }}/scripts/cleanup.sh",
         "{{ user `base_dir` }}/scripts/zerodisk.sh"
       ]
+    }
+  ],
+
+  "post-processors": [
+    {
+      "type": "vagrant",
+      "compression_level": 9,
+      "output": "{{ user `boxes_directory` }}/{{ user `box_distro` }}-{{ user `username` }}_{{ .Provider }}.box",
+      "keep_input_artifact": true,
+      "override": {
+        "libvirt": {
+          "vagrantfile_template": "{{ user `vagrantfile_template` }}"
+        }
+      }
     }
   ]
 }
