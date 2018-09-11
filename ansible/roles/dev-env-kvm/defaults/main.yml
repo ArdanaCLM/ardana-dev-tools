@@ -16,6 +16,8 @@
 # Settings used to manage KVM setup
 ---
 
+kvm_distro: "{{ ansible_distribution.split(' ')[0] | lower }}"
+
 kvm:
   intel:
     modprobe:
@@ -27,11 +29,15 @@ kvm:
         path: "/sys/module/kvm_intel/parameters/nested"
         enabled: "Y"
   pkgs:
-    suse:
+    sles:
       - acl
-      - patterns-server-kvm_server
+      - patterns-sles-kvm_server
       - sysfsutils
-    debian:
+    opensuse:
+      - acl
+      - patterns-openSUSE-kvm_server
+      - sysfsutils
+    ubuntu:
       - acl
       - qemu-kvm
       - sysfsutils

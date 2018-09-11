@@ -21,4 +21,4 @@
   apt:
     state: present
     name: "{{ item }}"
-  with_items: "{{ kvm.pkgs.debian }}"
+  with_items: "{{ kvm.pkgs[kvm_distro] }}"

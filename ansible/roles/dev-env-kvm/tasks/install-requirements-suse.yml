@@ -21,4 +21,4 @@
   zypper:
     state: present
     name: "{{ item }}"
-  with_items: "{{ kvm.pkgs.suse }}"
+  with_items: "{{ kvm.pkgs[kvm_distro] }}"
