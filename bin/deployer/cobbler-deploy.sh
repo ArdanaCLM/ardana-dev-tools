@@ -26,8 +26,22 @@ export PYTHONUNBUFFERED=1
 export ANSIBLE_MAX_FAIL_PERCENTAGE=0
 
 ARDANA_USER="${1}"
+SLES_VERSION="${2:-sles12sp3}"
 
 pushd "${HOME}/openstack/ardana/ansible"
+
+# Update the default SLES version setting in cobbler defaults
+# to specify the desired SLES version
+cobbler_defaults=roles/cobbler/defaults/main.yml
+if grep -qs "^sles_version_name:" "${cobbler_defaults}"; then
+    if ! grep -qs "^sles_version_name:.*${SLES_VERSION}" "${cobbler_defaults}"; then
+        sed -i \
+            -e 's,^\(sles_version_name:[[:space:]]*\).*,\1 "'${SLES_VERSION}'",' \
+            "${cobbler_defaults}"
+        git add -A
+        git commit -m "Update default SLES version to '${SLES_VERSION}'"
+    fi
+fi
 
 # increase the root volume disk space by 10G if needed:
 cobbler_fs=/srv/www

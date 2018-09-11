@@ -265,45 +265,45 @@ in ardana-dev-tools/bin, which will perform all the steps necessary to
 deploy, and possibly test, your cloud.
 
 This script enables you to setup your development environment and deploy
-a legacy style Ardana cloud with a single command line:
+a SOC/CLM version 8 cloud with a single command line:
 
     ./bin/astack.sh dac-min
 
-Alternatively you can deploy a new SOC/CLM style cloud by including the
-*--c8* or *--c9* option, like:
+Alternatively you can deploy a SOC/CLM version 9 cloud by including the
+*--c9* option, like:
 
-    ./bin/astack.sh --c8 dac-min
+    ./bin/astack.sh --c9 dac-min
 
-The cloud defaults to _dac-min_, which is a minimal footprint, fully featured
-cloud deployment.
+The cloud model defaults to _dac-min_ if not specified, which is a minimal
+footprint, fully featured cloud deployment.
 
-NOTE: You *must* specify the name of the cloud to be used as the last
-argument on the command line, after all other options, e.g.
+NOTE: If specifying the name of a cloud model to use, you *must* specify it as
+the last argument on the command line, after all other options, e.g.
 
     ./astack.sh ... std-min
 
-Add the following parameters for more options:
+Some useful additional parameters to use:
 
-    --c9                   (Deploy a SOC/CLM 8 style cloud, rather than a legacy
-                            style cloud; this will skip the venv build phase
-			    similar to the legacy --no-build option)
-    --c8                   (Deploy a SOC/CLM 8 style cloud, rather than a legacy
-                            style cloud; this will skip the venv build phase
-			    similar to the legacy --no-build option, unless the
-			    --run-tests option has also been specified along
-			    with the --c8-qa-tests option in which case it will
-			    build just the additional QA testing venvs using the
-			    legacy build process)
+    --c9                   (Deploy a SOC/CLM version 9 cloud on SLES12 SP4)
+    --c8                   (Deploy a SOC/CLM version 8 cloud on SLES12 SP3)
     --c8-hos               (Deploy a SOC/CLM 8 cloud using HOS, rather than SOC,
                             branded repos; otherwise the same as the --c8
 			    option)
-    --sles12sp3            (Use SLES12 SP3 based Vagrant boxes, repos, artifacts)
-    --sles12sp4            (Use SLES12 SP4 based Vagrant boxes, repos, artifacts)
-    --no-setup             (Don't run dev-env-install.yml)
+    --sles12sp3            (Use SLES12 SP3 based Vagrant boxes, repos, artifacts;
+                            implied default when --c8* options are specified.)
+    --sles12sp4            (Use SLES12 SP4 based Vagrant boxes, repos, artifacts;
+                            implied default when --c9* options are specified.)
+    --legacy               (Deploy a legacy style product tarball based cloud;
+                            deprecated and no longer maintained, support will
+			    be removed in a future update.)
+    --no-setup             (Don't run dev-env-install.yml; must have been
+                            previously run)
     --no-artifacts         (Don't try to download any ISOs, qcow2 or other
                             inputs; will fail if you haven't previously
 			    downloaded and cached the required artifacts)
-    --no-build             (Don't build venvs, reuse existing packages)
+    --no-update-rpms       (Don't build local override RPMs for Ardana packages
+                            whose repos are cloned beside the ardana-dev-tools
+			    repo, using the *bin/updates_rpms.sh* script)
     --pre-destroy          (Destroy any existing instance of the Vagrant
                             cloud before trying to deploy it)
     --no-config            (Don't automatically compile the cloud model and
@@ -318,13 +318,11 @@ Add the following parameters for more options:
 			    filter name found in roles/tempest/filters/run_filters
 			    directory under ~/openstack/ardana/ansible on a deployed
 			    system, or in the ardana/tempest-ansible.git repo)
-    --tarball TARBALL      (Specify a pre-built legacy style deployer tarball
-                            to use)
-    --ci                   (Sets the same options used by the legacy deployment
-                            mode CI)
     --guest-images         (Builds and uploads guest images to glance)
-    --rhel                 (Builds RHEL artifacts for inclusion in product tarball)
-    --rhel-compute         (Configures compute nodes to be RHEL based)
+    --rhel                 (Enables retrieval and builing of RHEL artifacts, e.g.
+                            ISOs and qcow2 images for Vagrant box)
+    --rhel-compute         (Configures compute nodes to be RHEL based rather than
+                            the default SLES; implies --rhel)
 
 ### Useful tools
 
@@ -348,7 +346,7 @@ as an argument to the ssh -F option, e.g.
 #### .astack-env
 
 This is a dump of the environment setting that were active when the cloud
-was being deployer, which can be sourced to setup the same environment
+was being deployed, which can be sourced to setup the same environment
 if you wish to run additional commands against the same cloud.
 
 #### ardana-vagrant
