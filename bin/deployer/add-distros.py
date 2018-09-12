@@ -37,14 +37,14 @@ class NoCloudNameError(StandardError):
         super(NoCloudNameError, self).__init__(*args, **kwargs)
 
 
-class InvalidHPCIBasePathError(StandardError):
+class InvalidArdanaCIBasePathError(StandardError):
     def __init__(self, *args, **kwargs):
-        super(InvalidHPCIBasePathError, self).__init__(*args, **kwargs)
+        super(InvalidArdanaCIBasePathError, self).__init__(*args, **kwargs)
 
 
-class InvalidHPCICloudPathError(StandardError):
+class InvalidArdanaCICloudPathError(StandardError):
     def __init__(self, *args, **kwargs):
-        super(InvalidHPCICloudPathError, self).__init__(*args, **kwargs)
+        super(InvalidArdanaCICloudPathError, self).__init__(*args, **kwargs)
 
 
 class InvalidServersPathError(StandardError):
@@ -52,16 +52,14 @@ class InvalidServersPathError(StandardError):
         super(InvalidServersPathError, self).__init__(*args, **kwargs)
 
 
+class InvalidDistroIDError(StandardError):
+    def __init__(self, *args, **kwargs):
+        super(InvalidDistroIDError, self).__init__(*args, **kwargs)
+
+
 class Servers(object):
 
-    _DISTRO_ID_MAP = dict(sles="sles12sp3-x86_64",
-                          rhel="rhel73-x86_64")
-
-    @classmethod
-    def supported_distros(cls):
-        return list(cls._DISTRO_ID_MAP.keys())
-
-    def __init__(self, cloud=None, ci_base=None, distro=None):
+    def __init__(self, cloud=None, ci_base=None, distro=None, distros=None, arch=None):
         if cloud is None:
             raise NoCloudNameError("No cloud name specified when creating "
                                    "%s object" % (self.__class__.__name__))
@@ -70,25 +68,33 @@ class Servers(object):
             ci_base = os.path.join(os.environ["HOME"], "ardana-ci")
 
         if not os.path.exists(ci_base):
-            raise InvalidHPCIBasePathError("Invalid ardana-ci directory: '%s'" %
+            raise InvalidArdanaCIBasePathError("Invalid ardana-ci directory: '%s'" %
                                            ci_base)
 
         cloud_base = os.path.join(ci_base, cloud)
         if not os.path.exists(cloud_base):
-            raise InvalidHPCICloudPathError("Specified ardana-ci cloud directory "
+            raise InvalidArdanaCICloudPathError("Specified ardana-ci cloud directory "
                                             "doesn't exist: '%s'" %
                                             cloud_base)
 
         servers_file = os.path.join(cloud_base, "data", "servers.yml")
         if not os.path.exists(servers_file):
-            raise InvalidHPCICloudPathError("Specified servers file doesn't "
+            raise InvalidArdanaCICloudPathError("Specified servers file doesn't "
                                             "exist: '%s'" % servers_file)
 
         if distro is None:
-            distro = "sles12"
+            distro = "sles"
+
+        if distros is None:
+            distros = dict(sles='sles12sp3', rhel='rhel73')
+
+        if arch is None:
+            arch = 'x86_64'
 
         self._cloud = cloud
         self._distro = distro
+        self._distros = distros
+        self._arch = arch
         self._ci_base = ci_base
         self._cloud_base = cloud_base
         self._servers_file = servers_file
@@ -100,8 +106,16 @@ class Servers(object):
         return self._cloud
 
     @property
-    def distro(self):
+    def arch(self):
+        return self._arch
+
+    @property
+    def default_distro(self):
         return self._distro
+
+    @property
+    def distros(self):
+        return self._distros
 
     @property
     def ci_base(self):
@@ -146,44 +160,54 @@ class Servers(object):
         else:
             logger.info('Server state did not change, not saving')
 
-    def set_distro_id(self, server, distro=None):
+    def _gen_distro_id(self, distro=None, arch=None):
         if distro is None:
-            distro = self.distro
+            distro = self.default_distro
+        if arch is None:
+            arch = self.arch
+
+        distro_version = self.distros.get(distro, None)
+        if distro_version is None:
+            raise InvalidDistroIDError("'%s' is not a valid distro")
+
+        return "%s-%s" % (distro_version, arch)
+
+    def set_distro_id(self, server, distro=None, arch=None):
+        if distro is None:
+            distro = self.default_distro
 
         logger.info("Setting distro for node '%s' (role '%s') to '%s'" %
                     (server['id'], server['role'], distro))
 
-        distro_id = self._DISTRO_ID_MAP.get(distro, None)
+        distro_id = self._gen_distro_id(distro, arch)
 
-        # if no matching distro is found, or the distro is the default
-        if distro_id is None or distro == self.distro:
-            # want to use implict distro-id, so remove
-            # any existing distro-id entry in server
+        # We want to be able to exercise the "default" distro mechanism
+        # so remove a distro-id entry if one exists when the default
+        # distro is specified for a server.
+        if distro == self.default_distro:
             if "distro-id" in server:
-                logger.info('Distro id %s for server %s is not default, '
-                            ' removing' % (server["distro-id"], server['id']))
+                logger.info("The distro ('%s') specified for server "
+                            "'%s' is the default, removing existing "
+                            "'distro-id' entry" % (distro, server['id']))
                 del server["distro-id"]
 
                 # mark servers object as dirty
                 self._dirty = True
-            else:
-                logger.info('Default distro id for server %s unchanged' %
-                            (server['id']))
-        # an entry exists in distro ids map
         else:
-            # if existing distro-id is not required value
-            if server.get("distro-id") != distro_id:
-                logger.info('Distro id %s for server %s does not match %s, '
-                            'updating' % (distro_id, server['id'],
-                                          server.get("distro-id", 'default')))
-                # set/update distro-id value
-                server["distro-id"] = distro_id
-
-                # mark servers object as dirty
-                self._dirty = True
+            if "distro-id" in server:
+                action = "Updating"
             else:
-                logger.info('Distro id %s for server %s unchanged' %
-                            (distro_id, server['id']))
+                action = "Setting"
+            logger.info("%s the 'distro-id' entry for server '%s' to '%s'" %
+                        (action, server['id'], distro_id))
+            server["distro-id"] = distro_id
+
+            # mark servers object as dirty
+            self._dirty = True
+
+        logger.info("Server '%s' distro_id '%s' (default '%s')" %
+                    (server['id'], server.get('distro-id', "(default)"),
+                     distro_id))
 
 
 def main():
@@ -192,14 +216,19 @@ def main():
     parser.add_argument('cloud',
                         help='Name of cloud being deployed')
     parser.add_argument('--default-distro', dest='default_distro',
-                        type=str, choices=Servers.supported_distros(),
-                        default=Servers.supported_distros()[0],
+                        type=str, choices=['sles', 'rhel'], default='sles',
                         help='Default linux distribution')
 
     # limit set of nodes to be cobbled
     parser.add_argument('--nodes', dest='cobble_nodes', default='',
                         help='Only re-image this subset of nodes '
                         '(colon separated list)')
+
+    # distro versions to use
+    parser.add_argument('--sles', dest='sles_distro', default='sles12sp3',
+                        help='The version of SLES to use, e.g. "sles12sp3"')
+    parser.add_argument('--rhel', dest='rhel_distro', default='rhel73',
+                        help='The version of RHEL to use, e.g. "rhel73"')
 
     # specific node distro selections
     parser.add_argument('--rhel-nodes', dest='rhel_nodes', default='',
@@ -223,7 +252,9 @@ def main():
                         'SLES')
 
     args = parser.parse_args()
-    servers = Servers(args.cloud, distro=args.default_distro)
+    servers = Servers(args.cloud, distro=args.default_distro,
+                      distros=dict(sles=args.sles_distro,
+                                   rhel=args.rhel_distro))
 
     if not args.cobble_nodes:
         cobble_nodes = []

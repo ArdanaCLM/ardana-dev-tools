@@ -69,7 +69,7 @@ usage() {
     echo "                         Cloud8 deployments; implicitly enables "
     echo "                         --run-tests"
     echo "--c9|--cloud9-deployer"
-    echo "                      -- Use SOC/CLM 9 deployer setup (default)"
+    echo "                      -- Use SOC/CLM 9 deployer setup"
     echo "--c9-caching          -- Enable caching proxy, running on SOC/CLM 9"
     echo "                         deployer, that will be used to access all"
     echo "                         non-local repos"
@@ -414,6 +414,7 @@ if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
         $SCRIPT_HOME/deployer/add-distros.py \
             -- \
             --default-distro=sles \
+            --sles="sles${ARDANA_SLES_MAJOR}sp${ARDANA_SLES_SP}" \
             ${COBBLER_NODES:+--nodes="${COBBLER_NODES:-}"} \
             ${COBBLER_RHEL_NODES:+--rhel-nodes=${COBBLER_RHEL_NODES:-}} \
             ${COBBLER_SLES_NODES:+--sles-nodes=${COBBLER_SLES_NODES:-}} \
@@ -492,8 +493,13 @@ if [ -z "${SKIP_EXTRA_PLAYBOOKS}" -o -n "$COBBLER_NODES" \
             -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
     fi
 
+    # run cobbler-deploy.sh on deployer specifying which version
+    # of SLES to use.
     $SCRIPT_HOME/run-in-deployer.sh \
-        "$SCRIPT_HOME/deployer/cobbler-deploy.sh" "$ARDANAUSER" || logfail deploy
+        "$SCRIPT_HOME/deployer/cobbler-deploy.sh" \
+            "$ARDANAUSER" \
+            "sles${ARDANA_SLES_MAJOR}sp${ARDANA_SLES_SP}" \
+            || logfail deploy
     logsubunit --inprogress deploy
 fi
 

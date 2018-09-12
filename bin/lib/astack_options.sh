@@ -410,8 +410,12 @@ if [ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
     # determine the version of SOC/CLM to deploy
     if [ -n "${SOC_CLM_9:-}" ]; then
         export ARDANA_CLOUD_VERSION=9
+        export ARDANA_SLES_MAJOR=12
+        export ARDANA_SLES_SP=4
     elif [ -n "${SOC_CLM_8:-}" ]; then
         export ARDANA_CLOUD_VERSION=8
+        export ARDANA_SLES_MAJOR=12
+        export ARDANA_SLES_SP=3
     fi
     # default to SOC/CLM 8
     if [ -z "${ARDANA_CLOUD_VERSION:-}" ]; then

@@ -37,18 +37,21 @@ usage() {
     echo "--c8-soc            -- Use the SOC flavour of Cloud8"
     echo "--c8-mirror         -- Enable Cloud8 repo mirroring (default)"
     echo "--c8-devel          -- USE DC8 repos"
+    echo "--c8-pool           -- USE Cloud8 Pool repos"
     echo "--c8-staging        -- USE DC8S repos"
     echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"
     echo "--c8-updates-test   -- USE Cloud8 Pool + Update-tests repos"
     echo "--c9                -- Configure options to run in Cloud9 mode"
     echo "--c9-mirror         -- Enable Cloud9 repo mirroring"
     echo "--c9-devel          -- USE DC9 repos"
+    echo "--c8-pool           -- USE Cloud9 Pool repos"
     echo "--c9-staging        -- USE DC9S repos"
     echo "--c9-updates        -- USE Cloud9 Pool + Updates repos"
     echo "--c9-updates-test   -- USE Cloud9 Pool + Update-tests repos"
     echo "--no-setup          -- Don't run dev-env-install.yml"
     echo "--no-artifacts      -- Don't retrieve/build artifacts, reuse existing"
     echo "--no-build          -- Don't build venvs, reuse existing packages"
+    echo "--no-update-rpms    -- Don't build RPMs from local clones"
     echo "--pre-destroy       -- Destroy any existing instance of cloud first"
     echo "--tarball <tarball> -- Use the specified legacy deployer tarball"
     echo "--rhel-compute      -- Enable RHEL compute re-imaging."
@@ -64,12 +67,14 @@ long_opts=(
     c8-hos
     c8-mirror
     c8-soc
+    c8-pool
     c8-staging
     c8-updates
     c8-updates-test
     c9
     c9-devel
     c9-mirror
+    c9-pool
     c9-staging
     c9-updates
     c9-updates-test
@@ -79,10 +84,13 @@ long_opts=(
     no-artifacts
     no-build
     no-setup
+    no-update-rpms
     pre-destroy
     rhel-compute
     sles-compute
     sles-control
+    sles12sp3
+    sles12sp4
     tarball:
 )
 
@@ -105,11 +113,7 @@ MODE=
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
-        --c8|--c9)
-            MODE=soc
-            args+=( $1 )
-            shift ;;
-        --c8-*|--c9-*)
+        --c8|--c8-*|--c9|--c9-*|--sles12sp[34])
             MODE=soc
             args+=( $1 )
             shift ;;
@@ -122,7 +126,7 @@ while true ; do
         --sles-compute)
             args+=( --cobble-sles-compute )
             shift ;;
-        --no-setup|--no-artifacts|--no-build|--pre-destroy)
+        --no-setup|--no-artifacts|--no-build|--no-update-rpms|--pre-destroy)
             args+=( $1 )
             shift ;;
         --tarball)
@@ -154,7 +158,7 @@ args+=(
 
 set -x
 
-CLOUDNAME=${1:-dac-min}
+CLOUDNAME=${1:-demo}
 args+=( $CLOUDNAME )
 
 
