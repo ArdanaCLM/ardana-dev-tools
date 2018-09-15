@@ -118,7 +118,6 @@ NO_BUILD=
 NO_UPDATE_RPMS=
 SOC_CLM_8=
 SOC_CLM_9=
-export ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
 export ARDANA_CLOUD_DEPLOYER=${ARDANA_CLOUD_DEPLOYER:-}
@@ -171,11 +170,14 @@ RUN_TESTS=
 RUN_TESTS_FILTER=${RUN_TESTS_FILTER:-ci}
 PRE_DESTROY=
 NO_LOG_DISABLE=
-C8_QA_TESTS=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
 BLDVM_MB=$(( (TOTMEM_GB / 4) * 1024 ))
+
+# Deprecated functionality
+ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
+C8_QA_TESTS=
 
 while true ; do
     case "$1" in
@@ -209,7 +211,7 @@ while true ; do
             export ARDANA_CLOUD_ARTIFACTS=1
             shift ;;
         --legacy)
-            export ARDANA_LEGACY_DEPLOYER=1
+            ARDANA_LEGACY_DEPLOYER=1
             shift ;;
         --c8|--cloud8-deployer)
             SOC_CLM_8=true
@@ -252,8 +254,6 @@ while true ; do
             export ARDANA_CLOUD_REPOS='["pool"]'
             shift ;;
         --c8-qa-tests)
-            SOC_CLM_8=true
-            RUN_TESTS=1
             C8_QA_TESTS=1
             shift ;;
         --cloud9-artifacts)
@@ -367,60 +367,61 @@ while true ; do
     esac
 done
 
-# Default to SLES12SP3 if not specified
-if [ -z "${ARDANA_SLES_MAJOR:-}" ]; then
-    export ARDANA_SLES_MAJOR=12
-fi
-if [ -z "${ARDANA_SLES_SP:-}" ]; then
-    export ARDANA_SLES_SP=3
+#
+# Check for deprecated functionality that is no longer supported
+#
+
+# Check if --legacy specified and fail with approriate error message
+if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
+    echo "ERROR: Legacy deployment mode (--legacy) is no longer supportted."
+    exit 1
 fi
 
-# Mising SOC_CLM_8 & SOC_CLM_9 options is not supported.
+# Check if --c8-qa-tests specified and fail with approriate error message
+if [ -n "${C8_QA_TESTS:-}" ]; then
+    echo "ERROR: Extended QA tests (--c8-qa-tests) is no longer supportted."
+    exit 1
+fi
+
+# Check if --squash-kit specified and fail with approriate error message
+if [ -n "${C8_QA_TESTS:-}" ]; then
+    echo "ERROR: Legacy kit squashing (--squash-kit) is no longer supportted."
+    exit 1
+fi
+
+#
+# Sanity check option settings and set reasonable defaults of no specific options specified.
+#
+
+# Mixing SOC_CLM_8 & SOC_CLM_9 options is not supported.
 if [ -n "${SOC_CLM_8:-}" -a \
      -n "${SOC_CLM_9:-}" ]; then
     echo "ERROR: Cannot mix --c8* & --c9* options!"
     exit 1
 fi
 
-# Enable SOC/CLM mode if any relevant SOC/CLM options specified,
-# and legacy mode not enabled.
-if [ -n "${C8_QA_TESTS:-}" -o \
-     -n "${ARDANA_CLOUD_HOS:-}" -o \
-     -n "${ARDANA_CLOUD_SOC:-}" -o \
-     -n "${ARDANA_CLOUD_REPOS:-}" -o \
-     -n "${ARDANA_CLOUD_MIRROR:-}" -o \
-     -n "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
-    export ARDANA_CLOUD_DEPLOYER=1
+# If neither SOC_CLM_8 or SOC_CLM_9 has been set
+if [ -z "${SOC_CLM_8:-}" -a \
+     -z "${SOC_CLM_9:-}" ]; then
+    # default to SOC_CLM_9
+    SOC_CLM_9=true
 fi
 
-# Legacy and SOC/CLM modes are mutually exclusive
-if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" -a \
-     -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
-    echo "ERROR: Legacy and SOC/CLM modes cannot be combined!"
-    exit 1
-fi
-
-# Default to SOC/CLM mode if legacy mode not specified
-if [ -z "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
+# Setup appropriate Cloud and SLES version settings
+if [ -n "${SOC_CLM_9:-}" ]; then
     export ARDANA_CLOUD_DEPLOYER=1
+    export ARDANA_CLOUD_VERSION=9
+    export ARDANA_SLES_MAJOR=12
+    export ARDANA_SLES_SP=4
+elif [ -n "${SOC_CLM_8:-}" ]; then
+    export ARDANA_CLOUD_DEPLOYER=1
+    export ARDANA_CLOUD_VERSION=8
+    export ARDANA_SLES_MAJOR=12
+    export ARDANA_SLES_SP=3
 fi
 
 # Select appropriate settings if SOC/CLM deployer selected
 if [ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
-    # determine the version of SOC/CLM to deploy
-    if [ -n "${SOC_CLM_9:-}" ]; then
-        export ARDANA_CLOUD_VERSION=9
-        export ARDANA_SLES_MAJOR=12
-        export ARDANA_SLES_SP=4
-    elif [ -n "${SOC_CLM_8:-}" ]; then
-        export ARDANA_CLOUD_VERSION=8
-        export ARDANA_SLES_MAJOR=12
-        export ARDANA_SLES_SP=3
-    fi
-    # default to SOC/CLM 8
-    if [ -z "${ARDANA_CLOUD_VERSION:-}" ]; then
-        export ARDANA_CLOUD_VERSION=8
-    fi
     export ARDANA_CLOUD_ARTIFACTS=1
     export ARDANA_SLES_CONTROL=1
 

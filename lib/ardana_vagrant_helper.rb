@@ -205,7 +205,7 @@ module Ardana
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
       @ardana = {
         :cloud => {
-          :version => ENV.fetch("ARDANA_CLOUD_VERSION", "8"),
+          :version => ENV.fetch("ARDANA_CLOUD_VERSION", "9"),
           :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?,
           :deployer => !ENV.fetch("ARDANA_CLOUD_DEPLOYER", "").empty?,
           :proxy_cache => {

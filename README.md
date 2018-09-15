@@ -1,20 +1,3 @@
-#
-# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017-2018 SUSE LLC
-#
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
-#
-
 # Ardana Developer Tools
 
 This repo contains all of the tools needed to setup a system as an Ardana
@@ -119,37 +102,12 @@ complete the setup process.
 
 ### Deployment Style
 
-Ardana supports two mutually exclusive styles of deployment:
-- SOC/CLM: Consume inputs built by the SUSE Open or Internal Build
-Services (OBS or IBS) to deploy a cloud
-- Legacy: Builds all inputs locally and uses them to deploy a cloud
+Ardana supports deploying SOC/CLM consuming inputs built by the SUSE Open
+or Internal Build Services (OBS or IBS) to deploy a cloud using Vagrant
 
-#### SOC/CLM Deployment Style
-The SOC/CLM deployment doesn't need to build the venvs locally; instead
-it uses RPMs containing pre-built venvs and the Ardana ansible sources
-to setup the deployer and bring up the cloud.
-
-SOC/CLM mode is the default, and is implicitly implied if any of the
-various *--c8...* or *--c9...* option flags are specified.
-
-This is the default deployment mode.
-
-#### Lecacy Deployment Style
-The original Ardana developer environment was based around building all
-of the services as Python Virtual Enviroments, here after referred to as
-*venvs*.  To support this we use Vagrant to bring up Build VMs for each
-of the supported platforms, which are used to create the required venvs
-for each platform.  To do this we build platform specific wheels from
-either locally cloned sources, or PyPI pips, and then use those wheels
-to construct the venvs, leveraging persistent caches for the wheels and
-the built venvs to accelerate the build process.
-
-These venvs, and the associated Ardana ansible sources are then packaged
-up in a "product" tarball which is used to setup the deployer and deploy
-the cloud.
-
-To enable legacy mode deployment, you must specify the *--legacy* option
-to the astack.sh command
+Which version of SOC/CLM gets deployed depends on whether you use
+*--c8...* or *--c9...* options when running astack.sh; SOC/CLM version
+9 is the default if no version is specified.
 
 ### Vagrant version
 
@@ -372,7 +330,7 @@ If no arguments are specified it will run the cloud-setup.yml playbook
 against the cloud; if you don't want to run the ardana-init command
 again, you can specify the --skip-ardana-init option.
 
-## Deploying manually using Legacy style
+## Deploying manually
 
 ### Hardware
 
@@ -410,16 +368,6 @@ For example, a typical proxy setup would be as follows:
     http_proxy=http://proxy.example.com:8080
     https_proxy=http://proxy.example.com:8080
     no_proxy=localhost,devhost.example.com
-
-#### Remote/Slow connection suggestions
-
-If you are working remotely using a VPN connection, or in an office with a
-poor/unreliable connection to the specified ARDANA_SITE servers then you can
-increase the chances of successful building the sources by increasing the
-following timeouts via setting the relevant environment variables:
-
-1. ARDANA_VENV_PIP_TIMEOUT - default 60
-2. ARDANA_VENV_EXT_DL_TIMEOUT - default 60
 
 ### Installing SUSE ROOT CA
 Ensure that you have the SUSE ROOT CA installed as detailed at
@@ -506,70 +454,14 @@ booting the test infrastructure.
 
 NOTE: This script ensure the latest versions of any artifacts are downloaded.
 
-### Create the Legacy style Deployer Appliance
+### Create the Cloud without deploying it
 
-Now that we have a base disk image, we can build the customer deliverable
-Deployer Package. This will contain all of the Ardana ansible code and all of the
-required venvs for a Ardana deployment.
+Now that we have a Vagrant box image, we bring up the target cloud, e.g. demo,
+without deploying it, by running:
 
-#### Boot Build VM
+    % bin/astack.sh --no-artifacts --no-config --no-site demo
 
-The next step is to set up the VM that's used to run package builds on. This VM
-can remain in place - it's possible to update a local copy of (say) nova, and
-update a single packaged venv, and by leaving the build machine booted (or more
-accurately by not destroying it) you can make use of the pre-built venvs when
-rebuilding.
-
-Not setting the default vagrant provider, or setting it to `libvirt`, should
-use libvirt to create the virtual machines. Currently libvirt is the only
-supported provider.
-
-    % cd ardana-dev-tools/build-vagrant
-    # to create virtual machines on the local system using libvirt
-    % export VAGRANT_DEFAULT_PROVIDER=libvirt
-    % vagrant up
-
-_N.B. if you are using libvirt as the vagrant provider, be aware that the
-default dnsmasq setup for the created VMs uses the first item in your
-resolv.conf file as the "upstream" DNS server.  To work around this, add any
-required internal servers to /etc/hosts on your workstation and restart dnsmasq.
-Those servers will now be resolvable from the created VMs._
-
-#### Virtual Environment Builds
-
-The process assumes that any services that you are actively developing are cloned
-at the same level as ardana-dev-tools. The system will pick up these repos and any
-changes in them. It is your responsibility to check out the commit that you want
-to test in these repos.
-
-For all other services, the build system will clone the latest code for the
-services and use that.
-
-For example, the following tree would mean that glance and nova repos on the local
-workstation are used and that all other services are cloned directly from git
-
-    % cd ardana-dev-tools
-    % ls ../
-    glance  ardana-dev-tools  nova
-
-Now, the venvs can be built and packaged up using the build virtual machine.
-
-    % bin/build-venv.sh
-
-This process should result in packaged venvs being created in the ardana-dev-tools/scratch
-directory: these have names like `nova-{version}.tgz`. Those packages are used
-in the following steps. (For more details on this process, and additional options,
-see the [longer notes](build-vagrant/README.md).
-
-If you are short of resources, you may choose to remove the build VM at this point :
-
-    % vagrant destroy
-
-### Create the Virtual Cloud VMs
-
-Once the above is completed you will be able to start the `vagrant up` process
-to initialise the virtual test infrastructure by creating a number of VMs
-which represent the physical servers in an Ardana OpenStack cloud.
+#### Other possible clouds
 
 The development environment provides a set of cloud definitions that can be used:
 
@@ -605,6 +497,10 @@ The development environment provides a set of cloud definitions that can be used
 
     A cutdown version of std-3cm with just 1 compute and deployer at controller (dac).
 
+* dac-3cp: A 4 node single region cloud
+
+    A cutdown version of standard cloud with 2 computes removed and deployer at first controller (dac).
+
 * std-split: A 5 node single region multi-control plane cloud
 
     Based on the standard cloud with 2 compute removed, using 3 single node control planes, 1 for core openstack services, 1 for DB & RabbitMQ, and 1 for MML stack, though Swift services are shared among all 3 to allow for a complete Swift ring model with EC disabled. Control node sizing are minimised to match running service requirements.
@@ -617,108 +513,66 @@ WARNING : The std-split, mid-size & multi-cp models may not be stable/functional
 
 Each variant has its own vagrant definition, under the ardana-vagrant-models directory, and associated cloud model defined in the ardana-input-model repo, under the 2.0/ardana-ci directory.
 
-For example to get vagrant to create the VMs needed for a std-min cloud with default node distro setting use the following command:
+### Logging in to the cloud
 
-    cd ../ardana-vagrant-models/std-min-vagrant
-    vagrant up
+After the `astack.sh ...` has completed you will have a number of booted VMs,
+with the appropriate SOC/CLM version installed on the deployer VM, and the
+specified cloud model setup as your ~/openstack/my_cloud/definition.
 
-NOTE : vagrant up provisions all the nodes in your cloud. During the provisioning of the deployer node we
-create a tarball of all the ansible deployment code, and all the venvs we built earlier. The provisioning
-then copies this tarball to the deployer, unpacks it and calls the ardana-init.bash script. At
-which point the deployer is setup and ready to deploy a running cloud.
+You can log in to the nodes by cd'ing to ardana-vagrant-models/<cloud>-model
+directory and then run the ardana-vagrant helper script in there to ssh into
+a node, e.g to ssh to a node called deployer run.
 
-### Setting up vagrant VM for Ardana
+    % ./ardana-vagrant ssh deployer
 
-After the `vagrant up` you will have a number of booted VMs, and a booted and partially
-configured deployer VM, where the deployer tarball has been exploded and the initial
-pre-configure script has been run. This generates the ardana area, where the next set of ansible
-playbooks will be run from, and installs the ansible venv that will run those playbooks.
+Alternatively you can use the astack-ssh-config file with the ssh command. e.g.
 
-    vagrant status
-    Current machine states:
+    % ssh -F astack-ssh-config deployer
 
-    deployer                  running (libvirt)
-    cp1-0001                  running (libvirt)
-    cp1-0002                  running (libvirt)
-    cm1-0001                  running (libvirt)
+NOTE: For some models, the deployer node may be controller, controller1 or
+something like that, if it located on a controller node.
 
-All of the administration from this point is done through the deployer VM.
+### Running the Configuration Processor
 
-Log in to the deployer node and then run commands to configure the system.
+To run the configuration processor, you need to cd to the ardana/ansible
+directory under the ~/openstack directory:
 
-    vagrant ssh deployer
-
-### Running the Configuration Processor and cloud models
-
-The deployer is now populated with the directory structure that we intend to use
-for customers. The main directory is ardana/ under which there are 4 sub-directories:
-examples/; my_cloud/; tech-preview/; and openstack/.  Example cloud definitions are included in
-/ardana/examples.  The cloud to be built by CP run is defined in
-/openstack/my_cloud/definition (CP inputs, networking, servers, storage etc including
-Swift ring definitions and Nova zone definitions).
-
-The inputs are held in the ardana-input-model repo which is now on the deployer.
-Working cloud definitions that we come up with will be held in 2.0/examples.
-The standard inputs are under 2.0/ardana-ci/standard.  The service-specific CP inputs
-are to be found under 2.0/services, and on the deployer under openstack/ardana/services.
-
-The ardana-ci/standard inputs should be copied to openstack/my_cloud/definition.  You
-will need to copy the appropriate inputs if you intend to use an alternative cloud model.
-openstack-<version>/ardana-input-model/2.0/examples are copied to ardana/examples.
-
-We recommend using the standard cloud definition (i.e. the definition in
-openstack-<version>/ardana-input-model/2.0/ardana-ci/standard) to begin with.
-
-Note that the whole of the ardana/ directory is under git control. More detailed
-information about this can be found in the [Git design document](doc/git-design.md)
-
-To run CP:
-
-    cp -r ~/ardana-ci/standard/* ~/openstack/my_cloud/definition/
-    cd ~/ardana
-    git add -A
-    git commit -m "My config"
-    cd ~/openstack/ardana/ansible/
+    % cd ~/openstack/ardana/ansible/
 
 We have modified the config-processor-run.yml playbook to turn on CP encryption of
 its persistent state and Ansible output.  If you run the playbook as follows:
 
-    ansible-playbook -i hosts/localhost config-processor-run.yml
+    % ansible-playbook -i hosts/localhost config-processor-run.yml
 
 You will be prompted for an encryption key, and also asked if you want to change the
 encryption key to a new value, and it must be a different key.  You can
 turn off encryption by typing the following:
 
-    ansible-playbook -i hosts/localhost config-processor-run.yml -e encrypt="" \
+    % ansible-playbook -i hosts/localhost config-processor-run.yml -e encrypt="" \
                      -e rekey=""
 
 To run playbooks against the CP output:
 
-    ansible-playbook -i hosts/localhost ready-deployment.yml
-    cd ~/scratch/ansible/next/ardana/ansible
-
-If your input model includes Ardana Hypervisor nodes, providing Virtual Control
-Plane VMs, then you need to run the following command to setup the hypervisor
-nodes, provision the VCP VMs and start them:
-
-    ansible-playbook -i hosts/verb_hosts ardana-hypervisor-setup.yml
+    % ansible-playbook -i hosts/localhost ready-deployment.yml
+    % cd ~/scratch/ansible/next/ardana/ansible
 
 If you've turned-off encryption, type the following:
 
-    ansible-playbook -i hosts/verb_hosts site.yml
+    % ansible-playbook -i hosts/verb_hosts site.yml
 
 If you enabled encryption, type the following:
 
-   ansible-playbook -i hosts/verb_hosts site.yml --ask-vault-pass
+    % ansible-playbook -i hosts/verb_hosts site.yml --ask-vault-pass
 
 Enter the encryption key that you used with the config processor run when prompted
 for the Vault password.
 
 In a baremetal re-install case, you'll need to wipe partition data on non-os disks to
 allow osconfig to complete successfully.
+
 If you wish to wipe all previously used non OS disks run the following before site.yml:
 
-    ansible-playbook -i hosts/verb_hosts wipe_disks.yml
+    % ansible-playbook -i hosts/verb_hosts wipe_disks.yml
 
 This will require user confirmation during the run. This play will
 fail if osconfig has previously been run.
@@ -727,37 +581,37 @@ To restrict memory usage below default 2g by elasticsearch you can pass lower am
 Minimum value is 256m and it should allow operation for few hours at least. If you
 plan system to run for longer period please use larger values.
 
-    ansible-playbook -i hosts/verb_hosts site.yml -e elasticsearch_heap_size=256m
+    % ansible-playbook -i hosts/verb_hosts site.yml -e elasticsearch_heap_size=256m
 
 For more information on the directory structure see TODO Add new link if possible [here].
 
 Once the system is deployed and services are started, some services can be
 populated with an optional set of defaults.
 
-    ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml
+    % ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml
 
 If you are running behind a proxy, you'll need to set the proxy variable as
 we download a cirros image during the cloud configure
 
-    ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml \
-                     -e proxy="http://<proxy>:<proxy_port>"
+    % ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml \
+                       -e proxy="http://<proxy>:<proxy_port>"
 
 For now this:
 
-    Downloads a cirros image from the Internet and uploads to Glance.
+* Downloads a cirros image from the Internet and uploads to Glance.
 
-    Creates an external network - 172.31.0.0/16 is the default CIDR.
-    You can over-ride this default by providing a parameter at run time:
+* Creates an external network - 172.31.0.0/16 is the default CIDR.
+  You can over-ride this default by providing a parameter at run time:
 
-    ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml \
-                     -e EXT_NET_CIDR=192.168.99.0/24
+    % ansible-playbook -i hosts/verb_hosts ardana-cloud-configure.yml \
+                       -e EXT_NET_CIDR=192.168.99.0/24
 
 Other configuration items are likely to be added in time, including additional
 Glance images, Nova flavors and Cinder volume types.
 
 ## Configuration jinja2 templates
 Configuration jinja2 templates, which are customer editable, are included in
-openstack/my_cloud/config.
+`openstack/my_cloud/config`.
 
 ## Exercising the deployed Cloud
 After running through the Ardana steps to deploy a cloud, you can access API services on
@@ -827,10 +681,10 @@ Alternatively you can run the configured tempest tests against keystone with the
     ansible-playbook -i hosts/verb_hosts tempest-run.yml
 
 ## Using Vagrant
-The use of Vagrant in Ardana is to create a virtual test environment.  The use of Vagrant
-features is to setup a minimal installation on the Resource and Control Plane servers
-and to fully prep the deployer server such that it is ready to start deploying to the
-Resource and Control Plane servers.
+The use of Vagrant in Ardana is to create a virtual test environment, by setting up
+a minimal installation on the Resource and Control Plane servers and to fully prep
+the deployer server such that it is ready to start deploying to the Resource and
+Control Plane servers.
 
 ## Using Ansible
 Ansible performs all of the configuration of the deployer and of the resource and
@@ -843,7 +697,7 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 
 All of the building and provisioning is controlled by ansible, and as such the use of
 ansible variables can change both what and how things are built.  They can be
-specified on the command line directly with the use of `-e<var>=<value>` or they can
+specified on the command line directly with the use of `-e <var>=<value>` or they can
 be set within a file that is included.  See the ansible documentation for more details,
 [Passing Variables On The Command Line](http://docs.ansible.com/playbooks_variables.html#passing-variables-on-the-command-line)
 
@@ -872,43 +726,47 @@ node that runs Ardana OpenStack vagrant VMs to setup this route.
     cd ansible
     ansible-playbook -i hosts/localhost dev-env-route-provider-nets.yml
 
-## Building custom/updated service wheel to modify your standard-vagrant environment
-This section details how to build a custom wheel to replace the deployed venv in
-your environment. You will likely want to follow these steps if you have
-added sources or pips to the requirements.txt, or modified the setup.py(cfg) of your
-service package, and therefore need to deploy an updated venv as opposed to
-rebuilding your environment.
+## Building custom/updated RPM packages to modify you deployed cluster
+When you run the `astack.sh` command, unless you have specified the
+`--no-update-rpms` option as one of the options, the `bin/update_rpms.sh`
+script will run which will check for an Ardana repos cloned beside the
+ardana-dev-tools.git repo clone, and if any are found, it will build the
+associated RPM, using the content of the cloned repo's active branch as
+the sources.
 
-1. Clone your service repo (ie swiftlm) to a directory parallel to ardana-dev-tools
+NOTE: If you want to rebuild the RPM package form the ardana-ansible.git
+repo, you need to also clone the ardana.git repo as well.
 
-2. Patch this clone directory with your desired changes
+The built RPMs are saved to a `NEW_RPMS` yum repo, located beside your
+`ardana-dev-tools`.
 
-3. Change dir to ardana-dev-tools/build-vagrant
-    cd ../ardana-dev-tools/build-vagrant
+NOTE: The `NEW_RPMs` area will be wiped and recreated each time the
+`update_rpms.sh` script is run, so if you already have run `astack.sh`
+and are happy with the built RPMs, use the `--no-update-rpms` option
+to skip rebuilding the RPMs and re-use the existing ones.
 
-4. Run the venv-build playbook
-    ansible-playbook -i ../ansible/hosts/vagrant.py ../ansible/venv-build.yml -e '{"packages": ["swiftlm"]}'
-
-    which will then create a new tgz under ../scratch-master_<version_name>/swiftlm-20160226T144301Z.tgz
-
-5. scp this new tgz up to the deployer directory at /opt/ardana_packager/ardana-<version>/sles_venv/.
-
-6. vagrant ssh to the deployer and regenerate the packager index:
-    sudo /opt/stack/service/packager/venv/bin/create_index --dir /opt/ardana_packager/ardana-<version>/sles_venv/
-
-7. Verify your new package listed in packages:
-    cat /opt/ardana_packager/ardana-<version>/sles_venv/packages
-
-8. Do an upgrade of the service:
-    ansible-playbook -i hosts/verb_hosts swift-upgrade.yml
+The contents of the NEW_RPMS area are automatically synchronised to
+the deployer node when the Vagrant cloud is created, to form the
+"Local Overrides" zypper repo, which is configured with a slightly
+higher priority than the normal repos so that it is preferred as a
+source for packages.
 
 ## Troubleshooting
 Sometimes things go wrong.  Known issues are listed in [troubleshooting](doc/troubleshooting.md)
 
-## Emulating the CI Build & Testing Process
-The CI Build and Test process can be more closely emulated by passing the
---ci option to the astack.sh script, e.g. ./astack.sh --ci standard
-The primary impact of doing so will be that the user account on the vagrant
-VMs will be ardanauser rather than stack. Additionally when creating a standard
-cloud, the 3rd compute VM will be created as a RHEL7 rather than SLES VM.
-See [doc/dev-workflow.md] for more details.
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017-2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
