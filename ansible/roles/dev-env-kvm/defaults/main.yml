@@ -16,7 +16,7 @@
 # Settings used to manage KVM setup
 ---
 
-kvm_distro: "{{ ansible_distribution.split(' ')[0] | lower }}"
+kvm_distro: "{{ ansible_distribution.replace(' ', '_') | lower }}"
 
 kvm:
   intel:
@@ -33,7 +33,11 @@ kvm:
       - acl
       - patterns-sles-kvm_server
       - sysfsutils
-    opensuse:
+    opensuse_tumbleweed:
+      - acl
+      - patterns-openSUSE-kvm_server
+      - sysfsutils
+    opensuse_leap:
       - acl
       - patterns-openSUSE-kvm_server
       - sysfsutils
