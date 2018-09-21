@@ -165,7 +165,7 @@ then
         if [[ ! -e ${osc_list} ]]
         then
             echo "Add OBS Tools repo to system APT repos" 1>&2
-            echo "deb ${osc_repo}/ ./" | sudo tee ${osc_list} 1>&2
+            echo "deb [trusted=yes] ${osc_repo}/ ./" | sudo tee ${osc_list} 1>&2
             wget -q -O - ${osc_repo}/Release.key | sudo apt-key add - 1>&2
             sudo apt-get --quiet --yes update 1>&2
             echo "Removing any existing osc related packages" 1>&2
