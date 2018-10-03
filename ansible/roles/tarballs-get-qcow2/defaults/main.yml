@@ -13,12 +13,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for managing Ardana cache area
+# Default settings for Ardana artifacts server cached ISO retrieval.
 ---
 
-ardana_cache_base_dir: "{{ product_cache_base_directory }}"
-ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
-ardana_cache_qcow2_dir: "{{ ardana_cache_base_dir }}/qcow2"
-ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"
-ardana_cache_vagrant_dir: "{{ ardana_cache_base_dir }}/vagrant/downloads"
-ardana_cache_packer_dir: "{{ ardana_cache_base_dir }}/packer/downloads"
+tarballs_qcow2:
+  base_url: "http://{{ dev_env_site_config.artefact.host }}{{
+                       (dev_env_site_config.artefact.port | default('')) |
+                       ternary(':', '')
+                    }}{{ dev_env_site_config.artefact.port | default('') 
+                    }}/ardana/images/cloud{{ cloud_version }}"
+  use_proxy: "{{ dev_env_site_config.artefact.use_proxy | default('no') }}"
+  qcow2_dir: "{{ ardana_cache_qcow2_dir }}/tarballs"
+  images_dir: "{{ product_cache_directory }}/images"

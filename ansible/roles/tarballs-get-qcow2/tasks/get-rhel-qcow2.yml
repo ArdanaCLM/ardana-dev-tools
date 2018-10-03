@@ -1,0 +1,37 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks for retrieving an Ardana pre-built RHEL qcow2 image via the
+# Ardana qcow2 cache.
+---
+
+- name: artifacts-get-qcow2 | get-rhel-qcow2 | Determine RHEL qcow2 to download
+  set_fact:
+    _rhel_qcow2: "{{ rhel.artifacts.images[rhel.config.image_type] }}"
+
+- name: artifacts-get-qcow2 | get-rhel-qcow2 | Get the RHEL qcow2
+  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  vars:
+    _file:
+      name: "{{ _rhel_qcow2.name }}.qcow2"
+      sha256: "{{ _rhel_qcow2.sha256 | default('') }}"
+      url_path: "{{ tarballs_qcow2.base_url}}/{{ _rhel_qcow2.path }}"
+      sha256url: "{{ tarballs_qcow2.base_url}}/{{ _rhel_qcow2.path
+                  }}/{{ _rhel_qcow2.name }}.qcow2.sha256"
+      dir: "{{ tarballs_qcow2.qcow2_dir }}"
+      link:
+        name: "{{ _rhel_qcow2.link | default('') }}"
+        dir: "{{ tarballs_qcow2.images_dir }}"
+      use_proxy: "{{ tarballs_qcow2.use_proxy }}"

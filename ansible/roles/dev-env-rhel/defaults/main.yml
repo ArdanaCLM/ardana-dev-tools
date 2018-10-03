@@ -17,9 +17,18 @@
 # RHEL distribution.
 ---
 
+rhel_version: "rhel-7"
+
 # RHEL deployment settings
 rhel:
+  config:
+    image_type: "{{ lookup('env', 'ARDANA_RHEL_IMAGE_TYPE') | default('packer', true) }}"
   artifacts:
+    images:
+      packer:
+        name: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
+        link: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
+        path: "rhel"
     iso:
       os:
         name: "RHEL-7.3-20170728-Server-x86_64-dvd"

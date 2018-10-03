@@ -17,7 +17,7 @@
 # Ardana ISO cache.
 ---
 
-- name: artifacts-get-sles-iso | get-sles-iso | Ensure relevant directories exist
+- name: artifacts-get-iso | get-sles-iso | Ensure relevant directories exist
   file:
     path: "{{ item.dir }}"
     state: directory
@@ -25,12 +25,12 @@
     - dir: "{{ artifacts_iso.isos_dir }}"
     - dir: "{{ artifacts_iso.images_dir }}"
 
-- name: artifacts-get-sles-iso | get-sles-iso | Determine SLES ISOs to download
+- name: artifacts-get-iso | get-sles-iso | Determine SLES ISOs to download
   set_fact:
     _sles_os: "{{ sles.artifacts.iso.os }}"
     _sles_sdk: "{{ sles.artifacts.iso.sdk }}"
 
-- name: artifacts-get-sles-iso | get-sles-iso | Get the SLES OS ISO
+- name: artifacts-get-iso | get-sles-iso | Get the SLES OS ISO
   include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
@@ -44,7 +44,7 @@
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
 
-- name: artifacts-get-sles-iso | get-sles-iso | Get the SLES SDK ISO
+- name: artifacts-get-iso | get-sles-iso | Get the SLES SDK ISO
   include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:

@@ -13,12 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for managing Ardana cache area
+# Tasks for setting up environment to retrieve pre-built qcow2 images via
+# the Ardana qcow2 cache.
 ---
 
-ardana_cache_base_dir: "{{ product_cache_base_directory }}"
-ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
-ardana_cache_qcow2_dir: "{{ ardana_cache_base_dir }}/qcow2"
-ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"
-ardana_cache_vagrant_dir: "{{ ardana_cache_base_dir }}/vagrant/downloads"
-ardana_cache_packer_dir: "{{ ardana_cache_base_dir }}/packer/downloads"
+- name: tarballs-get-qcow2 | setup | Ensure relevant directories exist
+  file:
+    path: "{{ item.dir }}"
+    state: directory
+  with_items:
+    - dir: "{{ tarballs_qcow2.qcow2_dir }}"
+    - dir: "{{ tarballs_qcow2.images_dir }}"

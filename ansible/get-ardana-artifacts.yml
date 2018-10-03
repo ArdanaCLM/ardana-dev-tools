@@ -41,3 +41,6 @@
 
     # retrieve the SOC/CLM iso
     - role: ibs-get-iso
+
+    # retrieve pre-built images
+    - role: tarballs-get-qcow2

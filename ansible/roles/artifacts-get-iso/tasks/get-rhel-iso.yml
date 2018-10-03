@@ -17,7 +17,7 @@
 # Ardana ISO cache.
 ---
 
-- name: artifacts-get-rhel-iso | get-rhel-iso | Ensure relevant directories exist
+- name: artifacts-get-iso | get-rhel-iso | Ensure relevant directories exist
   file:
     path: "{{ item.dir }}"
     state: directory
@@ -25,11 +25,11 @@
     - dir: "{{ artifacts_iso.isos_dir }}"
     - dir: "{{ artifacts_iso.images_dir }}"
 
-- name: artifacts-get-rhel-iso | get-rhel-iso | Determine RHEL ISOs to download
+- name: artifacts-get-iso | get-rhel-iso | Determine RHEL ISOs to download
   set_fact:
     _rhel_os: "{{ rhel.artifacts.iso.os }}"
 
-- name: artifacts-get-rhel-iso | get-rhel-iso | Get the RHEL OS ISO
+- name: artifacts-get-iso | get-rhel-iso | Get the RHEL OS ISO
   include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:

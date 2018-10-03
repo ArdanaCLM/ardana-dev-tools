@@ -28,10 +28,16 @@ sles:
   config:
     enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
+    image_type: "{{ lookup('env', 'ARDANA_SLES_IMAGE_TYPE') | default('packer', true) }}"
     iso_milestone:
       "sles12sp3": "-GM"
       "sles12sp4": "-TEST"
   artifacts:
+    images:
+      packer:
+        name: "{{ sles_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
+        link: "{{ sles_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
+        path: "sles"
     repos:
       sles12sp4:
         updates_test:

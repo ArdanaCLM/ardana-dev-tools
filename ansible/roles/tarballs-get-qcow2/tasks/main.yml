@@ -13,12 +13,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for managing Ardana cache area
+# Tasks performed by the tarballs-get-qcow2 role
 ---
 
-ardana_cache_base_dir: "{{ product_cache_base_directory }}"
-ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
-ardana_cache_qcow2_dir: "{{ ardana_cache_base_dir }}/qcow2"
-ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"
-ardana_cache_vagrant_dir: "{{ ardana_cache_base_dir }}/vagrant/downloads"
-ardana_cache_packer_dir: "{{ ardana_cache_base_dir }}/packer/downloads"
+- include: setup.yml
+  tags:
+    - skip-qcow2
+
+- include: get-sles-qcow2.yml
+  when:
+    - dev_env_use_sles12_artifacts | bool
+    - dev_env_use_prebuilt_images | bool
+  tags:
+    - skip-sles-qcow2
+    - skip-qcow2
+
+- include: get-rhel-qcow2.yml
+  when:
+    - dev_env_use_rhel7_artifacts | bool
+    - dev_env_use_prebuilt_images | bool
+  tags:
+    - skip-rhel-qcow2
+    - skip-qcow2
