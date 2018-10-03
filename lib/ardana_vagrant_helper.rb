@@ -412,25 +412,20 @@ module Ardana
     end
 
     def provision_deployer(server: None, name: "deployer", distros: [], extra_vars: {}, disks: [])
-      # override the playbook used if in Cloud deployer mode
-      if @ardana[:cloud][:deployer]
-        playbook = "vagrant-cloud-vm-setup"
-      else
-        playbook = "deployer-setup"
-      end
-
       # Provisioning
       # Add the pseudo host group defined in parallel-ansiblerepo-build.yml
       setup_vm(vm: server.vm, name: name, extra_vars: extra_vars, disks: disks)
 
       setup_iso(server: server, name: name, distros: distros)
 
-      server.vm.provision "ansible" do |ansible|
-        ansible.playbook = "#@dev_tool_path/ansible/#{playbook}.yml"
-        ansible.host_key_checking = false
-        ansible.limit = name + ",repo_parallel"
-        if extra_vars
-          ansible.extra_vars = extra_vars
+      if not @ardana[:cloud][:deployer]
+        server.vm.provision "ansible" do |ansible|
+          ansible.playbook = "#@dev_tool_path/ansible/deployer-setup.yml"
+          ansible.host_key_checking = false
+          ansible.limit = name + ",repo_parallel"
+          if extra_vars
+            ansible.extra_vars = extra_vars
+          end
         end
       end
     end

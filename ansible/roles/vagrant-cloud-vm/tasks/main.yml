@@ -16,9 +16,9 @@
 # Tasks performed by the vagrant-cloud-vm role.
 ---
 
-- include: ../../vagrant-vm/tasks/setup-ssh-access.yml
+- include: "{{ playbook_dir }}/roles/vagrant-vm/tasks/setup-ssh-access.yml"
 
-- include: ../../vagrant-vm/tasks/setup-root-partition.yml
+- include: "{{ playbook_dir }}/roles/vagrant-vm/tasks/setup-root-partition.yml"
 
 - include: setup-proxy-cache.yml
   when:
