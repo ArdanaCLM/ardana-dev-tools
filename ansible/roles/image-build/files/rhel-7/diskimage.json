@@ -22,7 +22,7 @@
       "output_directory": "{{ user `output_directory` }}",
       "type": "qemu",
       "iso_url": "{{ user `iso_url` }}",
-      "iso_checksum": "34a65dbdfb8d9bb19b3a03d278df2a99",
+      "iso_checksum": "fdc2f2faa2e31f0ba77d49eab14651cf",
       "iso_checksum_type": "md5",
       "disk_size": "{{ user `disk_size` }}",
       "disk_cache": "unsafe",

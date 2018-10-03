@@ -86,7 +86,7 @@ class Servers(object):
             distro = "sles"
 
         if distros is None:
-            distros = dict(sles='sles12sp3', rhel='rhel73')
+            distros = dict(sles='sles12sp3', rhel='rhel75')
 
         if arch is None:
             arch = 'x86_64'
@@ -227,8 +227,8 @@ def main():
     # distro versions to use
     parser.add_argument('--sles', dest='sles_distro', default='sles12sp3',
                         help='The version of SLES to use, e.g. "sles12sp3"')
-    parser.add_argument('--rhel', dest='rhel_distro', default='rhel73',
-                        help='The version of RHEL to use, e.g. "rhel73"')
+    parser.add_argument('--rhel', dest='rhel_distro', default='rhel75',
+                        help='The version of RHEL to use, e.g. "rhel75"')
 
     # specific node distro selections
     parser.add_argument('--rhel-nodes', dest='rhel_nodes', default='',
