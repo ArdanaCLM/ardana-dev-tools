@@ -30,7 +30,7 @@ sles:
     mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
     iso_milestone:
       "sles12sp3": "-GM"
-      "sles12sp4": "-TEST"
+      "sles12sp4": "-RC2"
   artifacts:
     repos:
       sles12sp4:
@@ -63,8 +63,8 @@ sles:
       sles12sp4:
         os:
           #name: "SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
-          name: "SLE-12-SP4-Server-DVD-x86_64-TEST-DVD1.iso"
-          pattern: "SLE-12-SP4-Server-DVD-x86_64-(GM-DVD|Build[0-9]+-Media)1.iso"
+          name: "SLE-12-SP4-Server-DVD-x86_64-RC2-DVD1.iso"
+          pattern: "SLE-12-SP4-Server-DVD-x86_64-((GM|RC[0-9]+)-DVD|Build[0-9]+-Media)1.iso"
           alias: "SLES-OS"
           sha256: ""
           path: "install/SLE-12-SP4-Server"
