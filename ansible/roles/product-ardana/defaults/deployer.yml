@@ -56,9 +56,6 @@ _deployer_git_repositories_default:
   eon-ansible:
     url: "{{ dev_env_git_servers.github }}/hpe-helion-os/hpe-eon-ansible"
     branch: "{{ _deployer_eon_branch_default }}"
-  freezer-ansible:
-    url: "{{ dev_env_default_git_server }}/ardana/freezer-ansible"
-    branch: "{{ _deployer_branch_default }}"
   glance-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/glance-ansible"
     branch: "{{ _deployer_branch_default }}"
