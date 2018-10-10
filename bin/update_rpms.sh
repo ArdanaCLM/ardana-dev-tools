@@ -57,7 +57,7 @@ CONFIG_PROC_SPEC='#
 
 %{?!python_module:%define python_module() python-%{**} python3-%{**}}
 Name:           python-ardana-configurationprocessor
-Version:        0.3.0
+Version:        0.4.0
 Release:        0
 License:        Apache-2.0
 Summary:        Configuration Processor for Ardana CLM
@@ -72,7 +72,7 @@ Requires:       python-cryptography
 Requires:       python-html
 Requires:       python-jsonschema
 Requires:       python-netaddr
-Requires:       python-pycrypto
+Requires:       python-pycryptodome
 Requires:       python-PyYAML
 Requires:       python-sh
 Requires:       python-simplejson
@@ -132,6 +132,7 @@ Ardana Lifecycle Management Configuration Processor
 
 IOSC='osc -A https://api.suse.de'
 CURRENT_OSC_PROJ=${CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
+C8_CURRENT_OSC_PROJ=${C8_CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
 
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
@@ -175,13 +176,12 @@ function fix_ardana_rpm {
     # it does not follow any of the normal rules
     #
     if [[ ${REPO} = "ardana-configuration-processor" ]]; then
-        rm -rf ${ARDANA_OSC_PROJ}/$BUILD_RPM
-        [[ $($IOSC co ${ARDANA_OSC_PROJ}/$BUILD_RPM) ]] || return 1
+        rm -rf ${C8_CURRENT_OSC_PROJ}/$BUILD_RPM
+        [[ $($IOSC co ${C8_CURRENT_OSC_PROJ}/$BUILD_RPM) ]] || return 1
         (cd ${WORKSPACE}/${REPO}; python setup.py sdist)
-        cp ${WORKSPACE}/${REPO}/dist/ardana-configurationprocessor-0.3.0.tar.gz ./${ARDANA_OSC_PROJ}/${BUILD_RPM}/.
-        echo "$CONFIG_PROC_SPEC" > ./${ARDANA_OSC_PROJ}/${BUILD_RPM}/python-ardana-configurationprocessor.spec
-        (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects)
-        cp ${OSC_BUILD_ROOT}/home/abuild/rpmbuild/RPMS/noarch/*.rpm $WORKSPACE/NEW_RPMS/.
+        cp ${WORKSPACE}/${REPO}/dist/ardana-configurationprocessor-0.4.0.tar.gz ./${C8_CURRENT_OSC_PROJ}/${BUILD_RPM}/.
+        echo "$CONFIG_PROC_SPEC" > ./${C8_CURRENT_OSC_PROJ}/${BUILD_RPM}/python-ardana-configurationprocessor.spec
+        (cd ${C8_CURRENT_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects -k $WORKSPACE/NEW_RPMS)
         return 0
     fi
 
