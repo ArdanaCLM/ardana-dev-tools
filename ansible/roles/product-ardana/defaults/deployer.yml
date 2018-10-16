@@ -89,6 +89,9 @@ _deployer_git_repositories_default:
   magnum-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/magnum-ansible"
     branch: "{{ _deployer_branch_default }}"
+  manila-ansible:
+    url: "{{ dev_env_default_git_server }}/ardana/manila-ansible"
+    branch: "{{ _deployer_branch_default }}"
   memcached-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/memcached-ansible"
     branch: "{{ _deployer_branch_default }}"
