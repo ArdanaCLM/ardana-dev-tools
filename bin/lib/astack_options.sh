@@ -29,6 +29,7 @@ long_opts=(
     c8-caching
     c8-devel
     c8-hos
+    c8-iso
     c8-mirror
     c8-pool
     c8-qa-tests
@@ -40,6 +41,7 @@ long_opts=(
     c9-artifacts
     c9-caching
     c9-devel
+    c9-iso
     c9-mirror
     c9-pool
     c9-staging
@@ -120,7 +122,8 @@ NO_BUILD=
 NO_UPDATE_RPMS=
 SOC_CLM_8=
 SOC_CLM_9=
-export ARDANA_PREBUILT_IMAGES=true
+export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
+export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
 export ARDANA_CLOUD_DEPLOYER=${ARDANA_CLOUD_DEPLOYER:-}
@@ -203,8 +206,8 @@ while true ; do
         --no-build) NO_BUILD=1 ; shift ;;
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
-        --prebuilt-images) export ARDANA_PREBUILT_IMAGES=true ; shift ;;
-        --build-images) export ARDANA_PREBUILT_IMAGES=false ; shift ;;
+        --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
+        --build-images) export ARDANA_PREBUILT_IMAGES=0 ; shift ;;
         --pre-destroy)
             PRE_DESTROY=1
             shift ;;
@@ -258,6 +261,11 @@ while true ; do
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["pool"]'
             shift ;;
+        --c8-iso)
+            SOC_CLM_8=true
+            export ARDANA_CLOUD_REPOS='["iso"]'
+            export ARDANA_ATTACH_ISOS=true
+            shift ;;
         --c8-qa-tests)
             C8_QA_TESTS=1
             shift ;;
@@ -296,6 +304,11 @@ while true ; do
         --c9-pool)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["pool"]'
+            shift ;;
+        --c9-iso)
+            SOC_CLM_9=true
+            export ARDANA_CLOUD_REPOS='["iso"]'
+            export ARDANA_ATTACH_ISOS=true
             shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --rhel-compute)
@@ -504,16 +517,40 @@ if [ -n "${ARDANA_RHEL_COMPUTE:-}" -o \
      -n "${COBBLER_RHEL_COMPUTE:-}" -o \
      -n "${COBBLER_RHEL_NODES:-}" ]; then
     export ARDANA_RHEL_ARTIFACTS=1
+fi
+
+# Will we be cobbling any nodes
+if [ -n "${COBBLER_NODES:-}" -o \
+     -n "${COBBLER_SLES_CONTROL:-}" -o \
+     -n "${COBBLER_SLES_COMPUTE:-}" -o \
+     -n "${COBBLER_SLES_NODES:-}" -o \
+     -n "${COBBLER_RHEL_COMPUTE:-}" -o \
+     -n "${COBBLER_RHEL_NODES:-}" -o \
+     -n "${COBBLER_ALL_NODES}" ]; then
+     COBBLER_ENABLED=1
+
+     # For cobbler runs we want to attach ISOs
+     ARDANA_ATTACH_ISOS=1
+fi
+
+# if RHEL computes or cobbler enabled, need to attach ISOs
+# to support RHEL imaging/deployment
+if [ -n "${COBBLER_ENABLED:-}" -o \
+     -n "${ARDANA_RHEL_COMPUTE:-}" -o \
+     -n "${ARDANA_RHEL_COMPUTE_NODES:-}" ]; then
+    export ARDANA_ATTACH_ISOS=true
+fi
+
+# Only enable RHEL optional repo if deploying RHEL computes and
+# not doing a cobbler run, since a cobbler run doesn't actually
+# deploy the cloud and therefore doesn't need the optional repo.
+if [ -z "${COBBLER_ENABLED:-}" -a \
+     \( -n "${ARDANA_RHEL_COMPUTE:-}" -o \
+        -n "${ARDANA_RHEL_COMPUTE_NODES:-}" \) ]; then
     # override following flag only when variable is not already set or is blank
     if [ -z "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED}" ]; then
         export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
     fi
-fi
-
-# Will we be cobbling any nodes
-if [ -n "${COBBLER_NODES:-}" -a \
-     -n "${COBBLER_ALL_NODES}" ]; then
-     COBBLER_ENABLED=1
 fi
 
 # vim:shiftwidth=4:tabstop=4:expandtab

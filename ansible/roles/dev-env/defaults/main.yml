@@ -61,7 +61,10 @@ dev_env_provider_net:
     - netmask: 172.30.1.1/24
       vlan: 106
 
-# Should be download pre-built qcow2 images, or build them locally
+# Should we attach the ISOs to the deployer node?
+dev_env_attach_isos: "{{ lookup('env', 'ARDANA_ATTACH_ISOS') | default(False, true) }}"
+
+# Should we download pre-built qcow2 images, or build them locally
 dev_env_use_prebuilt_images: "{{ lookup('env', 'ARDANA_PREBUILT_IMAGES') | default(False, true) }}"
 
 # Should we use SOC/CLM artifacts and deployer setup

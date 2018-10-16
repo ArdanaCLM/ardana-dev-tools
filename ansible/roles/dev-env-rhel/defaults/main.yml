@@ -35,3 +35,4 @@ rhel:
         alias: "RHEL-OS"
         path: "RHEL"
         link: "rhel7.iso"
+        enabled: true

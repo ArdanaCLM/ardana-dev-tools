@@ -30,7 +30,7 @@ cloud:
     soc_mode: "{{ lookup('env', 'ARDANA_CLOUD_SOC') | default(False, true) }}"
     iso_milestone:
       "8": "-GM"
-      "9": "-M{{ lookup('env', 'ARDANA_CLOUD9_MILESTONE') | default(2, true) }}"
+      "9": "-M{{ lookup('env', 'ARDANA_CLOUD9_MILESTONE') | default(4, true) }}"
   artifacts:
     repos:
       soc8:
@@ -111,6 +111,7 @@ cloud:
           sha256: ""
           link: "cloud8.iso"
           path: "install/SLE-12-SP3-Cloud8"
+          enabled: true
       hos8:
         media1:
           name: "HPE-HELION-OPENSTACK-8-x86_64-GM-DVD1.iso"
@@ -120,6 +121,7 @@ cloud:
           sha256: ""
           link: "cloud8.iso"
           path: "install/SLE-12-SP3-Cloud8"
+          enabled: true
       soc9:
         media1:
           #name: "SUSE-OPENSTACK-CLOUD-9-x86_64-GM-DVD1.iso"
@@ -129,6 +131,7 @@ cloud:
           sha256: ""
           link: "cloud9.iso"
           path: "install/SLE-12-SP4-Cloud9"
+          enabled: true
   deployer:
     caching_proxy:
       fs:

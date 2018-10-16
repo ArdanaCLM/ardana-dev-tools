@@ -45,3 +45,5 @@
         name: "{{ _ibs_clm_media.link | default('') }}"
         dir: "{{ ibs_iso.images_dir }}"
       use_proxy: "{{ ibs_iso.use_proxy }}"
+  when:
+    - _ibs_clm_media.enabled | bool

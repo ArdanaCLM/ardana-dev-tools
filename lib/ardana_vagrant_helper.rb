@@ -204,6 +204,7 @@ module Ardana
       @dev_tool_path = File.expand_path(File.dirname(__FILE__) + "/..")
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
       @ardana = {
+        :attach_isos => !ENV.fetch("ARDANA_ATTACH_ISOS", "").empty?,
         :cloud => {
           :version => ENV.fetch("ARDANA_CLOUD_VERSION", "9"),
           :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?,
@@ -340,6 +341,7 @@ module Ardana
     end
 
     def set_release(iso_files)
+      return if not @ardana[:attach_isos]
       iso_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}"
       if !File.exists?(iso_file)
         iso_file = get_release_artifact_dir() + "/release.iso"
@@ -351,6 +353,7 @@ module Ardana
     end
 
     def set_sles(iso_files)
+      return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
@@ -358,6 +361,7 @@ module Ardana
     end
 
     def set_sles_sdk(iso_files)
+      return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}sdk.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
@@ -365,6 +369,7 @@ module Ardana
     end
 
     def set_sles_cloud(iso_files)
+      return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/cloud#{@ardana[:cloud][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the Cloud ISO"
@@ -372,6 +377,7 @@ module Ardana
     end
 
     def set_rhel(iso_files)
+      return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["rhel"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the RHEL ISO"

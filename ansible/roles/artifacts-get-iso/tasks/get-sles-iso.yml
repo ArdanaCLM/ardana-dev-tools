@@ -43,6 +43,8 @@
         name: "{{ _sles_os.link | default('') }}"
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
+  when:
+    - _sles_os.enabled | bool
 
 - name: artifacts-get-iso | get-sles-iso | Get the SLES SDK ISO
   include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
@@ -57,3 +59,5 @@
         name: "{{ _sles_sdk.link | default('') }}"
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
+  when:
+    - _sles_sdk.enabled | bool

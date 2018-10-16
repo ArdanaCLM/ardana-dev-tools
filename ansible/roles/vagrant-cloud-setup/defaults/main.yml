@@ -47,14 +47,16 @@ clmsetup:
       alias: "{{ sles.artifacts.iso[sles_version].os.alias }}"
       iso_link: "{{ sles.artifacts.iso[sles_version].os.link }}"
       distro: sles
-      enabled: true
+      enabled: "{{ (sles.artifacts.iso[sles_version].os.enabled | bool) and
+                   ('iso' in sles.config.enabled_repos) }}"
     - dev: /dev/sr1
       path: "C{{ cloud_version }}"
       name: "C{{ cloud_version }}{{ cloud.config.iso_milestone[cloud_version] }}"
       alias: "{{ cloud.artifacts.iso[_clm_version].media1.alias }}"
       iso_link: "{{ cloud.artifacts.iso[_clm_version].media1.link }}"
-      enabled: true
       distro: sles
+      enabled: "{{ (cloud.artifacts.iso[_clm_version].media1.enabled | bool) and
+                   ('iso' in cloud.config.enabled_repos) }}"
     - dev: /dev/sr2
       path: "OS"
       name: "{{ rhel.artifacts.iso.os.name }}"
@@ -62,7 +64,7 @@ clmsetup:
       gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
       iso_link: "{{ rhel.artifacts.iso.os.link }}"
       distro: rhel
-      enabled: true
+      enabled: "{{ rhel.artifacts.iso.os.enabled | bool }}"
   repos:
     #
     # rsync mirror based repos

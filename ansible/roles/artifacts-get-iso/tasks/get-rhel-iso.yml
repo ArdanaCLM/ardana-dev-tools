@@ -42,3 +42,5 @@
         name: "{{ _rhel_os.link | default('') }}"
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
+  when:
+    - _rhel_os.enabled | bool

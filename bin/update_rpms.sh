@@ -181,7 +181,7 @@ function fix_ardana_rpm {
         (cd ${WORKSPACE}/${REPO}; python setup.py sdist)
         cp ${WORKSPACE}/${REPO}/dist/ardana-configurationprocessor-0.4.0.tar.gz ./${C8_CURRENT_OSC_PROJ}/${BUILD_RPM}/.
         echo "$CONFIG_PROC_SPEC" > ./${C8_CURRENT_OSC_PROJ}/${BUILD_RPM}/python-ardana-configurationprocessor.spec
-        (cd ${C8_CURRENT_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects -k $WORKSPACE/NEW_RPMS)
+        (cd ${C8_CURRENT_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects --download-api -k $WORKSPACE/NEW_RPMS)
         return 0
     fi
 
@@ -226,7 +226,7 @@ function fix_ardana_rpm {
     #
     # rebuild the RPM
     #
-    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects)
+    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects --download-api)
     # copy new rpm to new rpm area.
     cp ${OSC_BUILD_ROOT}/home/abuild/rpmbuild/RPMS/noarch/*.rpm $WORKSPACE/NEW_RPMS/.
 

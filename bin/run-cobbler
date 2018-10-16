@@ -38,13 +38,15 @@ usage() {
     echo "--c8-mirror         -- Enable Cloud8 repo mirroring (default)"
     echo "--c8-devel          -- USE DC8 repos"
     echo "--c8-pool           -- USE Cloud8 Pool repos"
+    echo "--c8-iso            -- Use just the Cloud8 ISO packages"
     echo "--c8-staging        -- USE DC8S repos"
     echo "--c8-updates        -- USE Cloud8 Pool + Updates repos"
     echo "--c8-updates-test   -- USE Cloud8 Pool + Update-tests repos"
     echo "--c9                -- Configure options to run in Cloud9 mode"
     echo "--c9-mirror         -- Enable Cloud9 repo mirroring"
     echo "--c9-devel          -- USE DC9 repos"
-    echo "--c8-pool           -- USE Cloud9 Pool repos"
+    echo "--c9-pool           -- USE Cloud9 Pool repos"
+    echo "--c9-iso            -- Use just the Cloud9 ISO packages"
     echo "--c9-staging        -- USE DC9S repos"
     echo "--c9-updates        -- USE Cloud9 Pool + Updates repos"
     echo "--c9-updates-test   -- USE Cloud9 Pool + Update-tests repos"
@@ -65,6 +67,7 @@ long_opts=(
     c8
     c8-devel
     c8-hos
+    c8-iso
     c8-mirror
     c8-soc
     c8-pool
@@ -73,6 +76,7 @@ long_opts=(
     c8-updates-test
     c9
     c9-devel
+    c9-iso
     c9-mirror
     c9-pool
     c9-staging
