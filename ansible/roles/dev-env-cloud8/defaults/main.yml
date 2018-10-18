@@ -50,7 +50,7 @@ rhel:
   artifacts:
     iso:
       os:
-        name: "RHEL-7.3-20170728-Server-x86_64-dvd"
+        name: "rhel-server-7.5-x86_64-dvd"
         alias: "RHEL-OS"
         path: "RHEL"
         link: "rhel7.iso"

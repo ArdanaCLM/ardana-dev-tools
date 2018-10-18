@@ -55,7 +55,7 @@ class InvalidServersPathError(StandardError):
 class Servers(object):
 
     _DISTRO_ID_MAP = dict(sles="sles12sp3-x86_64",
-                          rhel="rhel73-x86_64")
+                          rhel="rhel75-x86_64")
 
     @classmethod
     def supported_distros(cls):
