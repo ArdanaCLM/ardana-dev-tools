@@ -20,6 +20,6 @@
   vars:
     artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/RHEL"
-    artifact: "rhel-server-7.5-x86_64-dvd.iso"
+    artifact: "CentOS-7-x86_64-DVD-1804.iso"
     artifact_alias: "{{ artifact }}"
     filename: "{{ rhel7_iso | basename }}"
