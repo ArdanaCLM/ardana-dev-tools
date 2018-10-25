@@ -34,6 +34,8 @@
       vars:
         vagrant_vm_yum_repo_name: RHEL-OS
         vagrant_vm_yum_repo_url: http://{{ deployer_address }}:79/ardana/rhel7/yum/OS/
+        vagrant_vm_yum_gpg_url: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+
       when: deployer_address is defined and ansible_os_family | lower == 'redhat'
     - include: roles/vagrant-vm/tasks/setup-zypper-repo.yml
       vars:
