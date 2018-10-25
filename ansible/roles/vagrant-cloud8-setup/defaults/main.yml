@@ -53,7 +53,7 @@ c8setup:
       path: "OS"
       name: "{{ rhel.artifacts.iso.os.name }}"
       alias: "{{ rhel.artifacts.iso.os.alias }}"
-      gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-redhat-release"
+      gpgkey: "file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7"
       iso_link: "{{ rhel.artifacts.iso.os.link }}"
       distro: rhel
       enabled: true
