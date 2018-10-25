@@ -22,5 +22,10 @@
 # deployer_version
 product_release: "final"
 
+# mapping of cloud versions to associated branch
+product_branches:
+  "8": "stable/pike"
+  "9": "{{ lookup('pipe', 'cd ' + playbook_dir + ' && git config ' + '--file $(git rev-parse --show-toplevel)/.gitreview --get gerrit.defaultbranch') }}"
+
 # branch that all dependent projects should be retrieved from
-product_branch: "{{ lookup('pipe', 'cd ' + playbook_dir + ' && git config ' + '--file $(git rev-parse --show-toplevel)/.gitreview --get gerrit.defaultbranch') }}"
+product_branch: "{{ product_branches[cloud_version] }}"

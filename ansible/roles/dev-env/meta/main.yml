@@ -16,5 +16,8 @@
 #
 ---
 dependencies:
+  - role: dev-env-sles
+  - role: dev-env-rhel
+  - role: dev-env-cloud
   - role: product
   - role: pip-consumer

@@ -17,7 +17,7 @@
 # SOC/CLM style deployment dev-env setup.
 ---
 
-cloud_version: "{{ lookup('env', 'ARDANA_CLOUD_VERSION') | default(8, true) }}"
+cloud_version: "{{ lookup('env', 'ARDANA_CLOUD_VERSION') | default(9, true) }}"
 
 # SOC/CLM deloyment settings
 cloud:

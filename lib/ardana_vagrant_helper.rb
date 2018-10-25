@@ -272,8 +272,16 @@ module Ardana
         metal_cfg = File.expand_path( local_base + 'servers.yml' )
 
         if not File.directory?(local_base) or !!ENV["ARDANA_REF_MODEL_TAG"]
+          if !!ENV["ARDANA_REF_MODEL_TAG"]
+            git_branch_name = ENV["ARDANA_REF_MODEL_TAG"]
+          elsif @ardana[:cloud][:version] == 8
+            git_branch_name = 'stable/pike'
+          elsif
+            git_branch_name = get_product_branch()
+          end
+
           git_base = 'http://git.suse.provo.cloud/cgit/ardana/ardana-input-model/plain/' + cloud_cfg_dir
-          git_branch = '?h=' + (ENV["ARDANA_REF_MODEL_TAG"] || get_product_branch())
+          git_branch = '?h=' + git_branch_name
 
           metal_cfg = git_base + 'servers.yml' + git_branch
         end
