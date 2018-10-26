@@ -16,6 +16,3 @@
 #
 # Debian specific variable values for the vagrant-vm tasks
 ---
-
-vagrant_vm_check_package_installed_command: dpkg-query -W --showformat='${Status}\n'
-vagrant_vm_check_package_stdout: "install ok installed"

@@ -17,12 +17,20 @@
 # Variables for the vagrant setup
 ---
 
-# Variables for resizing the root partition
-vagrant_vm_root_device: /dev/sda
+# List of tools required for partition resizing
+vagrant_part_resize_tools:
+  basic:
+    - fdisk
+    - gdisk
+    - parted
+  lvm:
+    - lvdisplay
+    - lvs
+    - vgs
+
 # if / is not on bootable partition, updated dynamically otherwise
 vagrant_vm_fdisk_start_field: 2
 vagrant_vm_pxe_setting: true
-vagrant_vm_vg: ardana-vg
 
 vagrant_vm_cdrom_mount_path: /media/cdrom
 vagrant_vm_cdrom_dev: /dev/sr0
