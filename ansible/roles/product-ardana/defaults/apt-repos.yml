@@ -25,8 +25,8 @@ yum_extras_archive:
   sha256: "f8d82a002292bf660f2f70c67e6e6aef8bdb7253f1a470b54bf54d322d14680f"
 
 yum_optional_archive:
-  path: "/yum-extras/yum-internal-rhel75-20181011-1533.tgz"
-  sha256: "e6b334b1756280df8d62178771c9af70e730c9b5c418b00a5eef473e4e61465d"
+  path: "/yum-extras/yum-internal-rhel75-20181026-1528.tgz"
+  sha256: "fc79b9f8546e85a2bd696113233cf2259a7d28be9481c6c27422d6571783010e"
 
 sles_extras_archive:
   path: "/sles-extras/sles12sp3-extras-20180221-224049.tgz"
