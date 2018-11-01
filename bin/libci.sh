@@ -17,6 +17,8 @@
 export DEVTOOLS=$(cd $(dirname ${BASH_SOURCE[0]})/.. ; pwd)
 export DEVROOT=$(readlink -e ${DEVTOOLS}/..)
 export LOGSROOT="${WORKSPACE:-${DEVROOT}}/logs"
+export ARDANA_OSC_CACHE="${HOME}/.cache/ardana-osc"
+export ARDANA_OVERRIDE_RPMS="${WORKSPACE:-${DEVROOT}}/NEW_RPMS"
 PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
 
 # CDL convention

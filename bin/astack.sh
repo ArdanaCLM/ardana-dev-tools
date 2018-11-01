@@ -28,7 +28,8 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
 usage() {
     set +x
-    echo "$SCRIPT_NAME [--ci] [--no-setup] [--no-build] [cloud]"
+    echo "Usage:"
+    echo "    $SCRIPT_NAME [--no-setup] [--no-update-rpms] [--no-build] [cloud]"
     echo
     echo "NOTE: cloud defaults to dac-min"
     echo
@@ -36,7 +37,7 @@ usage() {
     echo "the cloud changes. By default we pull the input model from"
     echo "ardana-input-model, but when --project-stack is set we always copy"
     echo "the control plane from the specified project. This cloud uses"
-    echo "the 'project' ardana-input-model as a bases."
+    echo "the 'project' ardana-input-model as a basis."
     echo
     echo "--no-setup            -- Don't run dev-env-install.yml"
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
@@ -50,6 +51,18 @@ usage() {
     echo "                         creating Vagrant boxes (default)"
     echo "--pre-destroy         -- Destroy any existing instance of the Vagrant"
     echo "                         cloud before trying to deploy it."
+    echo "--ibs-pkg PRJ[/PKG]   -- Specifies an IBS project, and optionally a"
+    echo "                         specific package in that project, whose RPMs"
+    echo "                         should be included into the NEW_RPMS area."
+    echo "                         (repeatable)"
+    echo "--ibs-repo PRJ        -- Specify an IBS project to be added to SLES"
+    echo "                         nodes as a source for RPMs. (repeatable)"
+    echo "--ibs-pkg PRJ[/PKG]   -- Specifies an IBS project, and optionally a"
+    echo "                         specific package in that project, whose RPMs"
+    echo "                         should be included into the NEW_RPMS area."
+    echo "                         (repeatable)"
+    echo "--obs-repo PRJ        -- Specify an OBS project to be added to SLES"
+    echo "                         nodes as a source for RPMs. (repeatable)"
     echo "--disable-no-log      -- Remove no_log entries from ansible code"
     echo "                         before deploying to make debugging easier."
     echo "--c9|--cloud9-deployer"
@@ -194,6 +207,21 @@ if [ -n "${ARDANA_CLOUD_DEPLOYER}" ]; then
     [ -n "${NO_UPDATE_RPMS:-}" ] || ${SCRIPT_HOME}/update_rpms.sh
 fi
 
+# download and include any specified OBS project RPMs
+if (( ${#OBS_PRJS[@]} > 0 )); then
+    ${SCRIPT_HOME}/get_buildservice_project_rpms --obs "${OBS_PRJS[@]}"
+fi
+
+# download and include any specified IBS project RPMs
+if (( ${#IBS_PRJS[@]} > 0 )); then
+    ${SCRIPT_HOME}/get_buildservice_project_rpms --ibs "${IBS_PRJS[@]}"
+fi
+
+# Ensure the override RPMs repo exists
+if [ ! -d "${ARDANA_OVERRIDE_RPMS}" ]; then
+    mkdir -p "${ARDANA_OVERRIDE_RPMS}"
+    (cd "${ARDANA_OVERRIDE_RPMS}"; createrepo .)
+fi
 
 if [ -n "${ARDANA_DISABLE_SERVICES:-}" -a -n "${USE_PROJECT_STACK:-}" ]; then
     echo "Combining --disable-services and --project-stack isn't allowed." >&2

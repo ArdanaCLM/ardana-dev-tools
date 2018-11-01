@@ -96,3 +96,14 @@ dev_env_no_setup_qa: "{{ lookup('env', 'ARDANA_NO_SETUP_QA') | default(False, tr
 dev_env_product_artifacts: "{{ product_cache_directory }}/artifacts"
 dev_env_product_boxes: "{{ product_cache_directory }}/boxes"
 dev_env_product_images: "{{ product_cache_directory }}/images"
+
+# Variables tracking any provide OBS or IBS repos, if specified
+_dev_env_ibs_repos: "{{ lookup('env', 'ARDANA_IBS_REPOS') | default('', true) }}"
+dev_env_bs_distro: "SLE_{{ sles_major }}_SP{{ sles_sp }}"
+dev_env_ibs:
+  base_url: "http://{{ dev_env_site_config.ibs.main }}/{{ dev_env_site_config.ibs.path }}"
+  repos: "{{ (_dev_env_ibs_repos | length) | ternary(_dev_env_ibs_repos.split(','), []) }}"
+_dev_env_obs_repos: "{{ lookup('env', 'ARDANA_OBS_REPOS') | default('', true) }}"
+dev_env_obs:
+  base_url: "http://{{ dev_env_site_config.obs.main }}/{{ dev_env_site_config.obs.path }}"
+  repos: "{{ (_dev_env_obs_repos | length) | ternary(_dev_env_obs_repos.split(','), []) }}"

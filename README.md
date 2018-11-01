@@ -44,24 +44,18 @@ full description of the layout of a service Ansible repo.
 There are a few important issues you should be aware of before
 getting started.
 
-### Support Linux distributions
+### Supported Linux distributions
 
 The following are fully supportted and expected to work without significant
 effort:
 
-* Ubuntu 16.04 (Xenial) and 14.04 (Trusty)
-* openSUSE Leap 42.3 and 42.2
-
-The following should probably work, but may require tweaks and/or manual
-intervention:
-
-* Ubuntu 18.04 (Bionic)
-* openSUSE Leap 15
+* Ubuntu 18.04 (Bionic), 16.04 (Xenial), 14.04 (Trusty)
+* openSUSE Leap 15, 42.3 and 42.2
 
 You should be able to get things working on these but will need to manually
 add appropriate zypper repos to your system to be sure.
 * SLE 12 SP3
-  * Need to ensure you have SLE Server is SCC registered to have access to
+  * Need to ensure your SLE Server is SCC registered to have access to
     Pool & Update repos
   * Need to add the SLE SDK Product/Addon
   * Need [devel:languages:python](https://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP3/devel:languages:python.repo) for SLE 12 SP3
@@ -281,8 +275,121 @@ Some useful additional parameters to use:
                             ISOs and qcow2 images for Vagrant box)
     --rhel-compute         (Configures compute nodes to be RHEL based rather than
                             the default SLES; implies --rhel)
+    --ibs-prj PRJ[/PKG]    (Download RPMs from specified IBS project (or specific
+                            package if provided) and include them into the NEW_RPMS
+			    area that will be created beside the ardana-dev-tools
+			    clone. Repeat as many times as needed to add all projects
+			    and/or packages desired.)
+    --obs-prj PRJ[/PKG]    (Download RPMs from specified OBS project (or specific
+                            package if provided) and include them into the NEW_RPMS
+			    area that will be created beside the ardana-dev-tools
+			    clone. Repeat as many times as needed to add all projects
+			    and/or packages desired.)
+    --ibs-repo PRJ         (Add specified IBS project's repo to the SLES nodes in
+                            the cloud deployed by the astack.sh run.)
+    --obs-repo PRJ         (Add specified OBS project's repo to the SLES nodes in
+                            the cloud deployed by the astack.sh run.)
 
-### Useful tools
+## Pulling updated RPMs into your deployment
+
+The default astack.sh deployment, if you have just cloned ardana-dev-tools,
+will just use the appropriate SLES and Cloud repos based upon the specified
+cloud version you are deploying, which defaults to Cloud9.
+
+If you want to pull in addition changes to test as part of your deployment
+you have a number of options:
+
+* Clone relevant Ardana ansible or tool repos beside your ardana-dev-tools.
+* Use the --ibs-prj & --obs-prj options to download RPMs from specified
+  IBS or OBS projects to be included in the deployment. These options can
+  be repeated to specify as many projects (or packages withing projects)
+  as desired.
+* Use the --ibs-repo & --obs-repo options to specify IBS & OBS repos that
+  will be added to the SLES nodes within a deployment. These options can
+  be repeated to specify as many projects as desired.
+
+The first two mechanisms (cloning additional repos beside ardana-dev-tools
+and using the --ibs-prj & --obs-prj options) rely on the fact that we will
+create a special "Cloud Overrides" zypper repo on the deployer node that
+will contain all of the RPMs published in the `NEW_RPMS` directory found
+beside the ardana-dev-tools clone. Additionally this special repo will be
+configured with priority 98, meaning it will be preferred as the source
+for packages being installed.
+
+### Cloning additional Ardana git repos beside ardana-dev-tools
+If you clone additional repos beside ardana-dev-tools, e.g. ardana-input-model
+or cinder-ansible, then when you kick off an astack.sh run, one of the first
+things that will happen is that the `bin/update_rpms.sh` script will be run
+which will attempt to build an updated version of the associated IBS RPM for
+that Ardana git repo's commited branch, if it is one that we have packaged as
+an RPM. If it succeeds the RPM that has been built will be published in the
+`NEW_RPMS` directory beside the ardana-dev-tools clone.
+
+NOTE: You must commit any pending changes to the branch for these changes to
+be built into the RPM; uncommitted changes will not be packaged in the RPM.
+
+You can disable this mechanism by specifying the --no-update-rpms option
+when running the astack.sh command.
+
+#### Special cases
+The RPM associated with the ardana-ansible git repo also pulls in an updated
+file from the ardana git repo, so of you want to rebuild that RPM you should
+clone bit the ardana-ansible and ardana git repos beside ardana-dev-tools.
+
+### Pulling in RPMs from IBS & OBS projects
+If you use the --ibs-prj or --obs-prj options you can specify the project,
+or even a package with a project, whose RPMs will be downloaded and added
+to the `NEW_RPMS` area.
+
+For example, or you have built a modified version of an Ardana Rocky Venv
+package, venv-openstack-keystone, under a branch in your OBS home project,
+home:jblogs:branches:Cloud:OpenStack:Rocky:venv, you would run astack.sh
+like so:
+
+    % ardana-dev-tools/bin/astack.sh \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv \
+	demo
+
+However this will pull in all the RPMs from the specified project so if
+you have more than one customised venv package under development in
+home:jblogs:branches:Cloud:OpenStack:Rocky:venv, and you want to pull in
+just the RPMs for the Keystone venv package, you would run astack.sh like
+so:
+
+    % ardana-dev-tools/bin/astack.sh \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv/venv-openstack-keystone \
+	demo
+
+Or if you want to test just two specific packages from your home branch,
+e.g. the Keystone and Nova venv packages, and not any others, you can
+specify both explicitly, like so:
+
+    % ardana-dev-tools/bin/astack.sh \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv/venv-openstack-keystone \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv/venv-openstack-nova \
+	demo
+
+Finally you can mix both IBS and OBS projects and packages in the same run, e.g.
+
+    % ardana-dev-tools/bin/astack.sh \
+        --ibs-prj home:jblogs:branches:Devel:Cloud:9:Staging/ardana-ansible \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv/venv-openstack-keystone \
+        --obs-prj home:jblogs:branches:Cloud:OpenStack:Rocky:venv/venv-openstack-nova \
+	demo
+
+### Adding IBS & OBS repos to SLES nodes
+Using the --ibs-repo & --open-repo you can specify IBS & OBS projects whose repos
+will be added to the SLES nodes in a cloud deployment.
+
+NOTES:
+  * The IBS & OBS project repos must have enabled package publishing otherwise
+no repo will be created, so if you have created a branch of a package under the
+one of the Devel:Cloud:... projects, you will need to explicitly enabled this
+mechanism, as it is may be disabled.
+  * This option can result in slow deployment times if you are talking to the
+respective build service over a slow, e.g. VPN, link.
+
+## Useful tools
 
 Once a cloud has been deployed, astack.sh will ensure that these files are
 created under the ardana-vagrant-models/${cloud}-vagrant directory that can

@@ -48,6 +48,10 @@
                         elif ardana_family == 'redhat' -%}rhel{%-
                         else -%}error{%- endif -%}"
 
+- include: setup-buildservice-repos.yml
+  when:
+    - ardana_distro == "sles"
+
 - include: setup-deployer.yml
   when:
     - inventory_hostname_short == deployer_node

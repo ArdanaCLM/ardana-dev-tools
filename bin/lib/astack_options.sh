@@ -65,6 +65,8 @@ long_opts=(
     feature-dir:
     guest-images
     help
+    ibs-prj:
+    ibs-repo:
     legacy
     no-artifacts
     no-build
@@ -74,6 +76,8 @@ long_opts=(
     no-setup
     no-site
     no-update-rpms
+    obs-prj:
+    obs-repo:
     prebuilt-images
     pre-destroy
     project-stack:
@@ -115,6 +119,18 @@ export ARDANA_USER_HOME_BASE="${ARDANA_USER_HOME_BASE:-/var/lib}"
 
 # Dynamically build the SLES Extras tarball by default
 export ARDANA_SLES_NET_REPOS=${ARDANA_SLES_NET_REPOS:-true}
+
+# Allow specification of additional IBS & OBS projects whose repos
+# will be added to all SLES nodes
+OBS_REPOS=()
+IBS_REPOS=()
+export ARDANA_OBS_REPOS=${ARDANA_OBS_REPOS:-}
+export ARDANA_IBS_REPOS=${ARDANA_IBS_REPOS:-}
+
+# Allow specification of IBS & OBS projects whose RPMs will be
+# be downloaded and added to the NEW_RPMS area
+OBS_PRJS=()
+IBS_PRJS=()
 
 NO_SETUP=
 NO_ARTIFACTS=
@@ -208,6 +224,10 @@ while true ; do
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
         --build-images) export ARDANA_PREBUILT_IMAGES=0 ; shift ;;
+        --ibs-prj) IBS_PRJS+=( "${2}" ); shift 2;;
+        --ibs-repo) IBS_REPOS+=( "${2}" ); shift 2;;
+        --obs-prj) OBS_PRJS+=( "${2}" ); shift 2;;
+        --obs-repo) OBS_REPOS+=( "${2}" ); shift 2;;
         --pre-destroy)
             PRE_DESTROY=1
             shift ;;
@@ -551,6 +571,21 @@ if [ -z "${COBBLER_ENABLED:-}" -a \
     if [ -z "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED}" ]; then
         export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
     fi
+fi
+
+# Check for any OBS or IBS repos having been specified and set up
+# the env vars appropriately.
+if (( ${#IBS_REPOS[@]} > 0 )); then
+    if (( ${#IBS_REPOS[@]} > 1 )); then
+        printf -v ibs_repos_list ",%s" "${IBS_REPOS[@]:1}"
+    fi
+    export ARDANA_IBS_REPOS="${ARDANA_IBS_REPOS:-}${ARDANA_IBS_REPOS:+,}${IBS_REPOS[0]}${ibs_repos_list:-}"
+fi
+if (( ${#OBS_REPOS[@]} > 0 )); then
+    if (( ${#OBS_REPOS[@]} > 1 )); then
+        printf -v obs_repos_list ",%s" "${OBS_REPOS[@]:1}"
+    fi
+    export ARDANA_OBS_REPOS="${ARDANA_OBS_REPOS:-}${ARDANA_OBS_REPOS:+,}${OBS_REPOS[0]}${obs_repos_list:-}"
 fi
 
 # vim:shiftwidth=4:tabstop=4:expandtab

@@ -1,0 +1,222 @@
+#!/bin/bash
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Called to download the RPMs from the specified projects to the
+# ARDANA_OVERRIDE_RPMS area.
+#
+
+set -eu
+set -o pipefail
+
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
+SCRIPT_NAME="$(basename "${BASH_SOURCE[0]}")"
+
+DEFAULT_ARCH="${ARDANA_ARCH:-$(uname -m)}"
+DEFAULT_DISTRO="SLE_${ARDANA_SLES_MAJOR:-12}_SP${ARDANA_SLES_SP:-4}"
+
+usage()
+{
+    cat - << _EOF_
+Usage:
+    ${SCRIPT_NAME} \\
+        {-o|--obs|-i|--ibs|{-A|--api} <api_url>} \\
+        [--distro <distro>] [--arch <arch>] \\
+        PRJ[/PKG]...
+Where:
+    -a|--arch <arch>        - get rpms for <arch> architecture
+                              (default: ${DEFAULT_ARCH})
+    -A|--api <api_url>      - use specified <api_url> for API url
+    -d|--distro <distro>    - get rpms for <distro> repository
+                              (default: ${DEFAULT_DISTRO})
+    -i, --ibs               - use https://api.opensuse.org for API url
+    -o, --obs               - use https://api.opensuse.org for API url
+
+NOTE: Only one of --api, --ibs or --obs can be specified.
+_EOF_
+}
+
+long_opts=(
+    arch:
+    api:
+    distro:
+    help
+    ibs
+    obs
+)
+
+# join long_opts members with ","
+printf -v OPTIONS ",%s" "${long_opts[@]:1}"
+OPTIONS="${long_opts[0]}${OPTIONS}"
+
+TEMP=$(getopt -o a:,A:,d:,h,i,o -l $OPTIONS -n $SCRIPT_NAME -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+# option settings
+OBS_API=
+IBS_API=
+API_URL=
+DISTRO=
+ARCH=
+
+while true ; do
+    case "$1" in
+    (-h|--help)
+        usage
+        exit 0
+        ;;
+    (-a|--arch)
+        ARCH="${2}"
+        shift 2
+        ;;
+    (-A|--api)
+        API_URL="${2}"
+        shift 2
+        ;;
+    (-d|--distro)
+        DISTRO="${2}"
+        shift 2
+        ;;
+    (-i|--ibs)
+        IBS_API=true
+        shift
+        ;;
+    (-o|--obs)
+        OBS_API=true
+        shift
+        ;;
+    (--)
+        shift
+        break
+        ;;
+    (*)
+        break
+        ;;
+    esac
+done
+
+#
+# sanity check arguments
+#
+if [[ ( ( -n "${IBS_API:-}" ) && ( -n "${OBS_API:-}" ) && \
+        ( -n "${API_URL:-}" ) ) || \
+      ( ( -n "${IBS_API:-}" ) && ( -n "${OBS_API:-}" ) ) || \
+      ( ( -n "${IBS_API:-}" ) && ( -n "${API_URL:-}" ) ) || \
+      ( ( -n "${OBS_API:-}" ) && ( -n "${API_URL:-}" ) ) ]]
+then
+    echo "ERROR: Only one of the --ibs, --obs or --api options" \
+          "should be specified!" 1>&2
+    usage
+    exit 1
+fi
+
+if [[ ( -z "${IBS_API:-}" ) && \
+      ( -z "${OBS_API:-}" ) && \
+      ( -z "${API_URL:-}" ) ]]
+then
+    echo "ERROR: Please specify one of the --ibs, --obs or --api options!"
+    usage
+    exit 1
+fi
+
+if (( $# < 1 ))
+then
+    echo "ERROR: No projects specified!"
+    usage
+    exit 1
+fi
+
+#
+# Process specified arguments
+#
+if [[ -z "${ARCH}" ]]
+then
+    ARCH="${DEFAULT_ARCH}"
+fi
+
+if [[ -z "${DISTRO}" ]]
+then
+    DISTRO="${DEFAULT_DISTRO}"
+fi
+
+# setup the specified api endpoint
+if [[ -n "${IBS_API:-}" ]]
+then
+    OSC_API="https://api.suse.de/"
+elif [[ -n "${OBS_API:-}" ]]
+then
+    OSC_API="https://api.opensuse.org/"
+else
+    OSC_API="${API_URL}"
+fi
+
+# store specified projects in prj_pkg_list
+prj_pkg_list=( "${@}" )
+
+source $(dirname $0)/libci.sh
+
+# Ensure override rpms area exists
+mkdir -p "${ARDANA_OVERRIDE_RPMS}"
+
+for prj_pkg in "${prj_pkg_list[@]}"
+do
+    echo "[Downloading RPMs for ${prj_pkg}]"
+
+    # split prj_pkg value on (first) '/'
+    prj="${prj_pkg%%/*}"
+    pkg="${prj_pkg#*/}"
+    if [[ "${pkg}" == "${prj}" ]]
+    then
+        pkg=""
+    fi
+
+    binaries_dir="${ARDANA_OSC_CACHE}/${prj_pkg}/binaries"
+
+    # construct argument list for osc command
+    osc_args=( \
+        --apiurl "${OSC_API}"
+        getbinaries
+        --quiet
+        -d "${binaries_dir}"
+        "${prj}"
+    )
+
+    # at appropriate location in commandline
+    if [[ -n "${pkg:-}" ]]
+    then
+        osc_args+=( "${pkg}" )
+    fi
+
+    # finally includde the distro and arch
+    osc_args+=( "${DISTRO}" "${ARCH}" )
+
+    echo "DBG: osc_args=( ${osc_args[@]}"
+
+    # if a pkg was specified, include it as a separate argument
+    mkdir -p "${binaries_dir}"
+    osc "${osc_args[@]}"
+
+    cp -v "${binaries_dir}"/*.rpm "${ARDANA_OVERRIDE_RPMS}"
+done
+
+# create/update the repo metadata in ARDANA_OVERRIDE_RPMS area
+pushd "${ARDANA_OVERRIDE_RPMS}" >/dev/null 2>&1
+createrepo .
+popd >/dev/null 2>&1
+
+# vim:shiftwidth=4:tabstop=4:expandtab

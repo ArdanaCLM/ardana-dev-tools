@@ -88,6 +88,9 @@ path_prefix=""
 # May need some minimal packages to be able to create an ansible venv
 req_pkgs=()
 
+# Additional python modules to be installed in the ansible bootstrap venv
+req_pips=()
+
 venv_cmd=/usr/bin/virtualenv
 
 # Determine which shell function will be used to install packages
@@ -147,6 +150,27 @@ then
     if [[ ! -d /usr/share/doc/packages/python2-setuptools ]]
     then
         req_pkgs+=( python2-setuptools )
+    fi
+fi
+
+# Need to add an OBS repo to get python-sh on openSUSE Leap 15
+if is_opensuse_leap15
+then
+    if ! zypper info python-sh
+    then
+        sudo zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.0/standard/openSUSE:Leap:15.0.repo 1>&2
+        sudo zypper refresh 1>&2
+    fi
+fi
+
+# python-sh is not available as a package for Ubuntu Trusty
+if is_trusty
+then
+    req_pips+=( sh )
+else
+    if ! python -c "import sh" 1>/dev/null 2>&1
+    then
+        req_pkgs+=( python-sh )
     fi
 fi
 
@@ -253,6 +277,18 @@ fi
 if [[ ! -x "${bootstrap_ansible}/bin/ansible-playbook" ]];
 then
     ${bootstrap_ansible}/bin/pip install "ansible==${ansible_version}" 1>&2
+fi
+
+# If additional pips are specified in the req_pips, install them if needed
+if (( ${#req_pips[@]} > 0 ))
+then
+    for pip in "${req_pips[@]}"
+    do
+        if ! (${bootstrap_ansible}/bin/pip freeze | cut -d= -f1 | grep -qs "^${pip}$") 1>&2
+        then
+            ${bootstrap_ansible}/bin/pip install "${pip}" 1>&2
+        fi
+    done
 fi
 
 # Check if ansible bootstrap venv already in path, and if not, add it
