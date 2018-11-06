@@ -31,7 +31,7 @@ rhel:
         path: "rhel"
     iso:
       os:
-        name: "RHEL-7.3-20170728-Server-x86_64-dvd"
+        name: "CentOS-7-x86_64-DVD-1804"
         alias: "RHEL-OS"
         path: "RHEL"
         link: "rhel7.iso"
