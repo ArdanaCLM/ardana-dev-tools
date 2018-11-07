@@ -293,6 +293,13 @@ Some useful additional parameters to use:
                             the cloud deployed by the astack.sh run.)
     --obs-repo PRJ         (Add specified OBS project's repo to the SLES nodes in
                             the cloud deployed by the astack.sh run.)
+    --ipv4 NET-INDICES     (Specify comma sepatared list of net interface indices
+                            in [0..8] e.g. 0,1,3,5 to indicate that these will
+                            need an IPv4 address.)
+    --ipv6 NET-INDICES     (Specify comma sepatared list of net interface indices
+                            in [0..8] e.g. 0,1,3,5 to indicate that these will
+                            need an IPv6 address.)
+    --ipv6-all             (All net interfaces will need an IPv6 address.)
 
 ## Pulling updated RPMs into your deployment
 

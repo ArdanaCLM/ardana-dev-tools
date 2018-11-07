@@ -67,6 +67,9 @@ long_opts=(
     help
     ibs-prj:
     ibs-repo:
+    ipv4
+    ipv6
+    ipv6-all
     legacy
     no-artifacts
     no-build
@@ -138,6 +141,10 @@ NO_BUILD=
 NO_UPDATE_RPMS=
 SOC_CLM_8=
 SOC_CLM_9=
+
+# ARDANA NETWORKS represented by corresponding net interface indices
+ARDANA_NETWORKS="0,1,2,3,4,5,6,7,8"
+
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
@@ -167,6 +174,8 @@ export ARDANA_GUEST_IMAGE_ARTIFACTS=${ARDANA_GUEST_IMAGE_ARTIFACTS:-}
 export ARDANA_DISABLE_SERVICES=${ARDANA_DISABLE_SERVICES:-}
 export ARDANA_GIT_UPDATE=${ARDANA_GIT_UPDATE:-}
 export ARDANA_NO_SETUP_QA=${ARDANA_NO_SETUP_QA:-}
+export ARDANA_IPV4_NETWORKS=${ARDANA_IPV4_NETWORKS:-${ARDANA_NETWORKS}}
+export ARDANA_IPV6_NETWORKS=${ARDANA_IPV6_NETWORKS:-""}
 export EXTRA_VARS=${EXTRA_VARS:-}
 # By default don't run the extra playbooks that we run during CI
 # Override this if we declare that we in the CI system with --ci
@@ -397,6 +406,9 @@ while true ; do
         --no-prepare) FEATURE_PREPARE= ; shift ;;
         --restrict-by-project) ZUUL_PROJECT=$2 ; shift 2 ;;
         --squashkit) SQUASH_KIT=$2 ; shift 2 ;;
+        --ipv4) export ARDANA_IPV4_NETWORKS="$2" ; shift 2 ;;
+        --ipv6) export ARDANA_IPV6_NETWORKS="$2" ; shift 2 ;;
+        --ipv6-all) export ARDANA_IPV6_NETWORKS=${ARDANA_NETWORKS} ; shift ;;
         --extra-vars)
             export EXTRA_VARS=$2
             shift 2 ;;

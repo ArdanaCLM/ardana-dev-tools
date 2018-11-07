@@ -75,8 +75,10 @@ vagrant_series_settings:
         - name: "rack"
           version: "1.6.4"
         - name: "vagrant-libvirt"
-          version: "{{ _vlp.legacy }}"
-          gem: "vagrant-libvirt-{{ _vlp.legacy }}.gem"
+          version: "{{ _vlp.latest }}"
+          patch:
+            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
+            subdir: "gems"
         - name: "vagrant-openstack-plugin"
           version: "0.11.1"
           patch:
