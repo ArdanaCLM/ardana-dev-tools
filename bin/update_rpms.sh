@@ -171,21 +171,6 @@ function fix_ardana_rpm {
     UPDATE_OSC="yes"
 
     #
-    # ardana-configuration-processo is just a special case,
-    # it does not follow any of the normal rules
-    #
-    if [[ ${REPO} = "ardana-configuration-processor" ]]; then
-        rm -rf ${ARDANA_OSC_PROJ}/$BUILD_RPM
-        [[ $($IOSC co ${ARDANA_OSC_PROJ}/$BUILD_RPM) ]] || return 1
-        (cd ${WORKSPACE}/${REPO}; python setup.py sdist)
-        cp ${WORKSPACE}/${REPO}/dist/ardana-configurationprocessor-0.3.0.tar.gz ./${ARDANA_OSC_PROJ}/${BUILD_RPM}/.
-        echo "$CONFIG_PROC_SPEC" > ./${ARDANA_OSC_PROJ}/${BUILD_RPM}/python-ardana-configurationprocessor.spec
-        (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects)
-        cp ${OSC_BUILD_ROOT}/home/abuild/rpmbuild/RPMS/noarch/*.rpm $WORKSPACE/NEW_RPMS/.
-        return 0
-    fi
-
-    #
     # if the sha1 referenced in the rpm build sources we have, does not match
     # the curently published RPM we need to update the cached copy of the RPM
     # build code.
