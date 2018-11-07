@@ -67,6 +67,9 @@ dev_env_attach_isos: "{{ lookup('env', 'ARDANA_ATTACH_ISOS') | default(False, tr
 # Should we download pre-built qcow2 images, or build them locally
 dev_env_use_prebuilt_images: "{{ lookup('env', 'ARDANA_PREBUILT_IMAGES') | default(False, true) }}"
 
+# Should we download ISOs
+dev_env_download_isos: "{{ (dev_env_attach_isos | bool) or not (dev_env_use_prebuilt_images | bool) }}"
+
 # Should we use SOC/CLM artifacts and deployer setup
 dev_env_use_cloud_artifacts: "{{ lookup('env', 'ARDANA_CLOUD_ARTIFACTS') | default(False, true) }}"
 dev_env_use_cloud_deployer: "{{ lookup('env', 'ARDANA_CLOUD_DEPLOYER') | default(False, true) }}"

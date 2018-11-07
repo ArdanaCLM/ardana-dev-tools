@@ -23,11 +23,13 @@
 - include: get-sles-iso.yml
   when:
     - dev_env_use_sles12_artifacts | bool
+    - dev_env_download_isos | bool
   tags:
     - skip-isos
 
 - include: get-cloud-iso.yml
   when:
     - dev_env_use_cloud_artifacts | bool
+    - dev_env_download_isos | bool
   tags:
     - skip-isos

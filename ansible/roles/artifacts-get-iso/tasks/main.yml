@@ -19,6 +19,7 @@
 - include: get-rhel-iso.yml
   when:
     - dev_env_use_rhel7_artifacts | bool
+    - dev_env_download_isos | bool
   tags:
     - skip-rhel-isos
     - skip-isos
