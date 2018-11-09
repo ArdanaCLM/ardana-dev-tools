@@ -156,7 +156,7 @@ fi
 # Need to add an OBS repo to get python-sh on openSUSE Leap 15
 if is_opensuse_leap15
 then
-    if ! zypper info python-sh
+    if ! zypper info python-sh 1>/dev/null 2>&1
     then
         sudo zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.0/standard/openSUSE:Leap:15.0.repo 1>&2
         sudo zypper refresh 1>&2
