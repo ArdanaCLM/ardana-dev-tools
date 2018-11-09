@@ -47,6 +47,8 @@
     use_proxy: "{{ _file.use_proxy }}"
     force: yes
     timeout: 20
+  retries: 3
+  delay: 2
 
 - name: ardana-cache | get-cached-file | Determine file name if pattern used
   shell: >
@@ -142,6 +144,8 @@
     force: yes
     timeout: 20
   when: _sha256sum_result | failed
+  retries: 3
+  delay: 15
 
 - name: ardana-cache | get-cached-file | Move tmpfile to file as root to avoid permissions issues
   become: yes
