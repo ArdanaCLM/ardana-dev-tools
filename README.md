@@ -325,8 +325,15 @@ that Ardana git repo's commited branch, if it is one that we have packaged as
 an RPM. If it succeeds the RPM that has been built will be published in the
 `NEW_RPMS` directory beside the ardana-dev-tools clone.
 
-NOTE: You must commit any pending changes to the branch for these changes to
-be built into the RPM; uncommitted changes will not be packaged in the RPM.
+NOTES:
+* You must commit any pending changes to the branch for these changes to
+  be built into the RPM; uncommitted changes will not be packaged in the RPM.
+* The additional cloned repos must be checked out on branch derived from the
+  appropriate branch for the Cloud version you are deploying for, e.g. for
+  a Cloud8 deployment, the stable/pike branch should be the base branch for
+  any branches you have checked out.
+* If you wish to build the ardana-ansible RPM you must clone both the ardana
+  and ardana-ansible repos beside ardana-dev-tools.
 
 You can disable this mechanism by specifying the --no-update-rpms option
 when running the astack.sh command.

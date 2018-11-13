@@ -34,49 +34,98 @@
 
 eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 
-PUBLISHED_RPMS=${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-9-devel-staging/suse/noarch/}
+ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-9}
+declare -A ardana_branches
+ardana_branches[8]=stable/pike
+ardana_branches[9]=master
+ARDANA_CLOUD_BRANCH="${ARDANA_CLOUD_BRANCH:-${ardana_branches[${ARDANA_CLOUD_VERSION}]}}"
+
+REPO_NAME="SUSE-OpenStack-Cloud-${ARDANA_CLOUD_VERSION}-devel-staging"
+
+PUBLISHED_RPMS="${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_64/${REPO_NAME}/suse/noarch/}"
 WORKSPACE=$(cd $(dirname $0)/../.. ; pwd)
 echo WORKSPACE $WORKSPACE
+ARDANA_OVERRIDE_RPMS="${ARDANA_OVERRIDE_RPMS:-${WORKSPACE}/NEW_RPMS}"
 
 IOSC='osc -A https://api.suse.de'
-CURRENT_OSC_PROJ=${CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
-C8_CURRENT_OSC_PROJ=${C8_CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
+CURRENT_OSC_PROJ="${CURRENT_OSC_PROJ:-Devel:Cloud:${ARDANA_CLOUD_VERSION}:Staging}"
 
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
 
+# function get_cloned_ardana_repos
+# input: optional branch name, defaulting to master
+# find all the ardana repos under the workspace that are
+# checked out on the appropriate branch
+function get_cloned_ardana_repos {
+    local req_br="${1:-master}"
+    local found_ardana=""
+    local found_ardana_ansible""
+    local gr_files gr clone gr_prj gr_br
+
+    gr_files=( $( sudo find ${WORKSPACE} -follow -maxdepth 2 -name .gitreview) )
+
+    for gr in "${gr_files[@]}"
+    do
+        clone="$(basename "$(dirname "${gr}")")"
+        gr_prj="$(git config --file "${gr}" gerrit.project)"
+        gr_br="$(git config --file "${gr}" gerrit.defaultbranch || echo master)"
+
+        # skip non-Ardana projects
+        case "${gr_prj}" in
+        (ardana/ardana-dev-tools*)
+            echo "Skipping ardana-dev-tools - no associated RPM" 1>&2
+            continue
+            ;;
+        (ardana/*)
+            ;;
+        (*)
+            echo "Skipping non-Ardana '${clone}' clone for project '${gr_prj}'" 1>&2
+            continue
+            ;;
+        esac
+
+        # skip if clone not based on required branch
+        if [[ "${gr_br}" != "${req_br}" ]]; then
+            echo "Skipping '${clone}' clone for project '${gr_prj}' because it is based on branch '${gr_br}' not '${req_br}'" 1>&2
+            continue
+        fi
+
+        # check for any special clone specific considerations
+        case "${clone}" in
+        (ardana)
+            found_ardana=1
+            ;;
+        (ardana-ansible)
+            found_ardana_ansible=1
+            ;;
+        esac
+
+        echo "${clone}"
+    done
+
+    # If only one of the ardana or ardana-ansible repos is cloned
+    # on the correct branch we can't build the RPM for that package
+    if [[ "${found_ardana}${found_ardana_ansible}" == "1" ]]; then
+        echo "Error: Onlu one of 'ardana' and 'ardana-ansible' is cloned on branch '${req_br}'" 1>&2
+        exit 1
+    fi
+}
+
 # function fix_ardana_rpms
 # input: git repo name
+# input: determined RPM name
 # given a git repo name which is assumed to be a subdirectory in the
 # current working directory, use the ocs tools to build an RPM
 # with the code contents of that git repo.
 
 function fix_ardana_rpm {
-    echo "in fix_ardana_rpm $1"
+    echo "in fix_ardana_rpm $1 $2"
     HOME_LOC=$(pwd)
     REPO="$1"
-    if [[ ${REPO} = "ardana" ]]; then
-        return 0
-    fi
+    BUILD_RPM="${2}"
 
-    BUILD_RPM="$REPO"
-    case "$BUILD_RPM" in
-        "opsconsole-server")
-            BUILD_RPM=python-ardana-opsconsole-server
-            ;;
-        "cinderlm")
-            BUILD_RPM=python-cinderlm
-            ;;
-        "ardana-configuration-processor")
-            BUILD_RPM=python-ardana-configurationprocessor
-            ;;
-        ardana*)
-            ;;
-        *)
-            BUILD_RPM=ardana-${REPO/-ansible/}
-    esac
-
-    cd $OSC_DIR
+    pushd $OSC_DIR
     UPDATE_OSC="yes"
 
     #
@@ -112,20 +161,19 @@ function fix_ardana_rpm {
     # Update the cpio archive used to build the RPM with the contents of the
     # sources in the repo
     #
-    cd ${WORKSPACE}/${REPO}
+    pushd ${WORKSPACE}/${REPO}
     rm -rf $RPM_FIX_DIR
     mkdir $RPM_FIX_DIR
     git archive --format=tar --prefix=${ARCH_PREFIX}/ HEAD | tar -C  $RPM_FIX_DIR -xf -
     (cd $RPM_FIX_DIR; find ${ARCH_PREFIX}/. | sudo cpio -o >${ARCH_PREFIX}.obscpio)
-    cd $OSC_DIR
+    popd
     cp  $RPM_FIX_DIR/${ARCH_PREFIX}.obscpio  ${ARDANA_OSC_PROJ}/${BUILD_RPM}/.
     #
-    # rebuild the RPM
+    # rebuild the RPM publishing to the override RPMs area
     #
-    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects --download-api)
-    # copy new rpm to new rpm area.
-    cp ${OSC_BUILD_ROOT}/home/abuild/rpmbuild/RPMS/noarch/*.rpm $WORKSPACE/NEW_RPMS/.
+    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects --download-api -k ${ARDANA_OVERRIDE_RPMS}/)
 
+    popd
 }
 
 # function update_ardana_rpms
@@ -136,6 +184,21 @@ function fix_ardana_rpm {
 # rpm for testing.
 
 function update_ardana_rpms {
+
+    # Initialise override RPMs area
+    rm -rf  ${ARDANA_OVERRIDE_RPMS}
+    mkdir  ${ARDANA_OVERRIDE_RPMS}
+    (cd ${ARDANA_OVERRIDE_RPMS}; createrepo --update . 1>/dev/null 2>&1)
+
+    # determine which repos we need to potentially build packages for
+    CLONED_REPOS=$(get_cloned_ardana_repos "${ARDANA_CLOUD_BRANCH}") || exit 1
+
+    if [[ -z "${CLONED_REPOS}" ]]; then
+        echo "Found no repos cloned under ${WORKSPACE} for which we should build updated RPMS."
+        return
+    fi
+
+    echo "Found these clones to be rebuilt as RPMs: ${CLONED_REPOS}"
 
     UPDATE_RPM_TMP_DIR="$(mktemp -d /var/tmp/update_rpm_tmp.XXXXXXXXXX)"
     RPM_FIX_DIR="${UPDATE_RPM_TMP_DIR}/rpm_fix_dir"
@@ -148,34 +211,49 @@ function update_ardana_rpms {
         | awk '{print $1}' > $ARDANA_RPM_LIST_PRUNE
 
 
-    CLONED_REPOS=$(sudo find . -follow -maxdepth 2 -name .gitreview -exec dirname {} \; | grep -v osc_)
     ARDANA_OSC_PROJ=$1
 
     OSC_DIR=~/.cache/ardana-osc
     mkdir  -p $OSC_DIR
 
-    rm -rf  $WORKSPACE/NEW_RPMS
-    mkdir  $WORKSPACE/NEW_RPMS
-    (cd ${WORKSPACE}/NEW_RPMS; createrepo --update .)
-
-    #
-    # need to handle ardana-configuration-processor
-    # special, the rpm name does not follow the same
-    # rules as the other rpms
-    #
-    if [[ -d ardana-configuration-processor ]]; then
-        fix_ardana_rpm ardana-configuration-processor
-    fi
-
     for REPO in $CLONED_REPOS; do
-        SANDBOX=$(basename $REPO)
-        RPM_NAME=${SANDBOX/-ansible/}
-        grep ${RPM_NAME}- $ARDANA_RPM_LIST_PRUNE &&
-            fix_ardana_rpm "$SANDBOX"
+        # need special handling for some repos as the associated
+        # rpm name does not follow the general rule as for the
+        # other repos.
+        case "${REPO}" in
+        (ardana-configuration-processor)
+            RPM_NAME=python-ardana-configurationprocessor
+            ;;
+        (opsconsole-server)
+            BUILD_RPM=python-ardana-opsconsole-server
+            ;;
+        (swiftlm|cinderlm)
+            RPM_NAME=python-${REPO}
+            ;;
+        (ardana-ansible)
+            RPM_NAME=${REPO}
+            ;;
+        (ardana)
+            echo "Skipping build of RPM for 'ardana' clone as it is consumed by 'ardana-ansible' RPM"
+            continue
+            ;;
+        (*-ansible)
+            RPM_NAME=ardana-${REPO%-ansible}
+            ;;
+        esac
+
+        # sanity check - skip building if corresponding RPM not
+        # part of "product"
+        if ! grep "${RPM_NAME}-" $ARDANA_RPM_LIST_PRUNE; then
+            echo "RPM '${RPM_NAME}' for clone '${REPO}' not in product RPMs list"
+            continue
+        fi
+
+        fix_ardana_rpm "${REPO}" "${RPM_NAME}"
     done
 
-    (cd ${WORKSPACE}/NEW_RPMS; createrepo --update .)
-    ls -l ${WORKSPACE}/NEW_RPMS
+    (cd ${ARDANA_OVERRIDE_RPMS}; createrepo --update .)
+    ls -l ${ARDANA_OVERRIDE_RPMS}
     rm -rf  $UPDATE_RPM_TMP_DIR
 }
 
@@ -189,4 +267,3 @@ end_time=$(date +%s)
 echo "update_rpms: lapse time: $(( end_time - start_time ))"
 
 # vim:shiftwidth=4:tabstop=4:expandtab
-
