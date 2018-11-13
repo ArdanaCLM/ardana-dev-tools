@@ -71,7 +71,7 @@
   become: yes
   command: >
     lvs
-      -o-lv_all -o-vg_all -o vg_name,lv_name
+      -o vg_name,lv_name
       --noheadings
       --nameprefixes
       --unquoted
@@ -93,7 +93,7 @@
   become: yes
   command: >
     vgs
-      -o-pv_all -o-vg_all -o pv_name
+      -o pv_name
       --noheadings
       --nameprefixes
       --unquoted
