@@ -38,98 +38,6 @@ PUBLISHED_RPMS=${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_
 WORKSPACE=$(cd $(dirname $0)/../.. ; pwd)
 echo WORKSPACE $WORKSPACE
 
-CONFIG_PROC_SPEC='#
-# spec file for package python-ardana-configurationprocessor
-#
-# Copyright (c) 2017 SUSE LINUX GmbH, Nuernberg, Germany.
-#
-# All modifications and additions to the file contributed by third parties
-# remain the property of their copyright owners, unless otherwise agreed
-# upon. The license for this file, and modifications and additions to the
-# file, is the same license as for the pristine package itself (unless the
-# license for the pristine package is not an Open Source License, in which
-# case the license is the MIT License). An Open Source License is a
-# license that conforms to the Open Source Definition (Version 1.9)
-# published by the Open Source Initiative.
-
-# Please submit bugfixes or comments via http://bugs.opensuse.org/
-
-
-%{?!python_module:%define python_module() python-%{**} python3-%{**}}
-Name:           python-ardana-configurationprocessor
-Version:        0.4.0
-Release:        0
-License:        Apache-2.0
-Summary:        Configuration Processor for Ardana CLM
-Url:            https://github.com/ArdanaCLM
-Group:          Development/Languages/Python
-Source:         https://files.pythonhosted.org/packages/source/a/ardana-configurationprocessor/ardana-configurationprocessor-%{version}.tar.gz
-BuildRequires:  python-rpm-macros
-BuildRequires:  %{python_module devel}
-BuildRequires:  %{python_module setuptools}
-BuildRequires:  fdupes
-Requires:       python-cryptography
-Requires:       python-html
-Requires:       python-jsonschema
-Requires:       python-netaddr
-Requires:       python-pycryptodome
-Requires:       python-PyYAML
-Requires:       python-sh
-Requires:       python-simplejson
-Requires:       python-six
-Requires:       python-stevedore
-Requires(post): update-alternatives
-Requires(postun): update-alternatives
-BuildArch:      noarch
-
-%python_subpackages
-
-%description
-Ardana Lifecycle Management Configuration Processor
-
-%prep
-%setup -q -n ardana-configurationprocessor-%{version}
-
-%build
-%python_build
-
-%install
-%python_install
-%python_clone -a %{buildroot}%{_bindir}/ardana-cp
-%python_clone -a %{buildroot}%{_bindir}/ardana-cp-decrypt
-%python_clone -a %{buildroot}%{_bindir}/ardana-cp-passwordchecker
-%python_clone -a %{buildroot}%{_bindir}/ardana-dv.py
-%python_clone -a %{buildroot}%{_bindir}/ardana-pc.py
-%python_expand %fdupes %{buildroot}%{$python_sitelib}
-
-%post
-%python_install_alternative ardana-cp
-%python_install_alternative ardana-cp-decrypt
-%python_install_alternative ardana-cp-passwordchecker
-%python_install_alternative ardana-dv.py
-%python_install_alternative ardana-pc.py
-
-%postun
-%python_uninstall_alternative ardana-cp
-%python_uninstall_alternative ardana-cp-decrypt
-%python_uninstall_alternative ardana-cp-passwordchecker
-%python_uninstall_alternative ardana-dv.py
-%python_uninstall_alternative ardana-pc.py
-
-
-%files %{python_files}
-%defattr(-,root,root,-)
-%doc README.txt
-%python_alternative %{_bindir}/ardana-cp
-%python_alternative %{_bindir}/ardana-cp-decrypt
-%python_alternative %{_bindir}/ardana-cp-passwordchecker
-%python_alternative %{_bindir}/ardana-dv.py
-%python_alternative %{_bindir}/ardana-pc.py
-%{python_sitelib}/*
-
-%changelog
-'
-
 IOSC='osc -A https://api.suse.de'
 CURRENT_OSC_PROJ=${CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
 C8_CURRENT_OSC_PROJ=${C8_CURRENT_OSC_PROJ:-Devel:Cloud:9:Staging}
@@ -185,6 +93,8 @@ function fix_ardana_rpm {
         fi
     fi
 
+    # for now refresh OSC base in all cases
+    UPDATE_OSC="yes"
     if [[ "$UPDATE_OSC" = "yes" ]]; then
         rm -rf ${ARDANA_OSC_PROJ}/$BUILD_RPM
         [[ $($IOSC co ${ARDANA_OSC_PROJ}/$BUILD_RPM) ]] || return 1
