@@ -34,7 +34,7 @@ if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 # The overall test time available (in minutes)
-TEST_TIMEOUT=80
+TEST_TIMEOUT=240
 NO_IRONIC=
 TEMPEST_ONLY=
 
