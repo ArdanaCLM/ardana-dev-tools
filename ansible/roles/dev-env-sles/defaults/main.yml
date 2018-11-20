@@ -31,7 +31,7 @@ sles:
     image_type: "{{ lookup('env', 'ARDANA_SLES_IMAGE_TYPE') | default('packer', true) }}"
     iso_milestone:
       "sles12sp3": "-GM"
-      "sles12sp4": "-GMC"
+      "sles12sp4": "-GM"
   artifacts:
     images:
       packer:
@@ -68,9 +68,7 @@ sles:
     iso:
       sles12sp4:
         os:
-          #name: "SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
-          name: "SLE-12-SP4-Server-DVD-x86_64-GMC-DVD1.iso"
-          pattern: "SLE-12-SP4-Server-DVD-x86_64-((GMC?|RC[0-9]+)-DVD|Build[0-9]+-Media)1.iso"
+          name: "SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
           alias: "SLES-OS"
           sha256: ""
           path: "install/SLE-12-SP4-Server"
