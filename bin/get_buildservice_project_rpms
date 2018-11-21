@@ -35,7 +35,7 @@ Usage:
     ${SCRIPT_NAME} \\
         {-o|--obs|-i|--ibs|{-A|--api} <api_url>} \\
         [--distro <distro>] [--arch <arch>] \\
-        PRJ[/PKG]...
+        PRJ[/PKG][@DISTRO]...
 Where:
     -a|--arch <arch>        - get rpms for <arch> architecture
                               (default: ${DEFAULT_ARCH})
@@ -165,27 +165,26 @@ else
     OSC_API="${API_URL}"
 fi
 
-# store specified projects in prj_pkg_list
-prj_pkg_list=( "${@}" )
+# store specified projects in prj_spec_list
+prj_spec_list=( "${@}" )
 
 source $(dirname $0)/libci.sh
 
-# Ensure override rpms area exists
+# ensure override rpms area exists
 mkdir -p "${ARDANA_OVERRIDE_RPMS}"
 
-for prj_pkg in "${prj_pkg_list[@]}"
+for prj_spec in "${prj_spec_list[@]}"
 do
-    echo "[Downloading RPMs for ${prj_pkg}]"
+    echo "[Downloading RPMs for ${prj_spec}]"
 
-    # split prj_pkg value on (first) '/'
-    prj="${prj_pkg%%/*}"
-    pkg="${prj_pkg#*/}"
-    if [[ "${pkg}" == "${prj}" ]]
-    then
-        pkg=""
-    fi
+    # set defaults for pkg and dist
+    pkg=""
+    dist="${DISTRO}"
 
-    binaries_dir="${ARDANA_OSC_CACHE}/${prj_pkg}/binaries"
+    # eval mod'd prj_spec to set prj, pkg and dist appropriately
+    eval "$(echo "prj=${prj_spec};" | sed -e 's,/,;pkg=,' -e 's,@,;dist=,')"
+
+    binaries_dir="${ARDANA_OSC_CACHE}/${prj_spec}/binaries"
 
     # construct argument list for osc command
     osc_args=( \
@@ -196,21 +195,23 @@ do
         "${prj}"
     )
 
+    # if a pkg was specified, include it as a separate argument
     # at appropriate location in commandline
     if [[ -n "${pkg:-}" ]]
     then
         osc_args+=( "${pkg}" )
     fi
 
-    # finally includde the distro and arch
-    osc_args+=( "${DISTRO}" "${ARCH}" )
+    # finally include the distro and arch
+    osc_args+=( "${dist}" "${ARCH}" )
 
-    echo "DBG: osc_args=( ${osc_args[@]}"
-
-    # if a pkg was specified, include it as a separate argument
+    # ensure specified binaries download dir exists
     mkdir -p "${binaries_dir}"
+
+    # download the binaries
     osc "${osc_args[@]}"
 
+    # include the downloaded binaries in the ARDANA_OVERRIDE_RPMS area
     cp -v "${binaries_dir}"/*.rpm "${ARDANA_OVERRIDE_RPMS}"
 done
 

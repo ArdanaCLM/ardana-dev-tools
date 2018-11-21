@@ -275,16 +275,20 @@ Some useful additional parameters to use:
                             ISOs and qcow2 images for Vagrant box)
     --rhel-compute         (Configures compute nodes to be RHEL based rather than
                             the default SLES; implies --rhel)
-    --ibs-prj PRJ[/PKG]    (Download RPMs from specified IBS project (or specific
-                            package if provided) and include them into the NEW_RPMS
-			    area that will be created beside the ardana-dev-tools
-			    clone. Repeat as many times as needed to add all projects
-			    and/or packages desired.)
-    --obs-prj PRJ[/PKG]    (Download RPMs from specified OBS project (or specific
-                            package if provided) and include them into the NEW_RPMS
-			    area that will be created beside the ardana-dev-tools
-			    clone. Repeat as many times as needed to add all projects
-			    and/or packages desired.)
+    --ibs-prj PRJ[/PKG][@DIST]
+                           (Download RPMs from specified IBS project (or specific
+                            package if provided) for distro version appropriate
+			    repo, or specified repo name if provided, and include
+			    them into the NEW_RPMS area that will be created beside
+			    the ardana-dev-tools clone. Repeat as many times as
+			    needed to add all projects and/or packages desired.)
+    --obs-prj PRJ[/PKG][@DIST]
+                           (Download RPMs from specified OBS project (or specific
+                            package if provided) for distro version appropriate
+			    repo, or specified repo name if provided, and include
+			    them into the NEW_RPMS area that will be created beside
+			    the ardana-dev-tools clone. Repeat as many times as
+			    needed to add all projects and/or packages desired.)
     --ibs-repo PRJ         (Add specified IBS project's repo to the SLES nodes in
                             the cloud deployed by the astack.sh run.)
     --obs-repo PRJ         (Add specified OBS project's repo to the SLES nodes in
