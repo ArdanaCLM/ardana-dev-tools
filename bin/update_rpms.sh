@@ -123,6 +123,10 @@ function fix_ardana_rpm {
     echo "in fix_ardana_rpm $1 $2"
     HOME_LOC=$(pwd)
     REPO="$1"
+    # just reurn if no repo passed in
+    if [[ -z "$2" ]]; then
+        return
+    fi
     BUILD_RPM="${2}"
 
     pushd $OSC_DIR
