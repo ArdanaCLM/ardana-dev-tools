@@ -234,21 +234,26 @@ function update_ardana_rpms {
         (swiftlm|cinderlm)
             RPM_NAME=python-${REPO}
             ;;
-        (ardana-ansible)
+        (ardana-ansible|ardana-input-model)
             RPM_NAME=${REPO}
             ;;
         (ardana)
-            echo "Skipping build of RPM for 'ardana' clone as it is consumed by 'ardana-ansible' RPM"
+            echo "Skipping build of RPM for '${REPO}' clone as it is consumed by 'ardana-ansible' RPM"
             continue
             ;;
         (*-ansible)
             RPM_NAME=ardana-${REPO%-ansible}
             ;;
+        (*)
+            # if we didn't identify a REPO ==> RPM_NAME mapping, skip to next repo
+            echo "Skipping build of RPM for '${REPO}' clone as no associated RPM could be identified"
+            continue
+            ;;
         esac
 
         # sanity check - skip building if corresponding RPM not
         # part of "product"
-        if ! grep "${RPM_NAME}-" $ARDANA_RPM_LIST_PRUNE; then
+        if ! grep -e "${RPM_NAME}-" $ARDANA_RPM_LIST_PRUNE; then
             echo "RPM '${RPM_NAME}' for clone '${REPO}' not in product RPMs list"
             continue
         fi
