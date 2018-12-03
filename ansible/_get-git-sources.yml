@@ -75,6 +75,7 @@
         update: "{{ dev_env_global_git_update }}"
         bare: yes
         force: yes
+        accept_hostkey: yes
       environment:
         GIT_HTTP_LOW_SPEED_LIMIT: 4096
         GIT_HTTP_LOW_SPEED_TIME: 600
