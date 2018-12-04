@@ -197,6 +197,16 @@ module Ardana
       STD_COMP_NODE => ENV["ARDANA_SCMP_EXTRA_DISKS"] || 1,
     }
 
+    def _ip_networks_split(env_var_name, default_value)
+      env_var_value = ENV.fetch(env_var_name, "")
+
+      if env_var_value.empty?
+        return default_value
+      end
+
+      return env_var_value.split(",")
+    end
+
     #
     # Initialize the configuration class
     def initialize(config)
@@ -215,6 +225,11 @@ module Ardana
             :size => "33G",
             :bus => "scsi"
           },
+        },
+        :debug => !ENV.fetch("ARDANA_DEBUG", "").empty?,
+        :ip => {
+          :v4 => _ip_networks_split("ARDANA_IPV4_NETWORKS", [*0..8].map(&:to_s)),
+          :v6 => _ip_networks_split("ARDANA_IPV6_NETWORKS", [])
         },
         :rhel => {
           :artifacts => !ENV.fetch("ARDANA_RHEL_ARTIFACTS", "").empty?,
@@ -755,41 +770,35 @@ module Ardana
       end
     end
 
-    def does_net_index_need_IPv6(index: None)
-      if !ENV["ARDANA_IPV6_NETWORKS"]
-        return false
-      end
-
-      ardana_ipv6_net_indices = ENV["ARDANA_IPV6_NETWORKS"].split(",")
-      if ardana_ipv6_net_indices.empty?
-        return false
-      else
-        for net6 in ardana_ipv6_net_indices
-          if net6 == index
-            return true
-          end
+    def add_ip_opts(opts, if_index, ip_opts)
+      [:v4, :v6].each do |s|
+        if @ardana[:ip][s].include? if_index and ip_opts.include? s
+          opts.merge!(ip_opts[s])
         end
-        return false
       end
+
+      STDERR.puts "if_index: #{if_index} opts: #{opts.inspect}" if @ardana[:debug]
     end
 
-    def add_ip_opts(opts: None, if_index: None)
-      if does_net_index_need_IPv6(index: if_index)
-        opts[:libvirt__guest_ipv6] = "yes"
-        opts[:libvirt__ipv6_address] = "fd00:#{if_index}::"
-        opts[:libvirt__ipv6_prefix] = "64"
-      end
-    end
-
-    def add_ardana_network(vm: None, ip: None)
+    def add_ardana_network(vm: None, ip: None, if_index: '1')
       opts = {
         libvirt__dhcp_enabled: false,
         auto_config: false,
-        ip: "192.168.245.#{ip}",
-        netmask: "255.255.255.0",
       }
 
-      add_ip_opts(opts: opts, if_index: '1')
+      ip_opts = {
+        :v4 => {
+          ip: "192.168.245.#{ip}",
+          netmask: "255.255.255.0",
+        },
+        :v6 => {
+          libvirt__guest_ipv6: "yes",
+          libvirt__ipv6_address: "fd00:#{if_index}::",
+          libvirt__ipv6_prefix: "64"
+        }
+      }
+
+      add_ip_opts(opts, if_index, ip_opts)
 
       if !!ENV["ARDANA_ARDANA_INTF"]
         # Use the ARDANA_ARDANA_INTF interface in bridged mode
@@ -801,16 +810,26 @@ module Ardana
       end
     end
 
-    def add_pxe_network(vm: None, ip: None, mac: None)
+    def add_pxe_network(vm: None, ip: None, mac: None, if_index: '2')
       opts = {
         libvirt__dhcp_enabled: false,
         auto_config: true,
-        ip: "#{ip}",
-        netmask: "255.255.255.0",
         mac: "#{mac}",
       }
 
-      add_ip_opts(opts: opts, if_index: '2')
+      ip_opts = {
+        :v4 => {
+          ip: "#{ip}",
+          netmask: "255.255.255.0",
+        },
+        :v6 => {
+          libvirt__guest_ipv6: "yes",
+          libvirt__ipv6_address: "fd00:#{if_index}::",
+          libvirt__ipv6_prefix: "64"
+        }
+      }
+
+      add_ip_opts(opts, if_index, ip_opts)
 
       if !!ENV["ARDANA_PXE_INTF"]
         # Use the ARDANA_PXE_INTF interface in bridged mode
@@ -824,14 +843,26 @@ module Ardana
 
     def add_idle_networks(vm: None, count: 1)
       (1..count).each do |ip|
-         # even with auto_config:false, ip is required (using link local)
-         opts = {
+        if_index = (ip + 2).to_s
+
+        opts = {
           libvirt__dhcp_enabled: false,
           auto_config: false,
-          ip: "169.254.#{ip}.2",
         }
 
-        add_ip_opts(opts: opts, if_index: (ip + 2).to_s)
+        ip_opts = {
+          :v4 => {
+            # even with auto_config:false, ip is required (using link local)
+            ip: "169.254.#{ip}.2",
+          },
+          :v6 => {
+            libvirt__guest_ipv6: "yes",
+            libvirt__ipv6_address: "fd00:#{if_index}::",
+            libvirt__ipv6_prefix: "64"
+          }
+        }
+
+        add_ip_opts(opts, if_index, ip_opts)
 
         if !!ENV["ARDANA_IDLE_INTF_#{ip}"]
           # Use the "ARDANA_IDLE_INTF_#{ip}" interface in bridged mode
