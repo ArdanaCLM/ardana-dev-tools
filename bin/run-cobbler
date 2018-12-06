@@ -166,7 +166,7 @@ CLOUDNAME=${1:-demo}
 args+=( $CLOUDNAME )
 
 
-export ARDANA_PACKAGES_DIST='["packager", "ansible", "ardana-service", "config_processor", "installer-server", "installer-ui"]'
+export ARDANA_PACKAGES_DIST='["packager", "ansible", "ardana-service", "config_processor", "installer-ui"]'
 export ARDANA_PACKAGES_NONDIST='[]'
 
 source $SCRIPT_HOME/libci.sh

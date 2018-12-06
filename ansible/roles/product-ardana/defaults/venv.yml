@@ -67,7 +67,6 @@ _packages_dist:
   - kronos
   - storevirtual-installer
   - installer-ui
-  - installer-server
   - ardana-service
   - freezer_api
   - freezer_agent
@@ -142,7 +141,6 @@ package_version: "{{ package_version_update | default(_timestamp + _suffix) }}"
 _venv_service_branch_default: "{{ product_branch }}"
 _venv_openstack_service_branch_default: "stable/pike"
 _venv_eon_branch_default: "master"
-_venv_installer_server_branch_default: "master"
 
 # ardana-build-config is used to other CI jobs to configure
 # the pypi repo. We need to use the same mirror has other
@@ -292,10 +290,6 @@ _venv_ardana_sources_default:
   heat_tempest_plugin:
     branch: "d908bef47d0809c52a43c38d7fc879a525b4580c"
     url: "{{ dev_env_git_servers.openstack }}/openstack/heat-tempest-plugin"
-
-  installer-server:
-    branch: "{{ _venv_installer_server_branch_default }}"
-    url: "{{ dev_env_git_servers.github }}/ArdanaCLM/ardana-installer-server"
 
   ironic:
     branch: "{{ _venv_openstack_service_branch_default }}"
@@ -845,20 +839,6 @@ _services_default:
     external:
       - path: http://{{ dev_env_site_config['artefact']['host'] }}/manager-cloud-installer/archive/cloudinstaller-20180118T190245Z-785929/cloudinstaller-20180118T190245Z-785929.tgz
         sha256: 328f716ce1d03ada35a648b6018ca6de35cf1593cf1f76362c29d17f1fa40a52
-    version: "{{ package_version }}"
-
-  installer-server:
-    sources:
-      - installer-server
-    pips:
-      - Flask
-      - eventlet
-      - flask-socketio
-      - flask-cors
-      - PyYAML
-      - requests
-      - socketIO-client
-      - tinydb
     version: "{{ package_version }}"
 
   ironic:
