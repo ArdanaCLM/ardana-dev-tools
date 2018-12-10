@@ -39,6 +39,7 @@ usage() {
     echo "the control plane from the specified project. This cloud uses"
     echo "the 'project' ardana-input-model as a basis."
     echo
+    echo "--debug               -- Generate useful debug output"
     echo "--no-setup            -- Don't run dev-env-install.yml"
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
     echo "                         guest or OVA images"

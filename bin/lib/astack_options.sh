@@ -59,6 +59,7 @@ long_opts=(
     cobble-sles-compute
     cobble-sles-control
     cobble-sles-nodes:
+    debug
     disable-no-log
     disable-services:
     extra-vars:
@@ -145,6 +146,7 @@ SOC_CLM_9=
 # ARDANA NETWORKS represented by corresponding net interface indices
 ARDANA_NETWORKS="0,1,2,3,4,5,6,7,8"
 
+export ARDANA_DEBUG=${ARDANA_DEBUG:-}
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
@@ -213,6 +215,7 @@ C8_QA_TESTS=
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
+        --debug) export ARDANA_DEBUG=1 ; shift ;;
         --run-tests) RUN_TESTS=1 ; shift ;;
         --run-tests-filter)
             RUN_TESTS=1
