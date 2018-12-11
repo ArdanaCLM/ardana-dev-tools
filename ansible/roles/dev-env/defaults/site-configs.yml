@@ -42,5 +42,33 @@ sites_default:
       use_proxy: no
     git:
       host: git.ci.prv.suse.net
+  nuremberg:
+    # proxy: host: web-proxy.example.com
+    pip:
+      host: bandersnatch.ci.prv.suse.net
+      port:
+      prefix:
+    apt:
+      host: apt.ci.prv.suse.net
+      port:
+    artefact:
+      host: tarballs.ci.prv.suse.net
+      port:
+      use_proxy: no
+    ardana_artifacts_host: http://ardana.ci.prv.suse.net
+    ibs:
+      host: download.suse.de
+      path: ibs
+      use_proxy: no
+    clouddata:
+      #host: clouddata.cloud.suse.de
+      host: clouddata.nue.suse.com
+      use_proxy: no
+    obs:
+      main: download.opensuse.org
+      path: repositories
+      use_proxy: no
+    git:
+      host: git.ci.prv.suse.net
 
 sites: "{{ sites_default | update(sites_update | default({})) }}"
