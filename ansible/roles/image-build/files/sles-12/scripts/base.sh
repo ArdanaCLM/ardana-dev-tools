@@ -16,15 +16,66 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-# add cdrom as repo for install if needed
-# Note: if the cdrom contains an iso, in sles12 it will automatically be added as a repo
-#mkdir -p /media/cdrom
-#mount /dev/cdrom /media/cdrom
-#zypper addrepo /media/cdrom mycdrom
+aib_logs=/root/ardana_image_build
+aib_script=base
+mkdir -p ${aib_logs}
+exec 1>> ${aib_logs}/${aib_script}.log
+exec 2>> ${aib_logs}/${aib_script}.log
 
-# We should have sufficient software installed by the autoyast.
-# The names of packages my differ from below.
-#zypper -f install gcc make gcc-c++ kernel-devel-`uname -r` zlib-devel openssl-devel readline-devel sqlite-devel perl wget dkms nfs-utils
+# track if we need an grub update
+grub_updated=
+
+# Note: if the cdrom contains an iso, in sles12 it will automatically be added as a repo
+
+# Check for any repos specified as kernel command line parameters
+echo "[Checking for repo URLs in /proc/cmdline]"
+for repo in pool updates updates_test
+do
+	url_name=sles_${repo}_url
+	url_info=$(grep -o "${url_name}"'=[^ ]*' /proc/cmdline || true)
+	if [ -n "${url_info}" ]; then
+		echo "[Found ${url_name} in /proc/cmdline]"
+		eval "${url_info}"
+
+		echo "[Removing ${url_name} from grub kernel command line]"
+		sed -i -e "s, *${url_name}=[^ ]* *, ," /etc/default/grub
+		grub_updated=1
+	fi
+done
+
+# Add any repos if found
+[ -z "${sles_pool_url}" ] || zypper addrepo "${sles_pool_url}" Pool
+[ -z "${sles_updates_url}" ] || zypper addrepo "${sles_updates_url}" Updates
+[ -z "${sles_updates_test_url}" ] || zypper addrepo "${sles_updates_test_url}" Updates-test
+
+# Run zypper update if the updates repo has been specified
+if [ -n "${sles_updates_url}" ]; then
+	# Install minimal set of updates for packages that we have
+	echo "[Running zypper update]"
+	zypper update --no-recommends -ly
+fi
+
+# We should have sufficient software installed by the autoyast package list.
+# However if there are additional packages we need to install, do so here
+#echo "[Install additional packages]"
+#zypper -f install --no-recommends kernel-devel-`uname -r` dkms nfs-utils
 
 # Make ssh faster by not waiting on DNS
-echo "UseDNS no" >> /etc/ssh/sshd_config
+if ! grep -qs "^[[:space:]]*UseDNS[[:space:]][[:space:]]*no$" /etc/ssh/sshd_config; then
+	echo "[Adding 'UseDNS no' to sshd_config]"
+	echo "UseDNS no" >> /etc/ssh/sshd_config
+fi
+
+# Elminate extraneous spectre_v2=off entries in /proc/cmdline
+while [ "$(grep -o spectre_v2=off /etc/default/grub | wc -l | tr -d '[[:space:]]')" -gt 1 ]
+do
+	echo "[Removing duplicate 'spectre_v2=off' from grub kernel command line]"
+	sed -i -e 's,spectre_v2=off ,,' /etc/default/grub
+	grub_updated=1
+done
+
+# Refresh grub.cfg if we modified the grub settings
+if [ -n "${grub_updated}" ]; then
+	echo "[Refreshing grub.cfg]"
+	grub2-mkconfig -o /boot/grub2/grub.cfg
+fi

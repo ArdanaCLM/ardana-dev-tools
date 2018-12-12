@@ -17,6 +17,7 @@
 ---
 dependencies:
   - role: dev-env
+  - role: clouddata-mirror-setup
   - role: pip-consumer
   - role: apt-repos
   - role: artifact-publisher

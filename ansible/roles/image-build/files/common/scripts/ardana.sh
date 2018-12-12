@@ -13,8 +13,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+aib_logs=/root/ardana_image_build
+aib_script=ardana
+mkdir -p ${aib_logs}
+exec 1>> ${aib_logs}/${aib_script}.log
+exec 2>> ${aib_logs}/${aib_script}.log
+
+# determine build date
+ardana_date="$(date --utc)"
+
 # equivalent to the vagrant idea, but tailored to be acceptable externally
-date > /etc/ardana_image_build_time
+echo "[Saving ardana image build timestamp]"
+echo "${ardana_date}" > /etc/ardana_image_build_time
 
 # Customize the message of the day
-echo 'Welcome to your Ardana virtual machine.' > /etc/motd
+echo "[Setting up /etc/motd]"
+echo "Welcome to your Ardana virtual machine." >> /etc/motd
+echo "Build date: ${ardana_date}" >> /etc/motd

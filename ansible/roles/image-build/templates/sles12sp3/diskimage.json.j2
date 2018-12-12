@@ -1,10 +1,11 @@
+{% raw -%}
 {
   "variables": {
     "image_name": "sles12sp3.qcow2",
     "box_distro": "sles12sp3",
     "iso_url": "file://{{ env `HOME` }}/sles12sp3/sles12sp3.iso",
-    "iso_checksum": "633537da81d270a9548272dfe1fdd20d",
-    "iso_checksum_type": "md5",
+    "iso_checksum": "48408157ef667100671b22f92c3e20771ccf2100108b96e3ae83d8df30abddd5",
+    "iso_checksum_type": "sha256",
     "disk_size": "4120",
     "output_directory": "{{ env `PWD` }}/output",
     "boxes_directory": "{{ env `PWD` }}/boxes",
@@ -39,13 +40,26 @@
       "http_directory": "{{ user `base_dir` }}/http",
       "ssh_username": "{{ user `username` }}",
       "ssh_password": "{{ user `password` }}",
-      "ssh_wait_timeout": "1200s",
-      "shutdown_command": "echo '/sbin/halt -h -p' > shutdown.sh; echo '{{ user `password` }}'|sudo -S sh 'shutdown.sh'",
+      "ssh_timeout": "30m",
+      "shutdown_command": "echo 'rm -f shutdown.sh; /sbin/halt -h -p' > shutdown.sh; echo '{{ user `password` }}'|sudo -S sh 'shutdown.sh'",
+      "boot_wait": "20s",
       "boot_command": [
-        "<esc><enter><wait>",
-        "linux netdevice=eth0 netsetup=dhcp install=cd:/<wait>",
-        " autoyast=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoyast.xml<wait>",
-        " self_update=0<wait>",
+        "<esc><enter><wait10s>",
+        "linux netdevice=eth0 ",
+        "netsetup=dhcp ",
+{% endraw %}
+{% if dev_env_disable_spectrev2_in_images | bool %}
+        "spectre_v2=off ",
+{% endif %}
+{% for item in _sles_repo_links_result.results %}
+{% if not (item | skipped) %}
+        "sles_{{ item.item.name.split('-', 2)[-1] | lower | replace('-', '_') }}_url=http://{{ '{{' }} .HTTPIP {{ '}}' }}:{{ '{{' }} .HTTPPort {{ '}}' }}/{{ item.item.name }} ",
+{% endif %}
+{% endfor %}
+{% raw %}
+        "install=cd:/ ",
+        "autoyast=http://{{ .HTTPIP }}:{{ .HTTPPort }}/autoyast.xml ",
+        "self_update=1",
         "<enter><wait>"
       ],
       "qemuargs": [
@@ -92,3 +106,4 @@
     }
   ]
 }
+{% endraw %}

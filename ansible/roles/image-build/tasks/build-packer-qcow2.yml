@@ -40,6 +40,23 @@
     envfile="{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}.env"
     echo "{{ image_build_user }}" > $envfile
     echo "{{ image_build_user_home }}" >> $envfile
+    {% if dev_env_disable_spectrev2_in_images | bool %}
+    echo "spectre_v2=off" >> $envfile
+    {% endif %}
+
+- name: image-build | build-packer-qcow2 | Symlink SLES repos under files/{{ image_build_name }}
+  file:
+    src: "{{ clouddata_repo.mirrors_dir }}/{{ item.name }}"
+    dest: "{{ image_build_http_dir }}/{{ item.name }}"
+    state: link
+  with_items:
+    - "{{ sles.artifacts.repos[sles_version].pool }}"
+    - "{{ sles.artifacts.repos[sles_version].updates }}"
+  register: _sles_repo_links_result
+  when:
+    - image_build_name.startswith('sles')
+    - images_build_images[image_build_name].install_template is defined
+    - item.enabled
 
 - name: image-build | build-packer-qcow2 | Check image inputs
   shell: |
@@ -94,6 +111,22 @@
   when:
     - not _sha256_checksum_stat_result.stat.exists
 
+- name: image-build | build-packer-qcow2 | diskimage.json template exists?
+  stat:
+    path: "{{ playbook_dir }}/roles/image-build/templates/{{ image_build_name }}/diskimage.json.j2"
+  register: _dij_template_exists_result
+
+- name: image-build | build-packer-qcow2 | Create packer template
+  template:
+    src: "{{ playbook_dir }}/roles/image-build/templates/{{ image_build_name }}/diskimage.json.j2"
+    dest: "{{ playbook_dir }}/roles/image-build/files/{{ image_build_name }}/diskimage.json"
+  when:
+    - _dij_template_exists_result.stat.exists
+
+- name: image-build | build-packer-qcow2 | realpath for files/{{ image_build_name }}
+  set_fact:
+    image_build_realpath:  "{{ ( playbook_dir ~ '/roles/image-build/files/' ~ image_build_name ) | realpath }}"
+
 - name: image-build | build-packer-qcow2 | Run packer
   shell: |
     set -eu
@@ -115,8 +148,8 @@
         -var "username={{ image_build_user }}" \
         -var "password={{ image_build_password }}" \
         -var "disk_size={{ image_build_disk_size }}" \
-        -var "base_dir={{ ( 'roles/image-build/files/' ~ image_build_name ) | realpath }}" \
-        "{{ ( 'roles/image-build/files/' ~ image_build_name ) | realpath }}/diskimage.json"
+        -var "base_dir={{ image_build_realpath }}" \
+        "{{ image_build_realpath }}/diskimage.json"
     echo packer built
 
     qemu-img convert -c -f qcow2 -O qcow2 -o cluster_size=2M \
@@ -128,9 +161,9 @@
     md5sum "${image_output}.env" \
         "${image_output}.qcow2" \
         roles/image-build/tasks/build-packer-qcow2.yml \
-        $(find roles/image-build/files/{{ image_build_name }}/ ! -type d \
-            ! -name "{{ images_build_images[image_build_name].install_template | basename }}" \
-            ! -name "Vagrantfile" ) \
+        $(find roles/image-build/files/{{ image_build_name }}/scripts -name "*.sh") \
+        $(find -L roles/image-build/files/{{ image_build_name }}/http -name "repomd.xml") \
+        roles/image-build/{{ _dij_template_exists_result.stat.exists | ternary('templates', 'files') }}/{{ image_build_name }}/diskimage.json* \
         roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2 \
             > "${image_output}.md5sum.tmp"
     echo md5sumd files

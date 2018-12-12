@@ -22,6 +22,19 @@
 #}
 <!DOCTYPE profile>
 <profile xmlns="http://www.suse.com/1.0/yast2ns" xmlns:config="http://www.suse.com/1.0/configns">
+  <bootloader>
+    <global>
+      <timeout config:type="integer">2</timeout>
+{% if dev_env_disable_spectrev2_in_images | bool %}
+      <append>spectre_v2=off</append>
+{% endif %}
+    </global>
+  </bootloader>
+  <report>
+    <warnings>
+      <timeout config:type="integer">0</timeout>
+    </warnings>
+  </report>
   <deploy_image>
     <image_installation config:type="boolean">false</image_installation>
   </deploy_image>
@@ -52,19 +65,14 @@
     <packages config:type="list">
       <package>cron</package>
       <package>dracut</package>
-      {#<package>eject</package>#}
-      <package>gcc</package>
-      {#<package>gdisk</package>#}
       <package>gptfdisk</package>
       <package>haveged</package>
-      <package>iputils</package>
       <package>kdump</package>
       <package>kernel-firmware</package>
       <package>kexec-tools</package>
       <package>man</package>
       <package>openssh</package>
       <package>python</package>
-      <package>python-xml</package>
       <package>rsync</package>
       <package>rsyslog</package>
       <package>sudo</package>
@@ -186,9 +194,13 @@ rm /etc/resolv.conf
   </groups>
   <users config:type="list">
     <user>
+      <username>root</username>
+    </user>
+    <user>
       <username>{{ image_build_user }}</username>
       <gid>1001</gid>
-      <user_password>{{ image_build_password | password_hash('sha512') }}</user_password><encrypted config:type="boolean">true</encrypted>
+      <user_password>{{ image_build_password | password_hash('sha512') }}</user_password>
+      <encrypted config:type="boolean">true</encrypted>
       <home>{{ image_build_user_home }}</home>
     </user>
   </users>

@@ -63,6 +63,7 @@ long_opts=(
     debug
     disable-no-log
     disable-services:
+    enable-spectrev2
     extra-vars:
     feature-dir:
     guest-images
@@ -154,6 +155,7 @@ DEFAULT_IPV6_ULA=`cat ${ipv6_ula_file}`
 
 export ARDANA_DEBUG=${ARDANA_DEBUG:-}
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
+export ARDANA_DISABLE_SPECTREV2=${ARDANA_DISABLE_SPECTREV2:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
@@ -244,6 +246,10 @@ while true ; do
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
         --build-images) export ARDANA_PREBUILT_IMAGES=0 ; shift ;;
+        --enable-spectrev2)
+            export ARDANA_PREBUILT_IMAGES=0
+            export ARDANA_DISABLE_SPECTREV2=
+            shift ;;
         --ibs-prj) IBS_PRJS+=( "${2}" ); shift 2;;
         --ibs-repo) IBS_REPOS+=( "${2}" ); shift 2;;
         --obs-prj) OBS_PRJS+=( "${2}" ); shift 2;;

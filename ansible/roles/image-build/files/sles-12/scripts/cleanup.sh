@@ -16,19 +16,31 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+
+aib_logs=/root/ardana_image_build
+aib_script=cleanup
+mkdir -p ${aib_logs}
+exec 1>> ${aib_logs}/${aib_script}.log
+exec 2>> ${aib_logs}/${aib_script}.log
+
+# Remove any packages we don't want included in final image
+#echo "[Removing packages that are not needed]"
 #zypper remove gtk2 libX11 hicolor-icon-theme avahi bitstream-vera-fonts
+
+# Final image should have no pre-defined repos or cached metadata
+echo "[Clean out zypper cache and repo definitions]"
 zypper clean --all
 zypper repos | grep -e "^[[:digit:]]\+" | awk '{print $3}' | while read repo
 do
     zypper removerepo "${repo}"
 done
 
-# if we add VirtualBox builder support
+# Delete any artifacts we may have added
+#echo "[Deleting imaging artifacts]"
 #rm -rf VBoxGuestAdditions_*.iso
 
 # Remove traces of mac address from network configuration
+echo "[Remove node specific network settings]"
 #sed -i '/UUID/d' /etc/sysconfig/network-scripts/ifcfg-e*
 #sed -i '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-e*
-
 rm -fv /etc/udev/rules.d/70-persistent-net.rules
-
