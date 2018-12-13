@@ -343,16 +343,16 @@ NOTES:
   appropriate branch for the Cloud version you are deploying for, e.g. for
   a Cloud8 deployment, the stable/pike branch should be the base branch for
   any branches you have checked out.
-* If you wish to build the ardana-ansible RPM you must clone both the ardana
-  and ardana-ansible repos beside ardana-dev-tools.
 
 You can disable this mechanism by specifying the --no-update-rpms option
 when running the astack.sh command.
 
 #### Special cases
-The RPM associated with the ardana-ansible git repo also pulls in an updated
-file from the ardana git repo, so of you want to rebuild that RPM you should
-clone bit the ardana-ansible and ardana git repos beside ardana-dev-tools.
+When building for Cloud8 (stable/pike branch) the RPM associated with the
+ardana-ansible git repo also pulls in an updated file from the ardana git
+repo, so if you want to rebuild that RPM for Cloud8 you should clone both
+of the ardana-ansible and ardana git repos beside ardana-dev-tools.  This
+is no longer required for Cloud9.
 
 ### Pulling in RPMs from IBS & OBS projects
 If you use the --ibs-prj or --obs-prj options you can specify the project,

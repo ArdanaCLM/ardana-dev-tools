@@ -77,6 +77,14 @@ function get_cloned_ardana_repos {
             echo "Skipping ardana-dev-tools - no associated RPM" 1>&2
             continue
             ;;
+        (ardana/ardana)
+            case "${ARDANA_CLOUD_VERSION}" in
+            (9)
+                echo "Skipping ardana - no associated RPM in Cloud${ARDANA_CLOUD_VERSION}" 1>&2
+                continue
+                ;;
+            esac
+            ;;
         (ardana/*)
             ;;
         (*)
@@ -104,12 +112,16 @@ function get_cloned_ardana_repos {
         echo "${clone}"
     done
 
-    # If only one of the ardana or ardana-ansible repos is cloned
-    # on the correct branch we can't build the RPM for that package
-    if [[ "${found_ardana}${found_ardana_ansible}" == "1" ]]; then
-        echo "Error: Onlu one of 'ardana' and 'ardana-ansible' is cloned on branch '${req_br}'" 1>&2
-        exit 1
-    fi
+    case "${ARDANA_CLOUD_VERSION}" in
+    (8)
+        # If only one of the ardana or ardana-ansible repos is cloned
+        # on the correct branch we can't build the RPM for that package
+        if [[ "${found_ardana}${found_ardana_ansible}" == "1" ]]; then
+            echo "Error: Onlu one of 'ardana' and 'ardana-ansible' is cloned on branch '${req_br}'" 1>&2
+            exit 1
+        fi
+        ;;
+    esac
 }
 
 # function fix_ardana_rpms
