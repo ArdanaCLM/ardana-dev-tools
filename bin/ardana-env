@@ -144,28 +144,19 @@ then
     fi
 fi
 
-# Need to explicitly install python2-setuptools on openSUSE Leap 15
+# Need to explicitly install some Python2 packages on openSUSE Leap 15 & Tumbleweed
 if is_opensuse_leap15 || is_opensuse_tumbleweed
 then
-    if [[ ! -d /usr/share/doc/packages/python2-setuptools ]]
-    then
-        req_pkgs+=( python2-setuptools )
-    fi
-fi
-
-# Need to add an OBS repo to get python-sh on openSUSE Leap 15
-if is_opensuse_leap15
+    for p in python2-setuptools python2-sh
+    do
+        if [[ ! -d /usr/share/doc/packages/${p} ]]
+        then
+            req_pkgs+=( ${p} )
+        fi
+    done
+elif is_trusty
 then
-    if ! zypper info python-sh 1>/dev/null 2>&1
-    then
-        sudo zypper addrepo https://download.opensuse.org/repositories/openSUSE:Leap:15.0/standard/openSUSE:Leap:15.0.repo 1>&2
-        sudo zypper refresh 1>&2
-    fi
-fi
-
-# python-sh is not available as a package for Ubuntu Trusty
-if is_trusty
-then
+    # python-sh is not available as a package for Ubuntu Trusty
     req_pips+=( sh )
 else
     if ! python -c "import sh" 1>/dev/null 2>&1
