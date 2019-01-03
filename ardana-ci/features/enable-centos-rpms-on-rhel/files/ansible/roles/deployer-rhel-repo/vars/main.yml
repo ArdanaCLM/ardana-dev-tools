@@ -34,17 +34,15 @@ devtools_rhel_setup: false
 _downloaded_rpms_list: []
 _clmsetup_mode_path_exists: false
 
-# Paths which are expected to exist in C8 setup mode (not in legacy mode)
+# Paths which are expected to exist in C9 setup mode (not in legacy mode)
 # If any of these path is found on deployer, then its a non-legacy mode.
 clmsetup_mode_detection_paths:
  - "/usr/bin/ardana-init"
- - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/C8"
- - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/cloud8"
+ - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/C9"
+ - "{{ PACKAGE_CONSTANTS.REPO_DIR }}/ardana/sles12/zypper/cloud9"
 
-centos_repo_setup_name: centos_c8_ardana
-#centos_repo_setup_url: "http://ibs-mirror.prv.suse.net/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
-#centos_repo_setup_url: "http://10.84.2.50/ibs/Devel:/Cloud:/8:/RHEL_Pike/CentOS_7"
-centos_repo_setup_url: https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/8:/CentOS:/7.5/CentOS_7.5/
+centos_repo_setup_name: centos_c9_ardana
+centos_repo_setup_url: https://download.opensuse.org/repositories/systemsmanagement:/Ardana:/9:/CentOS:/7.5/CentOS_7.5/
 
 centos_all_rpms_dir: all_rpms
 centos_repo_tarball_name: centos_rpms_repo.tgz
