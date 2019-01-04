@@ -44,7 +44,7 @@
     ./create_index
     --dir={{ PACKAGE_CONSTANTS.REPO_DIR }}/{{ ardana_version }}/rhel_venv/x86_64
   args:
-    chdir: "{{ 'packager' | bin_dir if deployer_media_legacy_layout|bool else '/usr/bin/' }}"
+    chdir: /usr/bin/
   when: _centos_venv_rpms_install_result | changed
 
 - name: deployer-rhel-repo | download_suse_centos_artifacts | Download rpms on deployer
