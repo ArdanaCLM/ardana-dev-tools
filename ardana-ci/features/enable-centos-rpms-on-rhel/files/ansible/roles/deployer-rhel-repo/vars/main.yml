@@ -67,6 +67,7 @@ rhel_venv_rpms_list:
 # are hosted on deployer and accordingly repo is configured on RHEL compute.
 rhel_repo_rpms_list:
   - ca-certificates-mozilla
+  - libsodium23
   - python-asn1crypto
   - python-Babel
   - python-PyJWT
@@ -77,7 +78,7 @@ rhel_repo_rpms_list:
   - python-conf_d
   - python-contextlib2
   - python-debtcollector
-  - python-depreciation
+  - python-deprecation
   - python-dogpile.cache
   - python-ecdsa
   - python-enum34
