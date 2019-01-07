@@ -30,6 +30,7 @@
 - include: dev-env-kvm-install.yml
 - include: dev-env-vagrant-install.yml
 - include: dev-env-packer-install.yml
+- include: dev-env-radvd-install.yml
 
 # make sure the validate task is the last one executed
 # to allow any information notify triggers to appear last

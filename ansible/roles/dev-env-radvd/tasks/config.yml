@@ -1,0 +1,74 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to generate dev-env-radvd conf for Ardana
+---
+
+- name: dev-env-radvd | config | Get libvirt network names
+  become: yes
+  command: virsh net-list --name
+  register: virst_net_list_result
+
+- name: dev-env-radvd | config | Grep for networks with family IPv6
+  become: yes
+  shell: virsh net-dumpxml {{ item }} | grep "family='ipv6'"
+  register: ipv6_net_temp_result
+  with_items: "{{ virst_net_list_result.stdout_lines }}"
+  ignore_errors: True
+
+- name: dev-env-radvd | config | Store rc count for grep
+  set_fact:
+    ipv6_net_grep_rc: "{{ ipv6_net_temp_result.results | map(attribute='rc') | list }}"
+
+- name: dev-env-radvd | config | Get bridge interface for networks with IPv6
+  become: yes
+  shell: virsh net-dumpxml {{ item.0 }} | grep "bridge" | awk -F '[ |=]' '{ print $5 }'
+  register: ipv6_net_bridge_interface_result
+  when: item.1 == 0
+  with_together:
+    - "{{ virst_net_list_result.stdout_lines }}"
+    - "{{ ipv6_net_grep_rc }}"
+
+- name: dev-env-radvd | config | Set interface list for IPv6 networks
+  set_fact:
+    ipv6_net_ifaces: "{{ ipv6_net_bridge_interface_result.results | selectattr('stdout','defined')  | map(attribute='stdout') | list }}"
+
+- name: dev-env-radvd | config | Get IPv6 prefix for network
+  shell: echo "{{ item.stdout }}" | awk -F '[ |=]' '{ print $7 }'
+  register: ipv6_net_prefix_result
+  when: item.rc == 0
+  with_items: "{{ ipv6_net_temp_result.results }}"
+  ignore_errors: True
+
+- name: dev-env-radvd | config | Set ipv6 prefix list
+  set_fact:
+    ipv6_net_prefix: "{{ ipv6_net_prefix_result.results | selectattr('stdout','defined')  | map(attribute='stdout') | list }}"
+
+- name: dev-env-radvd | config | Get IPv6 prefix len for network
+  shell: echo "{{ item.stdout }}" | awk -F '[ |=|>]' '{ print $9 }'
+  register: ipv6_net_prefix_len_result
+  when: item.rc == 0
+  with_items: "{{ ipv6_net_temp_result.results }}"
+  ignore_errors: True
+
+- name: dev-env-radvd | config | Set ipv6 prefix len list
+  set_fact:
+    ipv6_net_prefix_len: "{{ ipv6_net_prefix_len_result.results | selectattr('stdout','defined') | map(attribute='stdout') | list }}"
+
+- name: dev-env-radvd | config | Write dev-env-radvd conf
+  become: yes
+  template:
+    src: radvd.conf.j2
+    dest: /etc/radvd.conf
