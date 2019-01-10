@@ -75,6 +75,15 @@ ansible-playbook \
     cloud-client-setup.yml
 source /etc/environment
 
+# Flush all caches across all of the nodes
+echo "Flushing all page & inode caches across all nodes"
+ansible \
+    -b \
+    -i hosts/verb_hosts \
+    resources \
+    -m shell \
+    -a "sync; echo 3 > /proc/sys/vm/drop_caches; sync"
+
 # Run Keystone sanity check
 openstack token issue
 
