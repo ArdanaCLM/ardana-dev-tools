@@ -20,9 +20,9 @@
   command: git rev-parse --verify HEAD
   args:
     chdir: "{{ item.value | find_local_repo }}"
-  with_dict: deployer_git_repositories | default({}) |
+  with_dict: "{{ deployer_git_repositories | default({}) |
       update(deployer_input_model_repositories | default({})) |
-      update(deployer_ardana_extensions_repositories | default({}))
+      update(deployer_ardana_extensions_repositories | default({})) }}"
   register: _deployer_ansible_sha1_result
 
 - name: deployer | _write_deployer_manifest | Register ardana-dev-env details

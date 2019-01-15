@@ -21,6 +21,8 @@ export ARDANA_OSC_CACHE="${HOME}/.cache/ardana-osc"
 export ARDANA_OVERRIDE_RPMS="${WORKSPACE:-${DEVROOT}}/NEW_RPMS"
 PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
 
+export ANSIBLE_CONFIG="${ANSIBLE_CONFIG:-${DEVTOOLS}/ansible/ansible.cfg}"
+
 # CDL convention
 cfg=/etc/profile.d/proxy.sh
 if [ -e $cfg ] ; then

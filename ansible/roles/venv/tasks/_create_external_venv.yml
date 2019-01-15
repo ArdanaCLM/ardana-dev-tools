@@ -35,7 +35,7 @@
     url: "{{ item | external_artifact_url(dev_env_site_config) }}.sha256"
     force: "{{ rebuild }}"
     timeout: 20
-  with_items: services[service].external | default([])
+  with_items: "{{ services[service].external | default([]) }}"
   when: services[service].external is defined and services[service].external
   register: _venv_external_files_sha256_download_result
 
@@ -50,7 +50,7 @@
   register: _download_external_result
   until: _download_external_result|success
   retries: 2  # hopefully the 2nd retry will go through a different proxy. Depends on DNS entry TTL.
-  with_items: services[service].external | default([])
+  with_items: "{{ services[service].external | default([]) }}"
   when: services[service].external is defined and services[service].external
 
 - name: venv | _create_external_venv | Check SHA256
@@ -67,7 +67,7 @@
   args:
     executable: "/bin/bash"
     chdir: "{{ VENV.EXTERNAL_DIR }}"
-  with_items: _venv_external_files_sha256_download_result.results
+  with_items: "{{ _venv_external_files_sha256_download_result.results }}"
 
 - name: venv | _create_external_venv | Copy external files for service
   delegate_to: "{{ inventory_hostname }}"
@@ -75,7 +75,7 @@
     src: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}"
     dest: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/lib/{{ item | external_artifact_url(dev_env_site_config) | basename }}"
     archive: no
-  with_items: services[service].external | default([])
+  with_items: "{{ services[service].external | default([]) }}"
 
 - name: venv | _create_external_venv | Link in optional destination in the lib directory
   file:
@@ -83,4 +83,4 @@
     path: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/lib/{{ item.dest }}"
     state: link
   when: item.dest is defined
-  with_items: services[service].external | default([])
+  with_items: "{{ services[service].external | default([]) }}"

@@ -22,7 +22,7 @@
   zypper:
     name: "{{ item }}"
     state: "latest"
-  with_items: cloud.deployer.caching_proxy.pkgs
+  with_items: "{{ cloud.deployer.caching_proxy.pkgs }}"
 
 - name: vagrant-cloud-setup | _setup-squid | Fix proxy cache mount perms
   become: yes
@@ -32,7 +32,7 @@
     group: "{{ cloud.deployer.caching_proxy.fs.group }}"
     mode: "0750"
     state: directory
-  with_items: clmsetup.caching_proxy.mounts
+  with_items: "{{ clmsetup.caching_proxy.mounts }}"
 
 - name: vagrant-cloud-setup | _setup-squid | Generate customised squid.conf
   become: yes

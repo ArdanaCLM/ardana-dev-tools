@@ -27,7 +27,7 @@
 # Validate that we have the nondist packages.
 - name: deployer | build | Validate that we have all the nondist packages
   fail: msg="Missing {{ item }}"
-  with_items: packages_nondist
+  with_items: "{{ packages_nondist }}"
   when: item not in (packages_nondist_dir|find_latest_packages(deployer_version))
 
 # Validate that we have all of the venvs needed for RHEL

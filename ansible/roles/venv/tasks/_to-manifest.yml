@@ -30,7 +30,7 @@
   args:
     chdir: "{{ VENV.SRC_DIR }}/{{ _venv_ardana_sources[ item ] | venv_source_build_dest }}"
   when: _venv_ardana_sources[ item ].url is defined
-  with_items: services[service].sources | default([]) | makelist
+  with_items: "{{ services[service].sources | default([]) | makelist }}"
   register: _venv_git_sha1_result
 
 - name: venv | _to-manifest | lsb_release details for venv build os
@@ -72,15 +72,15 @@
 - name: venv | _to-manifest | Get md5 external manifest for service
   stat:
     path: "{{ item | external_artifact_url(dev_env_site_config) | cache_path(VENV.EXTERNAL_DIR) }}"
-  with_items: services[service].external | default([])
+  with_items: "{{ services[service].external | default([]) }}"
   register: _venv_external_file_md5sum
 
 - name: venv | _to-manifest | Register external for service
   shell: |
     echo "{{ item.0.stat.md5 }} {{ item.1 | external_artifact_url(dev_env_site_config) }}"
   with_together:
-    - _venv_external_file_md5sum.results
-    - services[service].external | default([])
+    - "{{ _venv_external_file_md5sum.results }}"
+    - "{{ services[service].external | default([]) }}"
   register: _venv_external_manifest
   when: services[service].external | default([])
 
@@ -95,7 +95,7 @@
     dest: "{{ VENV.TAR_DIR }}/{{ service }}.manifest-{{ version }}"
 
 - name: venv | _to-manifest | Write out the redacted manifest
-  shell: >
+  shell: >-
     sed -r -e '/^---/,$s|https?://[^ ]*|"redacted"|g'
     < "{{ VENV.TAR_DIR }}/{{ service }}.manifest-{{ version }}"
     > "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/META-INF/manifest.yml"

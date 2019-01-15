@@ -26,16 +26,16 @@
   command: vconfig rem vlan{{ item.vlan }}
   with_items: "{{ dev_env_provider_net.octavia_net }}"
   register: _vconfig_rem_result
-  failed_when: >
-    (_vconfig_rem_result | failed) and
-    'No such device' not in _vconfig_rem_result.stderr
+  failed_when:
+    - _vconfig_rem_result | failed
+    - not ('No such device' in _vconfig_rem_result.stderr)
 
 - name: dev-env | route_provider_nets | Set the vlan naming convention
   command: vconfig set_name_type VLAN_PLUS_VID_NO_PAD
 
 - name: dev-env | route_provider_nets | Find bridge name of mgmt-net interface
   set_fact:
-    bridge_if: >
+    bridge_if: >-
       {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
       {%- set _if_fact = 'ansible_' + _if_name %}
       {%- set _if = hostvars[inventory_hostname][_if_fact] %}
@@ -62,7 +62,7 @@
 
 - name: dev-env | route_provider_nets | Find the bridge name for Ardana net
   set_fact:
-    ardana_bridge_if: >
+    ardana_bridge_if: >-
       {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
       {%- set _if_fact = 'ansible_' + _if_name %}
       {%- set _if = hostvars[inventory_hostname][_if_fact] %}
@@ -76,7 +76,7 @@
       {%- endfor %}
 
 - name: dev-env | route_provider_nets | Enable packet forwarding
-  shell: >
+  shell: >-
     iptables -I FORWARD 1 -d 192.168.245.0/24
     -o {{ ardana_bridge_if }} -j ACCEPT
   failed_when: false

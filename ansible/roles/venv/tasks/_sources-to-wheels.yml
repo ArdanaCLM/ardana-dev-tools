@@ -38,7 +38,7 @@
     virtualenv_command: "{{ _venv_virtualenv_command }}"
     state: present
     name: pip wheel setuptools
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout {{ venv_timeout }}
   environment: "{{ ccache.env }}"
@@ -80,4 +80,4 @@
     dest: "{{ VENV.WHEEL_DIR }}/{{ source.name }}"
     state: absent
   when: not _venv_built_stats_result.stat.exists
-  with_items: _venv_built_stats_result.results
+  with_items: "{{ _venv_built_stats_result.results }}"

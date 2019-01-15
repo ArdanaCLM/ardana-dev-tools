@@ -39,7 +39,7 @@
     repo: "file://{{ vagrant_vm_sles_extras_build_repos_dir }}/{{ item.repo }}"
     disable_gpg_check: "{{ item.disable_gpg_check | default('no') }}"
     state: present
-  with_items: vagrant_vm_sles_extras
+  with_items: "{{ vagrant_vm_sles_extras }}"
   register: _zypper_add_repos_result
 
 - name: vagrant-vm | setup-sles-extras-repos | Update zypper cache as needed

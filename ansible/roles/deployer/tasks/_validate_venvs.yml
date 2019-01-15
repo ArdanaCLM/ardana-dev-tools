@@ -37,4 +37,4 @@
     dest: "{{ _validate_deployer_venv_dir }}/{{ item.value.1 }}"
     state: link
   when: item.key in _validate_packages
-  with_dict: _latest_packages|default({})
+  with_dict: "{{ _latest_packages|default({}) }}"

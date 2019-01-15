@@ -521,7 +521,7 @@ _services_default:
     #  which cause a conflict during the build of this venv.
     ignore_constraints: true
     pips:
-      - "ansible<2.0"
+      - "ansible<2.5"
       - passlib
       - netaddr
     # We match ansible 'venv' version to deployer version

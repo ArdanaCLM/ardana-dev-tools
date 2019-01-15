@@ -505,7 +505,7 @@ as most modern distros will install a newer version of ansible that we
 have optimised Ardana for, which may see issues.
 
 For best results we recommend running the ansible-dev-tools playbooks
-using Ansible version 1.9.6. This can be done using a Python virtualenv
+using Ansible version 2.4.6. This can be done using a Python virtualenv
 and we provide the ardana-dev-tools/bin/ardana-env script to set this
 up automatically for you; just eval the output it generates, e.g.
 

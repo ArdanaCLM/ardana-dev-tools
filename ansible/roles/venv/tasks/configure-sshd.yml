@@ -25,7 +25,7 @@
     line: "{{ item.line }}"
     follow: yes
     state: present
-  with_items: venv_sshd_config_settings
+  with_items: "{{ venv_sshd_config_settings }}"
   register: _venv_sshd_config_updated
 
 - name: venv | configure_sshd | restart sshd

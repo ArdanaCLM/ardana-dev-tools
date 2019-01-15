@@ -18,42 +18,42 @@
 ---
 
 - name: lint | run | Check for duplicate playbook names
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */*yml
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate role names
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */roles/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate modules
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */library/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Check for duplicate sosreport plugins
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/python {{ lint_no_duplicates }} */sos.d/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Yaml syntax check
-  command: >
+  command: >-
     {{ lint_venv }}/bin/python {{ lint_parse_yaml }} .
   args:
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
 - name: lint | run | Yaml syntax check for host_vars
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/python {{ lint_parse_yaml }} */host_vars/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
@@ -64,7 +64,7 @@
 # or fix the ansible-lint bugs that are causing the messages
 # to appear, if we believe them to be spurious.
 - name: lint | run | Run ansible-lint non-voting
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/ansible-lint -p -x templating,resources
     {{ lint_rulesdir }} *.yml > {{ dev_env_scratch_dir }}/lint-p.log 2>&1
   args:
@@ -72,7 +72,7 @@
   failed_when: false
 
 - name: lint | run | Summarize lint output
-  shell: >
+  shell: >-
     awk '/^\// {gsub(".*lint-flat.","",$1); print}' lint-p.log |
     sort | uniq -c | sort -nr | tee lint-summary.log;
     wc -l "${PWD}/lint-summary.log" | tee -a lint-summary.log
@@ -94,14 +94,15 @@
 - name: lint | run | Report ansible-lint playbook parsing errors
   debug:
     var: ansible_grep_result.stdout_lines
-  when: (ansible_grep_result | success)
+  when: (ansible_grep_result.rc == 0)
 
 - name: lint | run | Exit on ansible-lint playbook parsing errors
-  fail: "Unable to parse ansible-lint - see above"
-  when: (ansible_grep_result | success)
+  fail:
+    msg: "Unable to parse ansible-lint - see above"
+  when: (ansible_grep_result.rc == 0)
 
 - name: lint | run | Run ansible-lint voting
-  shell: >
+  shell: >-
     {{ lint_venv }}/bin/ansible-lint -p -x templating,resources
     {{ lint_rulesdir }}
     client*.yml

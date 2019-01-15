@@ -24,7 +24,7 @@
   changed_when: False
 
 - name: dev-env-packer | get-installed-version | Get installed version (found)
-  command: >
+  command: >-
     {{ packer_cmd }} --version
   register: _packer_version_result
   changed_when: False

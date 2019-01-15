@@ -26,7 +26,7 @@
   changed_when: True
 
 - name: deployer | _create_deployer_tarball | Create component tarballs
-  command: >
+  command: >-
     tar {{ item.tar_option | default('achf') }}
     {{ deployer_output_dir }}/{{ item.target_tar }}
     --owner='root' --group='root'
@@ -43,7 +43,7 @@
 
     - source_dir: "{{ deployer_input_model_dir }}"
       target_tar: "{{ deployer_input_model_tarball }}"
-      include: >
+      include: >-
         {{ ardana_input_model_builder.stdout_lines |
            intersect(['ardana-input-model/2.0/services', 'ardana-input-model/2.0/examples',
                       'ardana-input-model/2.0/tech-preview']) }}
@@ -90,7 +90,7 @@
 
 # Now combine to the full deployer package
 - name: deployer | _create_deployer_tarball | Create Deployer tarball
-  command: >
+  command: >-
     tar achf {{ tarball_location }}
     --owner='root' --group='root'
     --hard-dereference

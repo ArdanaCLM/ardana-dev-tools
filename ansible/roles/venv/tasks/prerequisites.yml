@@ -25,7 +25,7 @@
   apt:
     name: "{{ item }}"
     state: present
-  with_items: venv_prerequisites_packages + venv_deps + services | find_deps | default([])
+  with_items: "{{ venv_prerequisites_packages + venv_deps + services | find_deps | default([]) }}"
   when: ansible_os_family | lower == 'debian'
 
 - name: venv | prerequisites | Install prerequisites for services
@@ -33,7 +33,7 @@
   yum:
     name: "{{ item }}"
     state: present
-  with_items: venv_prerequisites_packages + venv_deps + services | find_deps | default([])
+  with_items: "{{ venv_prerequisites_packages + venv_deps + services | find_deps | default([]) }}"
   when: ansible_os_family | lower == 'redhat'
 
 - name: venv | prerequisites | Install prerequisites for services
@@ -41,7 +41,7 @@
   zypper:
     name: "{{ item }}"
     state: present
-  with_items: venv_prerequisites_packages + venv_deps + services | find_deps | default([])
+  with_items: "{{ venv_prerequisites_packages + venv_deps + services | find_deps | default([]) }}"
   when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
 
 - name: venv | prerequisites | Deploy virtualenv.ini

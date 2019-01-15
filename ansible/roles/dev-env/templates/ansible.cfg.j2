@@ -16,6 +16,12 @@
 #}
 [defaults]
 
+# only show tasks that haven't been skipped
+stdout_callback = skippy
+
+# show per-task profiling info and also a summary of longest
+# running tasks at end of playbook run
+callback_whitelist = profile_tasks
 
 # SSH timeout
 timeout = 30

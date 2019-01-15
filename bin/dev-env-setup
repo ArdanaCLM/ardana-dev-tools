@@ -182,7 +182,8 @@ then
     # run the specified playbook redirecting to stderr allowing
     # this script's output to be evaluated.
     stderr "Running playbook '${playbook}' to setup environment..."
-    ansible-playbook -i ${play_dir}/hosts/localhost ${play_dir}/${playbook} 1>&2
+    env ANSIBLE_CONFIG=${play_dir}/ansible.cfg \
+        ansible-playbook -i ${play_dir}/hosts/localhost ${play_dir}/${playbook} 1>&2
 fi
 
 # vim:shiftwidth=4:tabstop=4:expandtab

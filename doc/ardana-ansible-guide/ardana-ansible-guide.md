@@ -338,7 +338,7 @@ verbs in other roles, e.g. the swift object install verb:
 
         - name: SWF-OBJ | install | Install Swift Object services
           install_package: name=swift service={{ item.key }} state=present
-          with_dict: object_services
+          with_dict: "{{ object_services }}"
 
 which uses the install verb from an interal swift common role, and the swift
 object configure verb:

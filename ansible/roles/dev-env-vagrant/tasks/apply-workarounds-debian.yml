@@ -18,12 +18,12 @@
 
 - name: dev-env-vagrant | apply-workarounds-debian | Check for workarounds?
   set_fact:
-    _workarounds: >
+    _workarounds: >-
       {{ vagrant_settings.workarounds.debian | default({}) }}
 
 - name: dev-env-vagrant | apply-workarounds-debian | No workarounds found?
   set_fact:
-    _workarounds: >
+    _workarounds: >-
       {{ {} }}
   when:
     _workarounds is not defined

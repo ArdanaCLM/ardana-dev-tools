@@ -25,7 +25,7 @@
 ---
 
 - name: deployer | _create_symlink_directory | Combine the symlink description files
-  command: >
+  command: >-
     {{ deployer_merge_symlinks_yaml }}
     --key symlinks
     --target-path '{{ deployer_symlink_target_path }}'

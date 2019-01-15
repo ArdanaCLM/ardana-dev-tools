@@ -17,11 +17,9 @@
 ---
 
 - name: vagrant-cloud-setup | refresh-repos | Check deployer port 79 http access
-  get_url:
-    url: "http://{{ deployer_address }}:79/"
-    dest: /dev/null
-    force: yes
-    use_proxy: no
+  wait_for:
+    host: "{{ deployer_address }}"
+    port: 79
   changed_when: false  # we don't consider this to ever "change"
   when:
     - inventory_hostname_short != deployer_node
@@ -34,13 +32,10 @@
     - inventory_hostname_short == deployer_node
 
 - name: vagrant-cloud-setup | refresh-repos | Check caching proxy active (remote)
-  get_url:
-    url: "http://{{ deployer_address }}:79/"
-    dest: /dev/null
-    force: yes
-    use_proxy: yes
-  environment:
-    http_proxy: "http://{{ deployer_address }}:3128/"
+  wait_for:
+    host: "{{ deployer_address }}"
+    port: 3128
+  changed_when: false  # we don't consider this to ever "change"
   when:
     - clmsetup.caching_proxy.enabled | bool
     - inventory_hostname_short != deployer_node

@@ -20,16 +20,16 @@
 
 - name: vagrant-cloud-setup | ardana-init | Install ardana using SOC/CLM Media
   become: yes
-  command: >
+  command: >-
     zypper --non-interactive install --force {{ item }}
-  with_items: clmsetup.deployer.init_pkgs
+  with_items: "{{ clmsetup.deployer.init_pkgs }}"
 
 - name: vagrant-cloud-setup | ardana-init | Execute the ardana-init script
   shell: /usr/bin/ardana-init
   args:
    executable: /bin/bash
    chdir: "{{ image_build_user_home }}"
-   environment:
+  environment:
      ARDANA_INIT_AUTO: 1
   register: _ardana_init_result
 

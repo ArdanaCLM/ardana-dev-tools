@@ -45,7 +45,7 @@
     virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
     virtualenv_command: "{{ _venv_virtualenv_command }}"
     name: pip "setuptools<34.0.0"
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout 30
   environment: "{{ ccache.env }}"
@@ -58,7 +58,7 @@
     virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
     virtualenv_command: "{{ _venv_virtualenv_command }}"
     name: "{{ services[service].pips | default([]) | join (' ') }}"
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout 30
       {% if not(services[service].ignore_constraints | default(False)) %}
@@ -73,7 +73,7 @@
   pip:
     virtualenv: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}"
     virtualenv_command: "{{ _venv_virtualenv_command }}"
-    name: >
+    name: >-
           {% if _venv_ardana_sources[item].build_type | default("python") == "python" -%}
           "{{ VENV.SRC_DIR }}/{{
               _venv_ardana_sources[item] | venv_source_build_dest
@@ -81,11 +81,11 @@
           {%- else -%}
           "{{ item }}"
           {%- endif %}
-    extra_args: >
+    extra_args: >-
       --no-index
       --find-links {{ VENV.WHEEL_DIR }}/{{ item }}_wheelhouse
       {% if not(services[service].ignore_constraints | default(False)) and not(_venv_ardana_sources[item].ignore_constraints | default(False)) %}
         --constraint "{{ VENV.STATE_DIR }}/{{ service }}.constraint"
       {% endif %}
   environment: "{{ ccache.env }}"
-  with_items: services[service].sources | default([]) | makelist
+  with_items: "{{ services[service].sources | default([]) | makelist }}"

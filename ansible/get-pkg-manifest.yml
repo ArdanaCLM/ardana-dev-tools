@@ -33,7 +33,7 @@
   tasks:
     - name: pkg-manifest | Generate unified package manifest
       set_fact:
-        unified: >
+        unified: >-
           {% set newline = joiner("\n") %}{% for host in groups['vagrant'] -%}
           {{ newline()+hostvars[host]['pkgs_result'].stdout }}
           {%- endfor %}

@@ -28,7 +28,7 @@
   when:
     # need to create the symlinks if the repo is enabled or the ISO attached
     - (item.enabled | bool) or (dev_env_attach_isos | bool)
-  with_items: clmsetup.isos
+  with_items: "{{ clmsetup.isos }}"
   register: _isos_attached_result
 
 - name: vagrant-cloud-setup | setup-isos | Create ISO mount points
@@ -41,7 +41,7 @@
     - not (item | skipped)
     - item.stat.exists
     - item.item.enabled | bool
-  with_items: _isos_attached_result.results
+  with_items: "{{ _isos_attached_result.results }}"
 
 - name: vagrant-cloud-setup | setup-isos | Setup persistent mounts
   become: yes
@@ -54,7 +54,7 @@
     - not (item | skipped)
     - item.stat.exists
     - item.item.enabled | bool
-  with_items: _isos_attached_result.results
+  with_items: "{{ _isos_attached_result.results }}"
 
 - name: vagrant-cloud-setup | setup-isos | Setup ISO symlinks
   become: yes
@@ -68,4 +68,4 @@
     # create the symlinks if the repo is enabled or the ISO attached
     - (item.item.enabled | bool) or (dev_env_attach_isos | bool)
     - item.item.iso_link is defined
-  with_items: _isos_attached_result.results
+  with_items: "{{ _isos_attached_result.results }}"

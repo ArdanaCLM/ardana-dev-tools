@@ -31,7 +31,7 @@
 - name: vagrant-cloud-vm | setup-proxy-cache | Get proxy cache volume path
   delegate_to: localhost
   become: yes
-  command: >
+  command: >-
     virsh vol-path
         --pool {{ ardana_proxy_cache_pool | default('default') }}
         {{ ardana_proxy_cache_volume }}

@@ -19,7 +19,7 @@
 
 - name: vagrant-vm | setup-ssh-access | Add ssh public and private keys
   copy:
-    src: "{{ item }}"
+    src: "{{ playbook_dir }}/roles/vagrant-vm/files/{{ item }}"
     dest: "~/.ssh/"
     mode: 0600
   with_items: [ "id_rsa", "id_rsa.pub" ]
@@ -28,4 +28,4 @@
   lineinfile:
     dest: "~/.ssh/authorized_keys"
     line: "{{ item }}"
-  with_lines: cat id_rsa.pub
+  with_lines: "cat {{ playbook_dir }}/roles/vagrant-vm/files/id_rsa.pub"

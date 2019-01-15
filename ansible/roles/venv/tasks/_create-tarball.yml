@@ -39,7 +39,7 @@
     - [ '2.7', '' ]
 
 - name: venv | _create-tarball | Create the remote service venv tarball
-  command: >
+  command: >-
     tar acf {{ VENV.TAR_DIR }}/{{ service }}-{{ version }}.tgz .
         --owner='root' --group='root'
         --exclude='*.pyc'

@@ -245,7 +245,7 @@ echo "export VAGRANT_HOME;"
 #
 
 # Ansible settings
-ansible_version=${ARDANA_ANSIBLE_VERSION:-1.9.6}
+ansible_version=${ARDANA_ANSIBLE_VERSION:-2.4.6}
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
 
 # Have we been told to create a "clean" environment?

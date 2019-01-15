@@ -22,17 +22,40 @@
   file:
     path: "{{ item.value.dest }}"
     state: directory
-  with_dict: deployer_input_model_repositories
+  with_dict: "{{ deployer_input_model_repositories }}"
+
+- debug: var=ansible_version
+
+# TODO(fergal): remove when we move forward to a version of
+# the synchronize module that isn't broken.
+# Workaround for broken synchronize module in ansible 2.4; even though we
+# delegate the operation to local host it tries to target the original
+# inventory host.
+- name: vagrant-cloud-setup | stage-input-models | Stage input model repo (workaround)
+  delegate_to: localhost
+  command: >-
+    /usr/bin/rsync
+      --delay-updates -F --delete-after --archive -S
+      --exclude='.git*' --exclude='*.pyc'
+      "{{ item.value | find_local_repo }}/"
+      "{{ item.value.dest }}"
+  with_dict: "{{ deployer_input_model_repositories }}"
+  when:
+    - ansible_version.major == 2
+    - ansible_version.minor == 4
+  register: _sync_workaround_result
 
 - name: vagrant-cloud-setup | stage-input-models | Stage input model repo
   delegate_to: localhost
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
     dest: "{{ item.value.dest }}"
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
     archive: yes
     delete: yes
     compress: no
-  with_dict: deployer_input_model_repositories
+  with_dict: "{{ deployer_input_model_repositories }}"
+  when:
+    - _sync_workaround_result | skipped

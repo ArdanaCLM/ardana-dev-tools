@@ -22,12 +22,12 @@
 
 - name: vagrant-vm | setup-root-partition | Get root fs mount details
   set_fact:
-    root_mount: >
+    root_mount: >-
       {{ ansible_mounts | selectattr('mount', 'equalto', '/') | first }}
 
 - name: vagrant-vm | setup-root-partition | Set list of required tools
   set_fact:
-    _required_tools: >
+    _required_tools: >-
       {%- set _req_tools = vagrant_part_resize_tools.basic -%}
       {%- if root_mount.device.startswith('/dev/mapper') -%}
       {%-   set _ = _req_tools.extend(vagrant_part_resize_tools.lvm) -%}
@@ -36,13 +36,13 @@
 
 - name: vagrant-vm | setup-root-partition | Check for required tools
   become: yes
-  command: >
+  command: >-
     which {{ item }}
   register: _which_result
   changed_when: False
   failed_when:
     - _which_result.rc > 1
-  with_items: _required_tools
+  with_items: "{{ _required_tools }}"
   when:
     - root_mount.device.startswith('/dev/mapper')
 
@@ -69,7 +69,7 @@
 
 - name: vagrant-vm | setup-root-partition | determine VG & LV for root device
   become: yes
-  command: >
+  command: >-
     lvs
       -o vg_name,lv_name
       --noheadings
@@ -82,16 +82,16 @@
 
 - name: vagrant-vm | setup-root-partition | extract VG & LV for root filesystem
   set_fact:
-    root_vg: >
+    root_vg: >-
       {{ _lvs_root_device_result.stdout.strip().split(' ')[0].split('=')[1] }}
-    root_lv: >
+    root_lv: >-
       {{ _lvs_root_device_result.stdout.strip().split(' ')[1].split('=')[1] }}
   when:
     - root_mount.device.startswith('/dev/mapper')
 
 - name: vagrant-vm | setup-root-partition | determine PV backing root device
   become: yes
-  command: >
+  command: >-
     vgs
       -o pv_name
       --noheadings
@@ -104,7 +104,7 @@
 
 - name: vagrant-vm | setup-root-partition | extract PV backing root filesystem
   set_fact:
-    root_pv: >
+    root_pv: >-
       {{ _vgs_root_vg_result.stdout.strip().split(' ')[0].split('=')[1] }}
   when:
     - root_mount.device.startswith('/dev/mapper')
@@ -120,7 +120,7 @@
   # NOTE: using shell rather than command here because we want to expand
   # the given path using shell file globbing to find the desired entry
   # under /sys/block.
-  shell: >
+  shell: >-
     readlink -e /sys/block/*/{{ root_fs_dev_name | quote }}
   register: _root_dev_sys_block_result
 
@@ -131,7 +131,7 @@
     - root_mount.device.startswith('/dev/mapper')
 
 - name: vagrant-vm | setup-root-partition | Determine root fs device partition
-  command: >
+  command: >-
     cat /sys/block/{{ root_fs_base_dev | basename | quote }}/{{
                       root_fs_dev_name | quote }}/partition
   register: _read_sys_block_partition_result
@@ -240,7 +240,7 @@
 
 - name: vagrant-vm | setup-root-partition | check root vol size
   become: yes
-  shell: >
+  shell: >-
     lvdisplay {{ root_vg }}/{{ root_lv }} | grep "Current LE" | awk '{print $3}'
   register: vagrant_lvm_root_size
   when:

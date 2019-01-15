@@ -18,7 +18,7 @@
 ---
 
 - name: dev-env-vagrant | get-installed-versions | Get installed Vagrant version
-  shell: >
+  shell: >-
     vagrant --version | cut -d ' ' -f 2
   register: _vagrant_version_result
   changed_when: False
@@ -40,7 +40,7 @@
 
 - name: dev-env-vagrant | get-installed-versions | Load plugins.json if found
   set_fact:
-    _plugins_json: >
+    _plugins_json: >-
       {{ lookup('file', vagrant_plugins_json) |
          from_json | default(dict(version=1, installed={})) }}
   when:
@@ -65,7 +65,7 @@
 
 - name: dev-env-vagrant | get-installed-versions | Determine installed plugins
   set_fact:
-    vagrant_installed_plugins: >
+    vagrant_installed_plugins: >-
       {{ _plugins_json.installed }}
 
 - name: dev-env-vagrant | get-installed-versions | Report installed plugins if any
@@ -76,7 +76,7 @@
 
 - name: dev-env-vagrant | get-installed-versions | Determine plugins to install/update
   set_fact:
-    vagrant_missing_plugins: >
+    vagrant_missing_plugins: >-
       {%- set _missing = []  %}
       {%- for plugin in vagrant_settings.plugins %}
       {%-   if vagrant_installed_plugins[plugin.name] is not defined %}

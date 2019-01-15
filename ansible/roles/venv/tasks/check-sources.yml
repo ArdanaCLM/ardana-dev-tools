@@ -22,7 +22,7 @@
       abort now if this is not what you intended.
   register: _venv_use_local_git_repositories
   when: item.key | isdir(dev_env_sources_dir)
-  with_dict: _venv_ardana_sources_dict | default({})
+  with_dict: "{{ _venv_ardana_sources_dict | default({}) }}"
 
 - name: venv | check-sources | Pause to allow user abort
   pause:

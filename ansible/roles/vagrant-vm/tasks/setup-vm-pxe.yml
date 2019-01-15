@@ -30,4 +30,4 @@
     name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
     set_pxe: "{{ vagrant_vm_pxe_setting }}"
   when: item != _vagrant_deployer
-  with_items: _vagrant_cobbler_requested_vms
+  with_items: "{{ _vagrant_cobbler_requested_vms }}"

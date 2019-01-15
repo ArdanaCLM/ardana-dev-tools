@@ -26,7 +26,7 @@
 
 - name: dev-env-vagrant | install-package-suse | Install required vagrant package
   become: yes
-  command: >
+  command: >-
     zypper
       --non-interactive
       --no-gpg-checks

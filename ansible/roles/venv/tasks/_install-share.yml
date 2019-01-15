@@ -47,13 +47,13 @@
     path: "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/share/{{ item.keys()[0] }}"
     state: directory
   when: item.keys() is defined
-  with_items: services[service].sources | default([])
+  with_items: "{{ services[service].sources | default([]) }}"
 
 - name: venv | _install-share | Copy additional data in to virtual environment for service
-  command: >
+  command: >-
     rsync --delete -iac
     "{{ VENV.SRC_DIR }}/{{ _venv_ardana_sources[ item.0 ] | venv_source_build_dest }}/{{ item.1 }}"
     "{{ PACKAGE_CONSTANTS.INSTALL_DIR }}/{{ service }}-{{ version }}/share/{{ item.0 }}"
-  with_items: services[service].sources | default([]) | extract_dicts | unzip
+  with_items: "{{ services[service].sources | default([]) | extract_dicts | unzip }}"
   register: rsync_result
   changed_when: rsync_result.stdout

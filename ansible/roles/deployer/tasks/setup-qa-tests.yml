@@ -37,7 +37,7 @@
     recursive: yes
     delete: yes
     compress: no
-  with_dict: deployer_qa_git_repositories | default({})
+  with_dict: "{{ deployer_qa_git_repositories | default({}) }}"
 
 - name: deployer | setup-qa-tests | Evaluate target dir
   set_fact:
@@ -52,7 +52,7 @@
     src: "{{ venv_cache_dir }}/{{ item.value.1 }}"
     dest: "{{ setup_qa_tests_dir }}"
   when: item.key in packages_nondist
-  with_dict: venv_cache_dir | find_latest_packages(_deployer_version) | default({})
+  with_dict: "{{ venv_cache_dir | find_latest_packages(_deployer_version) | default({}) }}"
 
 - name: deployer | setup-qa-tests | determine pwd for create_index operation
   set_fact:
@@ -62,7 +62,7 @@
 # This is a duplication of ardana-ansible/roles/package-repo/tasks/configure.yml
 - name: deployer | setup-qa-tests | Update venv index
   become: yes
-  command: >
+  command: >-
     ./create_index
     --dir={{ setup_qa_tests_dir }}
   args:

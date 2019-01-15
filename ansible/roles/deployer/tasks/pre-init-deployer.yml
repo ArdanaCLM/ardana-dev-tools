@@ -39,7 +39,7 @@
     owner: "{{ image_build_user }}"
     group: "{{ image_build_user }}"
     mode: 0444
-  with_items: guest_images
+  with_items: "{{ guest_images }}"
   when: dev_env_use_guest_image_artifacts|bool
 
 # Deploy with the user specified tarball
@@ -153,7 +153,7 @@
   stat:
     path: "{{ item.dest }}"
   register: _deployer_virtual_configuration_file_exists_results
-  with_items: _deployer_virtual_configuration
+  with_items: "{{ _deployer_virtual_configuration }}"
 
 - name: deployer | pre-init-deployer | Configure virtual services
   lineinfile:
@@ -165,7 +165,7 @@
     follow: yes
     state: present
   when: item.stat.exists
-  with_items: _deployer_virtual_configuration_file_exists_results.results
+  with_items: "{{ _deployer_virtual_configuration_file_exists_results.results }}"
 
 - name: deployer | pre-init-deployer | Save the virtual configuration
   shell: |

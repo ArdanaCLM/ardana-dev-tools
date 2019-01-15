@@ -28,7 +28,7 @@
     virtualenv: "{{ _venv_virtualenv_command | dirname | dirname }}"
     state: present
     name: pip virtualenv setuptools<34.0.0 wheel
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout 30
   environment:

@@ -24,31 +24,31 @@
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
     dest: "{{ item.value.dest }}"
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
     copy_links: yes
     recursive: yes
     delete: yes
-  with_dict: deployer_input_model_repositories
+  with_dict: "{{ deployer_input_model_repositories }}"
 
 - name: deployer | _get_deployer_files | Create merged Ansible distribution
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
     dest: "{{ deployer_ansible_dir }}"
     copy_links: yes
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
       --exclude=ardana-ci/*
-  with_dict: deployer_git_repositories
+  with_dict: "{{ deployer_git_repositories }}"
 
 - name: deployer | _get_deployer_files | Transfer all callback plugins
   synchronize:
     src: "{{ dev_env_working_dir }}/ansible/callback_plugins"
     dest: "{{ deployer_ansible_dir }}"
     copy_links: yes
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
 
@@ -56,16 +56,16 @@
   synchronize:
     src: "{{ dev_env_working_dir }}/ansible/filter_plugins/{{ item }}"
     dest: "{{ deployer_ansible_dir }}/filter_plugins/"
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
-  with_items: deployer_filter_plugins
+  with_items: "{{ deployer_filter_plugins }}"
 
 - name: deployer | _get_deployer_files | Transfer constant roles
   synchronize:
     src: "{{ dev_env_working_dir }}/ansible/roles/package-constants/defaults"
     dest: "{{ deployer_ansible_dir }}/roles/package-constants"
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
 
@@ -74,7 +74,7 @@
     src: "{{ dev_env_working_dir }}/ansible/deployer_modules/"
     dest: "{{ deployer_ansible_dir }}/library"
     copy_links: yes
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
 
@@ -94,7 +94,7 @@
     src: "{{ item.value | find_local_repo }}/"
     dest: "{{ deployer_ardana_extensions_dir }}"
     copy_links: yes
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.git*
       --exclude=*.pyc
-  with_dict: deployer_ardana_extensions_repositories
+  with_dict: "{{ deployer_ardana_extensions_repositories }}"

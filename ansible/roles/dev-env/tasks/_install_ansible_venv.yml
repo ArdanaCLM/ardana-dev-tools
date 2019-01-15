@@ -34,7 +34,7 @@
   pip:
     virtualenv: "{{ dev_env_ansible_venv }}"
     name: pip
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout 30
   retries: 5
@@ -53,7 +53,7 @@
     virtualenv: "{{ dev_env_ansible_venv }}"
     state: present
     requirements: "{{ playbook_dir | dirname ~ '/requirements.txt' }}"
-    extra_args: >
+    extra_args: >-
       --upgrade
       --timeout 30
     virtualenv_site_packages: yes
@@ -65,13 +65,18 @@
   when: ((False in _dev_env_pip_update_check) or
          not _stat_venv_ansible_result.stat.exists)
 
-- name: dev-env | _install_ansible_venv | Check for user ansible config file
+- name: dev-env | _install_ansible_venv | Check for ansible config files
   stat:
-    path: ~/.ansible.cfg
+    path: "{{ item }}"
   register: _dev_env_ansible_user_config
+  with_items:
+    - ~/.ansible.cfg
+    - "{{ playbook_dir }}/ansible.cfg"
 
-- name: dev-env | _install_ansible_venv | Write default ansible config
+- name: dev-env | _install_ansible_venv | Write default ansible configs
   template:
     src: roles/dev-env/templates/ansible.cfg.j2
-    dest: ~/.ansible.cfg
-  when: not _dev_env_ansible_user_config.stat.exists
+    dest: "{{ item.item }}"
+  when:
+    - not item.stat.exists
+  with_items: "{{ _dev_env_ansible_user_config.results }}"

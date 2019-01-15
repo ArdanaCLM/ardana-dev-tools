@@ -22,7 +22,7 @@
   apt:
     name: "{{ item }}"
     state: present
-  with_items: isogen_apt_packages
+  with_items: "{{ isogen_apt_packages }}"
   when: ansible_os_family | lower == "debian"
 
 - name: main | install requirements (suse)
@@ -30,5 +30,5 @@
   zypper:
     name: "{{ item }}"
     state: present
-  with_items: isogen_zypper_packages
+  with_items: "{{ isogen_zypper_packages }}"
   when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"

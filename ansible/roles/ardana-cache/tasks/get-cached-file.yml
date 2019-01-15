@@ -51,7 +51,7 @@
   delay: 2
 
 - name: ardana-cache | get-cached-file | Determine file name if pattern used
-  shell: >
+  shell: >-
     awk '$2 ~ "{{ _file.pattern }}" {print $2}' "{{ _server_sha256_tmp }}" |
     sort |
     tail -1

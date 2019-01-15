@@ -29,7 +29,7 @@
     state: directory
 
 - name: ardana-cache | rsync-mirror-repos | Mirror specified repos
-  command: >
+  command: >-
     rsync
       --archive
       --sparse
@@ -42,6 +42,6 @@
   when:
     - item.value.enabled | default(False) | bool
     - item.key in _mirror.enabled
-  with_dict: _mirror.repos | default({})
+  with_dict: "{{ _mirror.repos | default({}) }}"
   retries: 3
   delay: 15

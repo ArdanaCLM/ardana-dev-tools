@@ -46,7 +46,7 @@
     src: /tmp/sles12_extras_tarball.tgz
     dest: "{{ sles12_zypper_extras_tarball }}"
     flat: yes
-  with_items: vagrant_vm_zypper_extras_repo
+  with_items: "{{ vagrant_vm_zypper_extras_repo }}"
 
 - include: setup-zypper-net-repos.yml
   vars:

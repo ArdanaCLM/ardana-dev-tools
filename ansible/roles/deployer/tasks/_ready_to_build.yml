@@ -50,7 +50,7 @@
       abort now if this is not what you intended.
   register: _ready_to_build_use_local_git_repositories
   when: item.key | isdir(dev_env_sources_dir)
-  with_dict: git_repositories | default({})
+  with_dict: "{{ git_repositories | default({}) }}"
 
 - name: deployer  | _ready_to_build | Pause to allow user abort
   pause:

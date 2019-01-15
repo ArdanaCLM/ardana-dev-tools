@@ -46,7 +46,7 @@
 # /media/cdrom is a symlink to /media/cdrom0
 - name: deployer | setup-isos | Generate map of ISOs to mount
   set_fact:
-    iso_mounts: >
+    iso_mounts: >-
       {%- set _mnts = _deployer_iso_mounts %}
       {%- set _map = [] %}
       {%- for res in _isoinfo_result.results %}
@@ -72,7 +72,7 @@
     path: "{{ item.dir }}"
     state: directory
     follow: yes
-  with_items: iso_mounts
+  with_items: "{{ iso_mounts }}"
 
 - name: deployer | setup-isos | Mount CD-ROM devices on mount points
   become: yes
@@ -89,4 +89,4 @@
 
   args:
     executable: "/bin/bash"
-  with_items: iso_mounts
+  with_items: "{{ iso_mounts }}"

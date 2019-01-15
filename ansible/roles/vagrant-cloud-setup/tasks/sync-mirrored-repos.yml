@@ -20,7 +20,7 @@
   delegate_to: localhost  # run on vagrant host
   stat:
     path: "{{ item.mirror }}"
-  with_items: clmsetup.repos
+  with_items: "{{ clmsetup.repos }}"
   register: _mirrored_repos_stat_result
   when:
     - item.mirror is defined
@@ -32,7 +32,7 @@
     path: "{{ clmsetup.server[item.item.distro].base }}/{{ clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
     state: directory
     follow: yes
-  with_items: _mirrored_repos_stat_result.results
+  with_items: "{{ _mirrored_repos_stat_result.results }}"
   when:
     - not (item | skipped)
 
@@ -44,6 +44,6 @@
     compress: no
     archive: yes
     delete: yes
-  with_items: _mirrored_repos_stat_result.results
+  with_items: "{{ _mirrored_repos_stat_result.results }}"
   when:
     - not (item | skipped)

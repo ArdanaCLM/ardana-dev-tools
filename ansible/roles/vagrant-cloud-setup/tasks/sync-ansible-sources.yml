@@ -23,17 +23,36 @@
     src: "{{ item.value | find_local_repo }}/"
     dest: "~/openstack/ardana/ansible/"
     copy_links: yes
-    rsync_opts: >
+    rsync_opts: >-
       --exclude=.copyrightignore
-      --exclude=.git*
-      --exclude=*.pyc
-      --exclude=ardana-ci/*
+      --exclude='.git*'
+      --exclude='*.pyc'
+      --exclude='ardana-ci/*'
       --exclude=hosts/localhost
       --exclude=LICENSE
-  with_dict: deployer_git_repositories | default({})
+      --exclude=roles/deployer-setup/files/ardana-init.bash
+  with_dict: "{{ deployer_git_repositories | default({}) }}"
   when:
     - not (item.value | find_local_repo | search(product_cache_base_directory))
   register: _sync_ansible_sources_result
+
+# TODO(fergal): remove when we move forward to a version of
+# the synchronize module that isn't broken.
+# Workaround for broken synchronize module in ansible 2.4; from
+# what I can determine the rsync_opts argument can contain only
+# one argument, which must be formatted acceptably for use in
+# an exec() call, i.e. no extraneous characters such as quotes
+# that may be needed for shell invocations.
+- name: vagrant-cloud-setup | sync-ansible-sources | Ansible 2.4 synchronize exclude issues workaround
+  shell: |
+    set -vxe
+    cd ${HOME}/openstack/ardana/ansible/
+    rm -rf .git* .copyrightignore LICENSE roles/deployer-setup/files/ardana-init.bash
+    find . -name "*.pyc" -delete
+    find . -name ".git*" -delete
+  when:
+    - ansible_version.major == 2
+    - ansible_version.minor == 4
 
 - name: vagrant-cloud-setup | sync-ansible-sources | Save local ansible source changes if any
   shell: |

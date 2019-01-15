@@ -19,7 +19,7 @@
 
 - name: image-build | build-packer-qcow2 | Determine image build http dir
   set_fact:
-    image_build_http_dir: >
+    image_build_http_dir: >-
       {{ playbook_dir }}/roles/image-build/files/{{ image_build_name }}/http
 
 - name: image-build | build-packer-qcow2 | Create local directories if necessary
@@ -70,8 +70,9 @@
 
 - name: image-build | build-packer-qcow2 | Construct ISO sha256 checksum name
   set_fact:
-    image_build_iso_checksum_file: >
+    image_build_iso_checksum_file: >-
       {{ image_build_iso | realpath }}.sha256
+
 - name: image-build | build-packer-qcow2 | Check for ISO sha256 checksum
   stat:
     path: "{{ image_build_iso_checksum_file }}"

@@ -36,4 +36,4 @@
     name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
     state: running
   when: item != _vagrant_deployer
-  with_items: _vagrant_all_list_result.stdout_lines
+  with_items: "{{ _vagrant_all_list_result.stdout_lines }}"

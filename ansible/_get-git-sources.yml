@@ -48,11 +48,12 @@
         repo_development_source: "{{ dev_env_sources_dir ~ '/' ~ item.value.url |
                                      default('') |
                                      basename }}"
-      always_run: yes
+      check_mode: no
       with_dict: "{{ sources }}"
       # Need to skip this task here, as this doesn't work on the include
-      when: "{{ ( lookup('env', 'ARDANA_SKIP_REPO_CHECKOUT')|default('') == '' )
-                     and ( when_cond is not defined or when_cond|bool ) }}"
+      when:
+        - ( lookup('env', 'ARDANA_SKIP_REPO_CHECKOUT')|default('') == '' )
+        - ( when_cond is not defined or when_cond|bool )
 
 
 - hosts: repo_parallel
@@ -79,61 +80,18 @@
       environment:
         GIT_HTTP_LOW_SPEED_LIMIT: 4096
         GIT_HTTP_LOW_SPEED_TIME: 600
-      async: "{{ dev_env_git_timeout }}"
-      poll: 1
-      when: repo_info.url is defined and not ( repo_development_source | isdir )
-      register: _git_module_part1_result
+      when:
+        - repo_info.url is defined
+        - not ( repo_development_source | isdir )
+      register: _git_module_part_result
       ignore_errors: true
+      retries: 3
+      delay: 5
 
-    - name: Add in retry to the async git module task above if it fails - part 2
-      pause:
-        seconds: 1
-      when: _git_module_part1_result|failed
-
-    - name: Add in retry to the async git module task above if it fails - part 2
-      git:
-        repo: "{{ repo_info.url }}"
-        dest: "{{ _source_cache_dir }}"
-        version: "{{ repo_info.branch }}"
-        update: "{{ dev_env_global_git_update }}"
-        depth: "{{ source_depth|default(0) }}"
-        bare: yes
-        force: yes
-      environment:
-        GIT_HTTP_LOW_SPEED_LIMIT: 4096
-        GIT_HTTP_LOW_SPEED_TIME: 60
-      async: "{{ dev_env_git_timeout }}"
-      poll: 1
-      when: _git_module_part1_result|failed
-      register: _git_module_part2_result
-      ignore_errors: true
-
-    - name: Add in retry to the async git module task above if it fails - part 3
-      pause:
-        seconds: 1
-      when: _git_module_part2_result|failed
-
-    - name: Add in retry to the async git module task above if it fails - part 3
-      git:
-        repo: "{{ repo_info.url }}"
-        dest: "{{ _source_cache_dir }}"
-        version: "{{ repo_info.branch }}"
-        update: "{{ dev_env_global_git_update }}"
-        depth: "{{ source_depth|default(0) }}"
-        bare: yes
-        force: yes
-      environment:
-        GIT_HTTP_LOW_SPEED_LIMIT: 4096
-        GIT_HTTP_LOW_SPEED_TIME: 60
-      async: "{{ dev_env_git_timeout }}"
-      poll: 1
-      when: _git_module_part2_result|failed
-      register: _git_module_part3_result
-      ignore_errors: true
-
-    - name: Fail if we really, really, really can not checkout the repo
-      fail: msg="We tried, and tried and failed to fetch the repo {{ repo_info.url }}"
-      when: _git_module_part3_result|failed
+    - name: Fail if we cannot checkout the repo
+      fail:
+        msg: "We failed to fetch the repo {{ repo_info.url }}"
+      when: _git_module_part_result|failed
 
 # Run the following tasks without serial set.
 - hosts: repo_parallel

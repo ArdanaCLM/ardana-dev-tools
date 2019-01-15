@@ -28,7 +28,7 @@
     - vagrant_missing_plugins | length > 0
 
 - name: dev-env-vagrant | install-plugins | Install missing plugins if any
-  command: >
+  command: >-
     vagrant
       plugin
       install
@@ -40,7 +40,7 @@
       {% if item.version is defined %}
       --plugin-version {{ item.version }}
       {%- endif  %}
-  with_items: vagrant_missing_plugins
+  with_items: "{{ vagrant_missing_plugins }}"
 
 # TODO(fergal): Add support for list of patches per plugin
 - name: dev-env-vagrant | install-plugins | Apply plugin patches if any
@@ -48,6 +48,6 @@
     basedir: "{{ vagrant_home }}/{{ item.patch.subdir | default('gems') }}"
     src: "{{ role_path }}/files/vagrant-patch-plugins/{{ item.patch.file }}"
     strip: "{{ item.patch.strip | default(0) }}"
-  with_items: vagrant_missing_plugins
+  with_items: "{{ vagrant_missing_plugins }}"
   when:
     - item.patch is defined
