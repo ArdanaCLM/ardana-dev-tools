@@ -436,6 +436,13 @@ fi
 $SCRIPT_HOME/deploy-vagrant-up || logfail deploy
 logsubunit --inprogress deploy
 
+# Configure radvd for IPv6 if needed.
+if [ -n "${ARDANA_IPV6_NETWORKS}" ]; then
+    # run playbook to configure radvd
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
+        $DEVTOOLS/ansible/dev-env-radvd-configure.yml
+fi
+
 generate_ssh_config "FORCE"
 
 if [[ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]]; then

@@ -770,6 +770,28 @@ module Ardana
       end
     end
 
+    def get_ipv6_prefix(if_index)
+      # Default randomly generated IPv6 ULAs
+      ardana_ipv6_ula = []
+      ula_file = "#@dev_tool_path/bin/default_ipv6_ula"
+      if !File.exists?(ula_file)
+        STDERR.puts "ERROR! Missing default_ula file: #{ula_file}"
+      else
+        ardana_ipv6_ula = File.read(ula_file).split(',').map(&:strip)
+      end
+
+      if !!ENV["ARDANA_NET_IPV6_ULA"]
+        ardana_ipv6_ula_from_env = ENV["ARDANA_NET_IPV6_ULA"].split(',')
+        if ardana_ipv6_ula_from_env.length < if_index.to_i
+          return ardana_ipv6_ula[if_index.to_i]
+        else
+          return ardana_ipv6_ula_from_env[if_index.to_i]
+        end
+      else
+        return ardana_ipv6_ula[if_index.to_i]
+      end
+    end
+
     def add_ip_opts(opts, if_index, ip_opts)
       [:v4, :v6].each do |s|
         if @ardana[:ip][s].include? if_index and ip_opts.include? s
@@ -793,7 +815,7 @@ module Ardana
         },
         :v6 => {
           libvirt__guest_ipv6: "yes",
-          libvirt__ipv6_address: "fd00:#{if_index}::",
+          libvirt__ipv6_address: get_ipv6_prefix(if_index),
           libvirt__ipv6_prefix: "64"
         }
       }
@@ -824,7 +846,7 @@ module Ardana
         },
         :v6 => {
           libvirt__guest_ipv6: "yes",
-          libvirt__ipv6_address: "fd00:#{if_index}::",
+          libvirt__ipv6_address: get_ipv6_prefix(if_index),
           libvirt__ipv6_prefix: "64"
         }
       }
@@ -857,7 +879,7 @@ module Ardana
           },
           :v6 => {
             libvirt__guest_ipv6: "yes",
-            libvirt__ipv6_address: "fd00:#{if_index}::",
+            libvirt__ipv6_address: get_ipv6_prefix(if_index),
             libvirt__ipv6_prefix: "64"
           }
         }
