@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2017-2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -29,6 +29,14 @@ ARDANA_USER="${1}"
 
 pushd "${HOME}/openstack/ardana/ansible"
 
+# increase the root volume disk space by 10G if needed:
+cobbler_fs=/srv/www
+srv_www_avail=$(df -m --output=avail ${cobbler_fs} | tail -1 | tr -d '[[:space:]]')
+if (( srv_www_avail < 10240 )); then
+    (( extra_space = ((((10240 + 255) - srv_www_avail)/256)*256) ))
+    sudo lvresize -r -L +${extra_space}M $(df -m --output=source ${cobbler_fs} | tail -1)
+fi
+
 sudo mkdir -p /opt/ardana_packager/preseed/
 sudo date +%Y%m%d%H%M%S | sudo tee /opt/ardana_packager/preseed/timestamp > /dev/null
 # CI check for deployer in CP
@@ -36,3 +44,5 @@ sudo cat /opt/ardana_packager/preseed/timestamp | sudo tee /etc/cobbler_ardana_i
 
 ansible-playbook -i hosts/localhost cobbler-deploy.yml \
     -e ardanauser_password="${ARDANA_USER}" | tee ${HOME}/cobbler-deployer.log
+
+# vim:shiftwidth=4:tabstop=4:expandtab
