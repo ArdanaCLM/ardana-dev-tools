@@ -13,13 +13,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Top level playbook to configure radvd for ardana
 ---
 
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env-radvd
-  tasks:
-    - include: roles/dev-env-radvd/tasks/config.yml
-    - include: roles/dev-env-radvd/tasks/restart.yml
+- name: dev-env-radvd | restart | Restart radvd
+  become: yes
+  service:
+    name: radvd
+    state: restarted
