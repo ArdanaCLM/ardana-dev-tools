@@ -105,6 +105,7 @@ rhel_repo_rpms_list:
   - python-py
   - python-pycparser
   - python-pykerberos
+  - python-PySocks
   - python-pytz
   - python-requests
   - python-requests-kerberos
