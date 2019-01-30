@@ -47,7 +47,7 @@ TEMP=$(getopt -o -h -l help,ci,no-config -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
 while true ; do
-    case "$1" in
+    case "${1:-}" in
         -h | --help) usage ; exit 0 ;;
         --ci) export ARDANAUSER=${ARDANAUSER:-ardana} ; shift ;;
         --no-config) NO_CONFIG=--no-config ; shift ;;

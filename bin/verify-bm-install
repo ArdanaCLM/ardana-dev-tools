@@ -18,74 +18,52 @@
 # Called by CI
 #
 
-set -eux
+set -eu
 set -o pipefail
 
 eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 
-source $(dirname $0)/libci.sh
+SCRIPT_NAME=$(basename $0)
+SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 
-verifybmscript=verify-bm.sh
-CLOUDNAME="${1:-"deployerincloud"}"
-DEPLOYERNODE="$(get_deployer_node)"
+usage() {
+    set +x
+    echo "$SCRIPT_NAME [--no-config] [--no-wipe-disks]"
+    echo
+    echo "Run the bm-verify.yml playbook against re-imaged nodes to sanity"
+    echo "check that they were re-imaged correctly. If the --no-config"
+    echo "option is specified we skip running the configuration processor"
+    echo "as part of setting up the scratch area to be able to run the"
+    echo "test playbooks."
+    echo
+    echo "If the --no-wipe-disks option isn't specified we will then run"
+    echo "the wipe_disks.yml play against the re-imaged nodes."
+}
 
-cat > $verifybmscript << "EOF"
-#!/bin/bash
+NO_CONFIG=
+WIPE_DISKS=--wipe-disks
 
-set -eux
-set -o pipefail
+TEMP=$(getopt -o -h -l help,no-config,no-wipe-disks -n $SCRIPT_NAME -- "$@")
+if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 
-pushd "${HOME}/openstack/ardana/ansible"
-
-export PYTHONUNBUFFERED=1
-# Note: This must _NOT_ go into the default ansible config.
-export ANSIBLE_MAX_FAIL_PERCENTAGE=0
-
-git add -A
-git commit --allow-empty -m "My commit"
-
-# Generates the host_verbs file
-ansible-playbook \
-    -i hosts/localhost \
-    config-processor-run.yml -e encrypt="" -e rekey=""
-
-ansible-playbook \
-    -i hosts/localhost \
-    ready-deployment.yml
-
-cd "${HOME}/scratch/ansible/next/ardana/ansible"
-
-# Run ssh-keyscan
-ansible-playbook \
-    -i hosts/verb_hosts \
-    ardana-ssh-keyscan.yml
-
-# The VMs may not be up yet so we need to retry. We can't handle this in
-# the playbook because the set of nodes is determined by Ansible and we
-# don't have access to the list of unreachable nodes (ttbomk) in our tasks.
-set +e
-n=0
-until (( n > 9 ))
-do
-    ansible-playbook \
-        -i hosts/verb_hosts \
-        bm-verify.yml 2>&1 |
-      tee ${HOME}/bm-verify.log
-    retval=$?
-    if (( $retval == 0 )) ; then
-        break
-    fi
-    (( n++ ))
-    sleep 30
+while true ; do
+    case "${1:-}" in
+        -h | --help) usage ; exit 0 ;;
+        --no-config) NO_CONFIG="${1}" ; shift ;;
+        --no-wipe-disks) WIPE_DISKS="" ; shift ;;
+        --) shift ; break ;;
+        *) break ;;
+    esac
 done
-set -e
-if (( $retval != 0 )) ; then
-    exit $retval
-fi
-EOF
 
-sshconfig=deploy-vagrant-ssh-config
-vagrant ssh-config $DEPLOYERNODE 2>>"${VAGRANT_LOG_DIR}/${sshconfig}.log" > $sshconfig
+set -x
 
-scp -F $sshconfig $verifybmscript $DEPLOYERNODE:~
-ssh -F $sshconfig $ARDANAUSER@$DEPLOYERNODE bash $verifybmscript
+source ${SCRIPT_HOME}/libci.sh
+
+${SCRIPT_HOME}/run-in-deployer.sh \
+    ${SCRIPT_HOME}/deployer/config-cloud.sh -- ${NO_CONFIG}
+
+${SCRIPT_HOME}/run-in-deployer.sh \
+    ${SCRIPT_HOME}/deployer/verify-bm.sh -- ${WIPE_DISKS}
+
+# vim:shiftwidth=4:tabstop=4:expandtab
