@@ -125,8 +125,9 @@
     md5sum "${image_output}.env" \
         "${image_output}.qcow2" \
         roles/image-build/tasks/build-packer-qcow2.yml \
-        $(find roles/image-build/files/{{ image_build_name }}/ -type f \
-            ! -name "{{ images_build_images[image_build_name].install_template | basename }}") \
+        $(find roles/image-build/files/{{ image_build_name }}/ ! -type d \
+            ! -name "{{ images_build_images[image_build_name].install_template | basename }}" \
+            ! -name "Vagrantfile" ) \
         roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2 \
             > "${image_output}.md5sum.tmp"
     echo md5sumd files
