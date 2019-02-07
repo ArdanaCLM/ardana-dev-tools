@@ -715,7 +715,7 @@ module Ardana
         domain.volume_cache = 'unsafe'
         domain.nested = true
         domain.cpu_mode = 'host-passthrough'
-        domain.machine_virtual_size = 120
+        domain.machine_virtual_size = 150
         domain.graphics_type = 'vnc'
         domain.graphics_port = graphics_port
       end

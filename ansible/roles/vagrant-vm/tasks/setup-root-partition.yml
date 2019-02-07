@@ -156,10 +156,11 @@
   command: pvresize {{ vagrant_vm_root_device }}{{ vagrant_vm_root_partition.stdout | int }}
   when: ( vagrant_lvm_based | success ) and (vagrant_lvm_root_size.stdout | int) < 2000
 
-# Resize to 24G which is 20% of 120G for swobj1
+# Resize root LV to 20% of the VG capacity; i.e. ~30G for a 150G VG size
+# NOTE: that the mid-size input model has the root LV at 20% of VG size
 - name: vagrant-vm | setup-root-partition | Resize lv if necessary
   become: yes
-  command: lvresize -L 24G /dev/{{ vagrant_vm_vg }}/root
+  command: lvresize -l 20%VG /dev/{{ vagrant_vm_vg }}/root
   register: _lvresize_output
   failed_when: ( _lvresize_output.rc != 0 ) and ( "matches existing size" not in _lvresize_output.stderr )
   when: ( vagrant_lvm_based | success ) and (vagrant_lvm_root_size.stdout | int) < 2000
