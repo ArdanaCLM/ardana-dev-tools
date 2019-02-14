@@ -40,7 +40,7 @@ ardana_branches[8]=stable/pike
 ardana_branches[9]=master
 ARDANA_CLOUD_BRANCH="${ARDANA_CLOUD_BRANCH:-${ardana_branches[${ARDANA_CLOUD_VERSION}]}}"
 
-REPO_NAME="SUSE-OpenStack-Cloud-${ARDANA_CLOUD_VERSION}-devel-staging"
+REPO_NAME="SUSE-OpenStack-Cloud-${ARDANA_CLOUD_VERSION}-${ARDANA_CLOUD_SOURCE:-devel-staging}"
 
 PUBLISHED_RPMS="${PUBLISHED_RPMS:-http://provo-clouddata.cloud.suse.de/repos/x86_64/${REPO_NAME}/suse/noarch/}"
 WORKSPACE=$(cd $(dirname $0)/../.. ; pwd)
@@ -48,7 +48,21 @@ echo WORKSPACE $WORKSPACE
 ARDANA_OVERRIDE_RPMS="${ARDANA_OVERRIDE_RPMS:-${WORKSPACE}/NEW_RPMS}"
 
 IOSC='osc -A https://api.suse.de'
-CURRENT_OSC_PROJ="${CURRENT_OSC_PROJ:-Devel:Cloud:${ARDANA_CLOUD_VERSION}:Staging}"
+
+case "${ARDANA_CLOUD_SOURCE:-devel-staging}" in
+(devel-staging)
+    _osc_proj="Devel:Cloud:${ARDANA_CLOUD_VERSION}:Staging"
+    ;;
+(devel|Updates-test|Updates|Pool)
+    # Default to using the Devel version for all other cloud sources
+    _osc_proj="Devel:Cloud:${ARDANA_CLOUD_VERSION}"
+    ;;
+(*)
+    echo "ERROR: unsupported cloud source '${ARDANA_CLOUD_VERSION}'."
+    exit 1
+    ;;
+esac
+CURRENT_OSC_PROJ="${CURRENT_OSC_PROJ:-${_osc_proj}}"
 
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
