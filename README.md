@@ -173,10 +173,10 @@ up with the LSI model SCSI controller.
 
 ### Ansible version
 
-The Ardana OpenStack ansible playbooks, as well as those in the DevEnv
-(ardana/ardana-dev-tools.git repo) repo, have not been updated to work
-with Ansible 2.x, and currently are only verified to work correctly with
-Ansible 1.9.
+The Ardana DevEnv (ardana/ardana-dev-tools.git repo) tools have been
+updated to be compatible with Ansible 2.4.6, though the Ardana OpenStack
+ansible playbooks themselves, have not been updated to work with Ansible
+2.x, and currently are only verified to work correctly with Ansible 1.9.
 
 A utility, ardana-env, is provided in the ardana/ardana-dev-tools.git
 repo's bin directory, which will setup the runtime environment with an

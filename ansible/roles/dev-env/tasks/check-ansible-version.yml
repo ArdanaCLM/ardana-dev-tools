@@ -14,13 +14,25 @@
 # under the License.
 
 ---
-- name: dev-env | ansible | Fail due to incorrect Ansible (or dep) version
-  fail:
-    msg: >
-      Development environment requires specific versions of Ansible and some
-      dependencies. Please follow re-run the 'dev-env-install' playbook to
-      get the correct versions of all packages required.
 
+- block:
+  - name: dev-env | ansible | Ansible version correct?
+    debug:
+      msg: >
+        Development environment requires specific versions of Ansible and some
+        dependencies. Please re-run the '{{ dev_env_working_dir }}/dev-env-setup'
+        script, or the 'astack.sh' script without the '--no-setup' option, to
+        setup the correct Ansible runtime environment.
 
-      Or did you forget to run 'source {{ dev_env_ansible_venv }}/bin/activate'
-  when: not detected_ansible_version | check_specs(dev_env_ansible_pip_specs)
+  - name: dev-env | ansible | Ansible runtime activated?
+    debug:
+      msg: >
+        Or did you forget to run 'eval $({{ dev_env_working_dir }}/ardana-env)'
+        if running commands manyally?
+
+  - name: dev-env | ansible | Fail due to Ansible runtime environment issues
+    fail:
+      msg: "Unsupported Ansible runtime environment detected"
+  when:
+    - (detected_ansible_version == "") or
+      (detected_ansible_version | version_compare_smart(dev_env_ansible_version, "lt"))

@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,14 +13,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# notification handlers
 ---
 
-- name: Warn user to source ansible venv
-  debug:
-    msg: >
-        ******** WARNING Incompatible Ansible or dependency detected ********
+- name: dev-env | _install_ansible_cfg | Check for ansible config files
+  stat:
+    path: "{{ item }}"
+  register: _dev_env_ansible_user_config
+  with_items:
+    - ~/.ansible.cfg
+    - "{{ playbook_dir }}/ansible.cfg"
 
-        You must run 'eval $({{ dev_env_working_dir }}/bin/ardana-env)' before
-        continuing with subsequent plays, otherwise they will fail due to a
-        requirement on newer version of Ansible or dependency.
+- name: dev-env | _install_ansible_cfg | Write default ansible configs
+  template:
+    src: roles/dev-env/templates/ansible.cfg.j2
+    dest: "{{ item.item }}"
+  when:
+    - not item.stat.exists
+  with_items: "{{ _dev_env_ansible_user_config.results }}"

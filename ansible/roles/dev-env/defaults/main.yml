@@ -40,11 +40,9 @@ dev_env_default_git_server: "{%- if dev_env_site_config.git is defined -%}git://
 site: "{{ lookup('env','ARDANA_SITE') |
           default('provo', true) }}"
 
+dev_env_ansible_version: "{{ lookup('env', 'ARDANA_ANSIBLE_VERSION') | default('2.4.6', true) }}"
 detected_ansible_version: "{{ lookup('pipe', 'command ansible --version').split('\n')[0].split(' ') | last }}"
-dev_env_requirements: "{{ lookup('file', playbook_dir | dirname ~ '/requirements.txt').split('\n') }}"
-dev_env_ansible_pip_specs: "{{ dev_env_requirements | parse_requirements('ansible') | flatten | list }}"
-dev_env_pips_installed: "{{ lookup('pipe', 'command pip freeze | grep -vEe \"^(#|[^=]*$)\"') }}"
-
+dev_env_cache_ansible_venv: "{{ product_cache_base_directory }}/venvs/ansible-{{ dev_env_ansible_version }}"
 dev_env_ansible_venv: "{{ dev_env_working_dir }}/tools/venvs/ansible"
 
 dev_env_artifact_branch: "{{ product_branch }}"

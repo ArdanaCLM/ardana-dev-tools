@@ -29,19 +29,9 @@ source ${SCRIPT_DIR}/libci.sh
 # Verify that we can actually download from the git server.
 wget --spider -v -t3 $GOZER_GIT_MIRROR
 
-VENV=$DEVTOOLS/tools/venvs/ansible
-
-# Setup dev install
-if [ ! -e $VENV ]; then
-  mkdir -p $VENV
-  virtualenv --python=python2 --no-site-packages $VENV
-  $VENV/bin/pip install -U pip
-  $VENV/bin/pip install -r ${DEVTOOLS}/requirements.txt
-fi
-
 # Setup slave
 pushd $DEVTOOLS/ansible
-$VENV/bin/ansible -e dev_env_default_git_server=${GOZER_GIT_MIRROR} --version
+ansible -e dev_env_default_git_server=${GOZER_GIT_MIRROR} --version
 
 # enable extended globbing in bash
 shopt -s extglob
@@ -50,6 +40,6 @@ shopt -s extglob
 # See: https://suse-jira.dyndns.org/browse/BUG-3057
 GLOBIGNORE="ardana_version.yml:percona-post-upgrade.yml:percona-pre-upgrade.yml"
 # run a syntax-check passing in dumb values for variables that are prompted
-$VENV/bin/ansible-playbook -i hosts/localhost --syntax-check *.yml -e \
+ansible-playbook -i hosts/localhost --syntax-check *.yml -e \
   "old_deployer_hostname=dumb ardanauser_password=dumb encrypt=dumb rekey=dumb"
-$VENV/bin/ansible-playbook -e dev_env_default_git_server=${GOZER_GIT_MIRROR} -i hosts/localhost lint-run.yml
+ansible-playbook -e dev_env_default_git_server=${GOZER_GIT_MIRROR} -i hosts/localhost lint-run.yml
