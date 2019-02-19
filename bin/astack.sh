@@ -261,15 +261,18 @@ fi
 
 # Cloud based configuration
 if [ -n "$USE_PROJECT_STACK" ]; then
-    CLOUDNAME=project
-    PROJECT_CLOUD=${1:-project}
+    ARDANA_CLOUD_NAME=project
+    export PROJECT_CLOUD=${1:-project}
 else
-    CLOUDNAME=${1:-dac-min}
+    ARDANA_CLOUD_NAME=${1:-demo}
 fi
+
+ARDANA_VAGRANT_DIR="$DEVTOOLS/ardana-vagrant-models/${ARDANA_CLOUD_NAME}-vagrant"
+export ARDANA_CLOUD_NAME ARDANA_VAGRANT_DIR
 
 # For a CI run of the "standard" cloud we ensure that the
 # third compute is RHEL.
-if [ -n "$CI" -a "$CLOUDNAME" = "standard" ]; then
+if [ -n "$CI" -a "${ARDANA_CLOUD_NAME}" = "standard" ]; then
     # Ensure we build RHEL artifacts
     export ARDANA_RHEL_ARTIFACTS=1
 
@@ -321,13 +324,17 @@ if [ -z "$NO_SETUP" ]; then
     logsubunit --success setup
 fi
 
-clouddir="$DEVTOOLS/ardana-vagrant-models/${CLOUDNAME}-vagrant"
-if [ ! -d "$clouddir" ]; then
-    echo "$clouddir not found" >&2; exit 1
+if [ ! -d "${ARDANA_VAGRANT_DIR}" ]; then
+    echo "${ARDANA_VAGRANT_DIR} not found" >&2; exit 1
 fi
 
+# Setup input model under ${ARDANA_VAGRANT_DIR}
+$SCRIPT_HOME/setup-vagrant-input-model \
+    --verbose \
+    "${ARDANA_CLOUD_NAME}"
+
 # Deploy and configure your cloud
-pushd $clouddir
+pushd ${ARDANA_VAGRANT_DIR}
 
 # Generate the .astack-env before bringing up the cloud
 generate_astack_env "FORCE"
@@ -479,24 +486,24 @@ if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
             ${COBBLER_RHEL_COMPUTE:+--rhel-compute} \
             ${COBBLER_SLES_COMPUTE:+--sles-compute} \
             ${COBBLER_SLES_CONTROL:+--sles-control} \
-            $CLOUDNAME
+            ${ARDANA_CLOUD_NAME}
 fi
 
 # Init the model
 $SCRIPT_HOME/run-in-deployer.sh \
-    "$SCRIPT_HOME/deployer/init-input-model.sh" "$CLOUDNAME" || logfail deploy
+    "$SCRIPT_HOME/deployer/init-input-model.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
 
 # If using Provo site, use different ntp server
 if [ "${ARDANA_SITE:-provo}" = "provo" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \
-        "$SCRIPT_HOME/deployer/fix-ntp-server.sh" "$CLOUDNAME" || logfail deploy
+        "$SCRIPT_HOME/deployer/fix-ntp-server.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
 fi
 
 # If using caching proxy on deployer node, need to update firewall
 # rules to permit access to it.
 if [ -n "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \
-        "$SCRIPT_HOME/deployer/add-squid-firewall-rules.sh" "$CLOUDNAME" || logfail deploy
+        "$SCRIPT_HOME/deployer/add-squid-firewall-rules.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
 fi
 
 # If --project-stack is set then modify the input model appropriately.
@@ -566,10 +573,10 @@ if [ -n "${COBBLER_NODES}" -o -n "$COBBLER_ALL_NODES" ] ; then
     if [ -n "${COBBLER_NODES}" ]; then
         export ARDANA_COBBLER_NODES="$COBBLER_NODES"
     fi
-    $SCRIPT_HOME/vagrant-set-pxe-on $CLOUDNAME || logfail deploy
-    $SCRIPT_HOME/vagrant-check-power-off $CLOUDNAME || logfail deploy
-    $SCRIPT_HOME/vagrant-set-pxe-off $CLOUDNAME || logfail deploy
-    $SCRIPT_HOME/vagrant-check-power-on $CLOUDNAME || logfail deploy
+    $SCRIPT_HOME/vagrant-set-pxe-on ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/vagrant-check-power-off ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/vagrant-set-pxe-off ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/vagrant-check-power-on ${ARDANA_CLOUD_NAME} || logfail deploy
     logsubunit --inprogress deploy
 fi
 
@@ -620,7 +627,7 @@ popd
 
 # Connect deployer to external network
 pushd $DEVTOOLS/ansible
-case "$CLOUDNAME" in
+case "${ARDANA_CLOUD_NAME}" in
     "mid-size")
         EXTRAARGS='-e {"dev_env_ext_net":{"bridge_ip":"169.254.1.1","netmask":["172.31.0.1/16"],"vlan":"3367"}}';
         ROUTEEXTRAARGS='';;
@@ -657,13 +664,13 @@ if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
         run_test_args="-- --tempest-only"
     fi
 
-    pushd "${DEVTOOLS}/ardana-vagrant-models/${CLOUDNAME}-vagrant"
+    pushd "${DEVTOOLS}/ardana-vagrant-models/${ARDANA_CLOUD_NAME}-vagrant"
     ${SCRIPT_HOME}/run-in-deployer.sh \
         ${run_in_args} \
         ${SCRIPT_HOME}/deployer/run-tests.sh \
             ${run_test_args} \
             ${RUN_TESTS_FILTER} \
-            ${CLOUDNAME}
+            ${ARDANA_CLOUD_NAME}
     popd
 fi
 

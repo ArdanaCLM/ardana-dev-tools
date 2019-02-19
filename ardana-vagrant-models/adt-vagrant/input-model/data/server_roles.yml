@@ -1,7 +1,6 @@
-#!/bin/bash
 #
-# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017-2018 SUSE LLC
+# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017,2018 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,20 +14,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Called by CI
-#
+---
+  product:
+    version: 2
 
-set -eux
-set -o pipefail
+  server-roles:
 
-eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+    - name: CONTROLLER-ROLE
+      interface-model: CONTROLLER-INTERFACES
+      disk-model: CONTROLLER-DISKS
 
-source $(dirname $0)/libci.sh
-
-export ARDANA_CLOUD_NAME="${1:-"deployerincloud"}"
-
-pushd "$DEVTOOLS/ardana-vagrant-models/$ARDANA_CLOUD_NAME-vagrant"
-export DEPLOYERNODE="$(get_deployer_node)"
-ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
-    $DEVTOOLS/ansible/vagrant-power-status-off.yml
-popd
+    - name: RESOURCE-ROLE
+      interface-model: COMPUTE-INTERFACES
+      disk-model: COMPUTE-DISKS

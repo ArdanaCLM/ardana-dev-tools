@@ -28,7 +28,7 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 source $(dirname $0)/libci.sh
 
 WORKSPACE=${WORKSPACE:-$PWD}
-CLOUDNAME="${1:-"deployerincloud"}"
+ARDANA_CLOUD_NAME="${1:-"deployerincloud"}"
 
 DEPLOYERNODE="$(get_deployer_node)"
 
@@ -41,7 +41,7 @@ $SCRIPT_HOME/run-in-deployer.sh $SCRIPT_HOME/deployer/clear-ardana-git-for-upgra
 # find the location of the cloudX iso to use.
 ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
     $DEVTOOLS/ansible/vagrant-attach-upgrade-iso.yml \
-        -e cloud=$CLOUDNAME -e deployernode=$DEPLOYERNODE
+        -e cloud=$ARDANA_CLOUD_NAME -e deployernode=$DEPLOYERNODE
 
 # Provision the deployer with the latest ISO and venv packages
 vagrant provision --debug $DEPLOYERNODE 2> "${VAGRANT_LOG_DIR}/deployer-provision.log"

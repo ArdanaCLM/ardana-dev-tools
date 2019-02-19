@@ -37,7 +37,7 @@ def _cache_path(source, subdir):
     c_name = hashlib.sha1(os.path.dirname(url)).hexdigest()
     c_path = "%s/%s/%s_%s" % (BASE, subdir, os.path.basename(url), c_name)
 
-    return c_path
+    return os.path.normpath(c_path)
 
 
 def bare_cache_path(source):

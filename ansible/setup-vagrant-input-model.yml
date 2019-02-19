@@ -1,0 +1,40 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Retrieve git sources for input model repos
+  import_playbook: _get-git-sources.yml
+  vars:
+    sources_branch: "{{ input_model_branch }}"
+    sources:
+      ardana-input-model:
+        url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
+        branch: "{{ input_model_branch }}"
+        #dest: "{{ dev_env_scratch_dir }}/input-model"
+
+- hosts: localhost
+  connection: local
+  roles:
+    - dev-env
+  vars:
+      local_input_model_clone: "{{ {'url': dev_env_default_git_server ~ '/ardana/ardana-input-model', 'branch': input_model_branch} | find_local_repo }}"
+
+  tasks:
+    - synchronize:
+        src: "{{ local_input_model_clone }}/2.0/ardana-ci/{{ input_model_name }}/"
+        dest: "{{ input_model_dest }}/"
+        archive: yes
+        delete: yes

@@ -59,6 +59,15 @@ dev_env_provider_net:
     - netmask: 172.30.1.1/24
       vlan: 106
 
+# Name of cloud we are testing
+dev_env_cloud_name: "{{ lookup('env', 'ARDANA_CLOUD_NAME') | default('adt', true) }}"
+
+# Vagrant directory used for the cloud deployment
+dev_env_vagrant_dir: >-
+  {{ lookup('env', 'ARDANA_VAGRANT_DIR') |
+     default([dev_env_working_dir, 'ardana-vagrant-models',
+              dev_env_cloud_name ~ '-vagrant'] | join('/'), true) }}
+
 # Should we attach the ISOs to the deployer node?
 dev_env_attach_isos: "{{ lookup('env', 'ARDANA_ATTACH_ISOS') | default(False, true) }}"
 

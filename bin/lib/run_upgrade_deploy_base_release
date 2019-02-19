@@ -24,7 +24,7 @@ set -o pipefail
 export SCRIPT_HOME=$(cd $(dirname $0)/.. ; pwd)
 source $SCRIPT_HOME/libci.sh
 
-CLOUDNAME=$1
+ARDANA_CLOUD_NAME=$1
 
 # Specify that we want to us the artifact download by
 # get-release-artifacts
@@ -83,4 +83,4 @@ export ARDANA_NO_SETUP_QA=1
 
 # Bring up the cloud.
 # CI is specified or not via the run-upgrade script
-$SCRIPT_HOME/astack.sh --no-setup --no-build $CLOUDNAME
+$SCRIPT_HOME/astack.sh --no-setup --no-build $ARDANA_CLOUD_NAME

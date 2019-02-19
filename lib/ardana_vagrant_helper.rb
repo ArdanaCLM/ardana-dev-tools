@@ -62,7 +62,7 @@ module Ardana
 
     VM_MEMORY = {
       # Node classes used by the dac-* models
-      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 25600,
+      DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 30720,
       DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 6144,
 
       'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
@@ -211,7 +211,9 @@ module Ardana
     # Initialize the configuration class
     def initialize(config)
       @config = config
-      @dev_tool_path = File.expand_path(File.dirname(__FILE__) + "/..")
+      @metal_cfg = nil
+      @dev_tool_path = File.expand_path(File.join(File.dirname(__FILE__), "/.."))
+      @git_uri_base = 'http://git.suse.provo.cloud/cgit/ardana/'
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
       @ardana = {
         :attach_isos => !ENV.fetch("ARDANA_ATTACH_ISOS", "").empty?,
@@ -277,35 +279,173 @@ module Ardana
       return get_product_branch_cache() + "/artifacts"
     end
 
-    def initialize_baremetal(cloud_name)
-      if !!ENV["ARDANA_SERVERS"]
-        metal_cfg = ENV["ARDANA_SERVERS"]
-      else
-        cloud_cfg_dir = '2.0/ardana-ci/' + cloud_name + '/data/'
+    # adt ==> ardana-dev-tools
+    def get_adt_model_path(cloud_name)
+      return File.join('ardana-vagrant-models', cloud_name + '-vagrant', 'input-model')
+    end
 
-        local_base = "#@dev_tool_path/../ardana-input-model/" + cloud_cfg_dir
-        metal_cfg = File.expand_path( local_base + 'servers.yml' )
+    def get_adt_model_uri(cloud_name, branch, yml_path)
+      repo_path = File.join('ardana-dev-tools', get_adt_model_path(cloud_name))
+      branch_spec = '?h=' + branch
+      return @git_uri_base + repo_path + '/' + yml_path + branch_spec
+    end
 
-        if not File.directory?(local_base) or !!ENV["ARDANA_REF_MODEL_TAG"]
-          if !!ENV["ARDANA_REF_MODEL_TAG"]
-            git_branch_name = ENV["ARDANA_REF_MODEL_TAG"]
-          elsif @ardana[:cloud][:version] == 8
-            git_branch_name = 'stable/pike'
-          elsif
-            git_branch_name = get_product_branch()
+    # aim ==> ardana-input-model
+    def get_aim_model_path(cloud_name)
+      return File.join('2.0', 'ardana-ci', cloud_name)
+    end
+
+    def get_aim_model_uri(cloud_name, branch, yml_path)
+      repo_path = File.join('ardana-input-model', get_aim_model_path(cloud_name))
+      branch_spec = '?h=' + branch
+      return @git_uri_base + repo_path + '/' + yml_path + branch_spec
+    end
+
+    def get_model_uris(cloud_name, git_branch, yml_path)
+      model_uris = []
+
+      # If environment override specified, add it first
+      if !! ENV["ARDANA_SERVERS"]
+        model_uris.push(ENV["ARDANA_SERVERS"])
+      end
+
+      # We prefer local file system sources over remote repos, trying
+      # locally in the a-d-t clone area and then in any a-i-m clone
+      # beside it.
+      model_uris.push(File.join(@dev_tool_path,
+                                get_adt_model_path(cloud_name),
+                                yml_path))
+      model_uris.push(File.expand_path(File.join(@dev_tool_path, '..',
+                                                 'ardana-input-model',
+                                                 get_aim_model_path(cloud_name),
+                                                 yml_path)))
+
+      # input models may be in upstream a-d-t git repo for Cloud 9+
+      if @ardana[:cloud][:version].to_i > 8
+        model_uris.push(get_adt_model_uri(cloud_name, git_branch, yml_path))
+      end
+
+      # Finally try looking in the upstream a-i-m git repo
+      model_uris.push(get_aim_model_uri(cloud_name, git_branch, yml_path))
+
+      return model_uris
+    end
+
+    def get_metal_cfg(cloud_name, git_branch, yml_path = 'data/servers.yml')
+      # if we already have loaded the metal_cfg previously, reuse that
+      return @metal_cfg if not @metal_cfg.nil?
+
+      # generate list of possible locations for servers.yml and iterate
+      # through them until we find one that YAML.load()'s successfully
+      # and return the result
+      servers_uris = get_model_uris(cloud_name, git_branch, yml_path)
+
+      # iterate over list of possible servers.yml locations
+      servers_uris.each do |servers_yml|
+        # skip nil/empty entries
+        next if (servers_yml.nil? || servers_yml.empty?)
+
+        begin
+          metal_cfg = YAML.load(open(servers_yml))
+
+          STDERR.puts "Servers details loaded from: " + servers_yml
+
+          # record the servers_yml that works in the metal_cfg
+          metal_cfg['_servers_yml_uri'] = servers_yml
+
+          # save the result for future reference
+          @metal_cfg = metal_cfg
+
+          if !metal_cfg.key?("ci_settings")
+            metal_cfg["ci_settings"] = {}
           end
 
-          git_base = 'http://git.suse.provo.cloud/cgit/ardana/ardana-input-model/plain/' + cloud_cfg_dir
-          git_branch = '?h=' + git_branch_name
-
-          metal_cfg = git_base + 'servers.yml' + git_branch
+          # we succeeded in loading this one so return the result
+          return metal_cfg
+        rescue
+          # Catch and ignore the exception
+          STDERR.puts "Failed to YAML.load('#{servers_yml}')" if @ardana[:debug]
         end
       end
 
-      STDERR.puts "Servers details loaded from: " + metal_cfg
+      raise "Unable to locate a servers.yml for cloud '#{cloud_name}' on branch '#{git_branch}'"
+    end
 
-      metal_cfg = YAML.load open(metal_cfg)
+    def determine_node_type(role_name)
+      if role_name.match("COMPUTE")
+        # check for LITE version
+        if role_name.match("LITE-COMPUTE")
+          node_type=LITECOMPUTE_NODE
+        elsif role_name.match("STD-COMPUTE")
+          node_type=STD_COMP_NODE
+        elsif role_name.match("DAC-COMPUTE")
+          node_type=DAC_COMP_NODE
+        else
+          node_type=COMPUTE_NODE
+        end
+      elsif role_name.match("VMFACTORY")
+        node_type=VMFACTORY_NODE
+      elsif role_name.match("ARDANA-HYPERVISOR")
+        node_type=ARDANA_HYPERVISOR_NODE
+      elsif role_name.match("CONTROLLER")
+        # check for LITE version
+        if role_name.match("LITE-CONTROLLER")
+          node_type=LITECONTROL_NODE
+        # check for STD-OSC version
+        elsif role_name.match("STD-OSC-CONTROLLER")
+          node_type=STD_OSC_NODE
+        # check for STD-DBMQ version
+        elsif role_name.match("STD-DBMQ-CONTROLLER")
+          node_type=STD_DBMQ_NODE
+        # check for STD-MML version
+        elsif role_name.match("STD-MML-CONTROLLER")
+          node_type=STD_MML_NODE
+        elsif role_name.match("DAC-CONTROLLER")
+          node_type=DAC_CTRL_NODE
+        else
+          node_type=CONTROL_NODE
+        end
+      elsif role_name.match("OSD")
+        node_type=OSD_NODE
+      elsif role_name.match("VSA")
+        node_type=VSA_NODE
+      elsif role_name.match("ARDANA")
+        # check for STD version
+        if role_name.match("STD-ARDANA")
+          node_type=STD_DPLY_NODE
+        else
+          node_type=DEPLOYER_NODE
+        end
+      elsif role_name.match("RGW")
+        node_type=RGW_NODE
+      elsif role_name.match("SWOBJ")
+        node_type=SWOBJ_NODE
+      else
+        # Matches the different node_type for the midsize which needs less
+        # memory than the standard.
+        node_type=MIDCONTROL_NODE
+      end
+    end
+
+    def initialize_baremetal(cloud_name)
+
+      # determine which branch we need to use
+      if !!ENV["ARDANA_REF_MODEL_TAG"]
+        # override reference tag specifed
+        git_branch_name = ENV["ARDANA_REF_MODEL_TAG"]
+      elsif @ardana[:cloud][:version].to_i == 8
+        # if specifying Cloud8 on master
+        git_branch_name = 'stable/pike'
+      elsif
+        git_branch_name = get_product_branch()
+      end
+
+      # get the (possibly cached) servers.yml configuration data
+      metal_cfg = get_metal_cfg(cloud_name, git_branch_name)
+
       server_details = metal_cfg["servers"]
+      ci_settings = metal_cfg["ci_settings"]
+
       # We skip any Virtual Control Plane VMs.
       server_details.delete_if { |serverInfo| serverInfo.key?('hypervisor-id') }
 
@@ -323,6 +463,32 @@ module Ardana
       # setup unique VNC ports for each server
       vnc_base = 5910  # 590{1..9} range wil be used for build VMs
       server_details.each_with_index do |serverInfo, i|
+        node_role = serverInfo["role"]
+        if ci_settings.key?(node_role)
+          STDERR.puts "Using input model hardware settings for #{serverInfo['id'].inspect}"
+          hardware_setup = ci_settings[node_role]
+        else
+          STDERR.puts "Using helper hardware settings for #{serverInfo['id'].inspect}"
+          node_type = determine_node_type(node_role)
+          hardware_setup = {
+            'memory' => VM_MEMORY[node_type],
+            'cpus' => VM_CPU[node_type],
+            'disks' => {
+              'boot' => {
+                'size_gib' => 150
+              }
+            },
+            'flavor' => VM_FLAVOR[node_type]
+          }
+          if VM_EXTRA_DISKS.key?(node_type)
+            hardware_setup['disks']['extras'] = {
+              'count' => VM_EXTRA_DISKS[node_type],
+              'size_gib' => VM_DISK[node_type]
+            }
+          end
+        end
+        serverInfo["hardware"] = hardware_setup
+
         if !serverInfo.key?("graphics_port")
           serverInfo["graphics_port"] = vnc_base + i
         end
@@ -460,7 +626,7 @@ module Ardana
     end
     private :provision_deployer
 
-    def add_server_group(modifier: 0, cloud_name: None, deployer_node: None, vnc_base: 5900)
+    def add_server_group(modifier: 0, cloud_name: None, deployer_node: None)
       metal_cfg = initialize_baremetal(cloud_name)
       server_details = metal_cfg["servers"]
 
@@ -473,60 +639,7 @@ module Ardana
       server_details.each do |serverInfo|
         use_release_artifact = !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
 
-        map_role = serverInfo["role"]
-        if map_role.match("COMPUTE")
-          # check for LITE version
-          if map_role.match("LITE-COMPUTE")
-            node_type=LITECOMPUTE_NODE
-          elsif map_role.match("STD-COMPUTE")
-            node_type=STD_COMP_NODE
-          elsif map_role.match("DAC-COMPUTE")
-            node_type=DAC_COMP_NODE
-          else
-            node_type=COMPUTE_NODE
-          end
-        elsif map_role.match("VMFACTORY")
-          node_type=VMFACTORY_NODE
-        elsif map_role.match("ARDANA-HYPERVISOR")
-          node_type=ARDANA_HYPERVISOR_NODE
-        elsif map_role.match("CONTROLLER")
-          # check for LITE version
-          if map_role.match("LITE-CONTROLLER")
-            node_type=LITECONTROL_NODE
-          # check for STD-OSC version
-          elsif map_role.match("STD-OSC-CONTROLLER")
-            node_type=STD_OSC_NODE
-          # check for STD-DBMQ version
-          elsif map_role.match("STD-DBMQ-CONTROLLER")
-            node_type=STD_DBMQ_NODE
-          # check for STD-MML version
-          elsif map_role.match("STD-MML-CONTROLLER")
-            node_type=STD_MML_NODE
-          elsif map_role.match("DAC-CONTROLLER")
-            node_type=DAC_CTRL_NODE
-          else
-            node_type=CONTROL_NODE
-          end
-        elsif map_role.match("OSD")
-          node_type=OSD_NODE
-        elsif map_role.match("VSA")
-          node_type=VSA_NODE
-        elsif map_role.match("ARDANA")
-          # check for STD version
-          if map_role.match("STD-ARDANA")
-            node_type=STD_DPLY_NODE
-          else
-            node_type=DEPLOYER_NODE
-          end
-        elsif map_role.match("RGW")
-          node_type=RGW_NODE
-        elsif map_role.match("SWOBJ")
-          node_type=SWOBJ_NODE
-        else
-          # Matches the different node_type for the midsize which needs less
-          # memory than the standard.
-          node_type=MIDCONTROL_NODE
-        end
+        node_type = determine_node_type(serverInfo["role"])
 
         if serverInfo["os-dist"] == "sles" || serverInfo["os-dist"] == "rhel"
           # RHEL & SLES support don't yet support booting from a release image.
@@ -553,7 +666,8 @@ module Ardana
 
           add_idle_networks(vm: server.vm, count: 6)
 
-          set_vm_hardware(vm: server.vm, type: node_type, graphics_port: serverInfo["graphics_port"])
+          set_vm_hardware(vm: server.vm, hardware: serverInfo['hardware'],
+                          graphics_port: serverInfo["graphics_port"])
 
           disks = []
           # add persistent volumes as appropriate
@@ -575,9 +689,11 @@ module Ardana
           end
 
           # Add the requested number of disks for this node type
-          if !!VM_DISK[node_type]
-            (1..VM_EXTRA_DISKS[node_type]).each do |i|
-              disks.push({:bus => "scsi", :size => VM_DISK[node_type] })
+          hw_disks = serverInfo['hardware']['disks']
+          if hw_disks.key?('extras')
+            (1..hw_disks['extras']['count']).each do |i|
+              disks.push({:bus => "scsi",
+                          :size => hw_disks['extras']['size_gib'].to_i})
             end
           end
 
@@ -665,6 +781,7 @@ module Ardana
     end
 
     def setup_vm(vm: None, name: None, playbook: "vagrant-setup-vm", extra_vars: {}, disks: [])
+
       # override the playbook used if in Cloud deployer mode
       if @ardana[:cloud][:deployer] and !(playbook.include? "build")
         playbook = "vagrant-cloud-vm-setup"
@@ -739,26 +856,28 @@ module Ardana
       end
     end
 
-    def set_vm_hardware(vm: None, type: 'default', graphics_port: 5900)
+    def set_vm_hardware(vm: None, hardware: None, graphics_port: 5900)
+      raise "No hardware specified" if !hardware
+
       vm.provider "virtualbox" do |vb, override|
-        vb.memory = VM_MEMORY[type]
-        vb.cpus = VM_CPU[type]
+        vb.memory = hardware['memory']
+        vb.cpus = hardware['cpus']
       end
 
       vm.provider "libvirt" do |domain, override|
-        domain.memory = VM_MEMORY[type]
-        domain.cpus = VM_CPU[type]
+        domain.memory = hardware['memory']
+        domain.cpus = hardware['cpus']
         domain.disk_bus = 'scsi'
         domain.volume_cache = 'unsafe'
         domain.nested = true
         domain.cpu_mode = 'host-passthrough'
-        domain.machine_virtual_size = 150
+        domain.machine_virtual_size = hardware['disks']['boot']['size_gib'].to_i
         domain.graphics_type = 'vnc'
         domain.graphics_port = graphics_port
       end
 
       vm.provider "openstack" do |os, override|
-        os.flavor = /#{VM_FLAVOR[type]}/
+        os.flavor = /#{hardware['flavor']}/
       end
     end
 

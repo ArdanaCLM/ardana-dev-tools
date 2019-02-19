@@ -16,8 +16,6 @@
 # Tasks to perform Ardana install/upgrade on a SOC/CLM deployer
 ---
 
-- include: stage-input-models.yml
-
 - name: vagrant-cloud-setup | ardana-init | Install ardana using SOC/CLM Media
   become: yes
   command: >-
@@ -37,9 +35,15 @@
   debug:
     msg: "{{ _ardana_init_result.stdout_lines }}"
 
-- name: vagrant-cloud-setup | ardana-init | Synchronize CI models to deployer
+- name: vagrant-cloud-setup | ardana-init | Create directory to hold CI model
+  file:
+    path: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"
+    state: directory
+    mode: 0700
+
+- name: vagrant-cloud-setup | ardana-init | Synchronize CI model to deployer
   synchronize:
-    src: "{{ deployer_input_model_dir }}/ardana-input-model/2.0/ardana-ci"
-    dest: "{{ image_build_user_home }}"
+    src: "{{ dev_env_vagrant_dir }}/input-model/"
+    dest: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"
     compress: no
     delete: yes

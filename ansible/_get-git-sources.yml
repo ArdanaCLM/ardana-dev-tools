@@ -31,7 +31,7 @@
       with_items:
         - "{{ lookup('env', 'HOME') }}/.ansible_async"
         - "{{ 'test' | bare_cache_path | dirname }}"
-        - "{{ {'url': 'test', 'branch': product_branch} |
+        - "{{ {'url': 'test', 'branch': sources_branch | default(product_branch)} |
               branched_cache_path |
               dirname }}"
 
@@ -45,11 +45,13 @@
         repo_info: "{{ item.value }}"
         # repo_development_source - local developers copy of repo. Based
         # on url and if missing, based on dest value.
-        repo_development_source: "{{ dev_env_sources_dir ~ '/' ~ item.value.url |
-                                     default('') |
-                                     basename }}"
+        repo_development_source: "{{ dev_env_sources_dir ~ '/' ~
+                                     (item.value.url | default('') |
+                                      basename) }}"
       check_mode: no
       with_dict: "{{ sources }}"
+      loop_control:
+        label: "clone-{{ item.key }}"
       # Need to skip this task here, as this doesn't work on the include
       when:
         - ( lookup('env', 'ARDANA_SKIP_REPO_CHECKOUT')|default('') == '' )
@@ -64,6 +66,7 @@
     - dev-env
     - product
   tasks:
+    - debug: var=repo_development_source
     - set_fact:
         _source_cache_dir: "{{ repo_info | bare_cache_path }}"
       when: repo_info.url is defined
@@ -105,27 +108,26 @@
         _source_cache_dir: "{{ repo_info | bare_cache_path }}"
       when: repo_info.url is defined
 
-    - name: Get the requested branched repo
+    - name: Get the requested branched repo if not using developer clone
       git:
         repo: "{{ _source_cache_dir }}"
         dest: "{{ repo_info | branched_cache_path }}"
         version: "{{ repo_info.branch }}"
         update: yes
         force: yes
-      when: repo_info.url is defined and not ( repo_development_source | isdir )
+      when:
+        - repo_info.url is defined
+        - not ( repo_development_source | isdir )
 
-    - name: Validate we are on the correct cached branch
-      shell: |
-        test "$(awk -F= '/^defaultbranch/ { print $2 }' {{ repo_info | branched_cache_path }}/.gitreview)" = "{{ repo_info.branch }}"
-#      when: repo_info.url is defined and not ( repo_development_source | isdir )
-      when: repo_info.url is defined and not ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(True) )
-# validation tests don't change the system, either we succeed or fail
-      changed_when: False
-
-    - name: Validate we are on the correct development branch
-      shell: |
-        test "$(awk -F= '/^defaultbranch/ { print $2 }' {{ repo_development_source }}/.gitreview)" = "{{ repo_info.branch }}"
-#      when: repo_info.url is defined and ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(False) )
-      when: repo_info.url is defined and ( repo_development_source | isdir ) and not ( permit_arbitrary_branches | default(True) )
+    - name: Validate we are on the correct development stream
+      shell: >-
+        test "$(awk -F= '/^defaultbranch/ { print $2 }'
+                {{ (repo_development_source | isdir) |
+                   ternary(repo_development_source,
+                           repo_info | branched_cache_path)
+                }}/.gitreview)" = "{{ repo_info.branch }}"
+      when:
+        - repo_info.url is defined
+        - not ( permit_arbitrary_branches | default(True) )
       # validation tests don't change the system, either we succeed or fail
       changed_when: False

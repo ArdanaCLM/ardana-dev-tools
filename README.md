@@ -66,7 +66,7 @@ add appropriate zypper repos to your system to be sure.
 It is assumed that you have setup passwordless sudo for your account.
 If not you can do so by running a command like the following:
 
-    % echo "${USER} ALL=(ALL:ALL) NOPASSWD:ALL | \
+    % echo "${USER} ALL=(ALL:ALL) NOPASSWD:ALL" | \
         sudo tee /etc/sudoers.d/${USER}
 
 ### First run may require re-login
@@ -226,14 +226,14 @@ in ardana-dev-tools/bin, which will perform all the steps necessary to
 deploy, and possibly test, your cloud.
 
 This script enables you to setup your development environment and deploy
-a SOC/CLM version 8 cloud with a single command line:
+a SOC/CLM version 9 cloud with a single command line:
 
     ./bin/astack.sh dac-min
 
-Alternatively you can deploy a SOC/CLM version 9 cloud by including the
-*--c9* option, like:
+Alternatively you can deploy a SOC/CLM version 8 cloud by including the
+*--c8* option, like:
 
-    ./bin/astack.sh --c9 dac-min
+    ./bin/astack.sh --c8 dac-min
 
 The cloud model defaults to _dac-min_ if not specified, which is a minimal
 footprint, fully featured cloud deployment.
@@ -318,6 +318,74 @@ Some useful additional parameters to use:
                             need an IPv6 address.)
     --ipv6-all             (All net interfaces will need an IPv6 address.)
 
+## Cloud Input Model Management
+
+The cloud name specified via the `astack.sh` command line identifes which
+Ardana CI input model you want `astack.sh` to use when creating a set of
+nodes on which to deploy an Ardana cloud.
+
+This model must be located in one of:
+* `ardana/ardana-input-model.git` repo, under `2.0/ardana-ci`
+* `ardana/ardana-dev-tools.git` repo itself under the
+`ardana-vagrant-models/<cloud>-vagrant/input-model` directory.
+
+For any models not located within the ardana-dev-tools repo the astack.sh
+command will stage the version from the ardana-input-model repo under the
+`ardana-vagrant-models/<cloud>-vagrant/input-model` directory using the
+`bin/setup-vagrant-input-model` script.
+
+### Input model specified hardware config
+
+The traditional `ardana-input-model` style of input models relied on a
+mapping of the role name associated with the servers in the `servers.yml`
+file specified in the input model to a set of hash lookup tables at the
+top of the `lib/ardana_vagrant_helper.rb` file.
+
+For example if you wanted to increase the memory or cpus of the
+controller node in the `demo` input model, which is associated with
+the `LITE-CONTROLLER-ROLE` role, you would need to modify the entry
+in the `lib/ardana_vagrant_helper.rb` `VM_MEMORY` or `VM_CPU` tables
+for the LITECONTROL_NODE to the desired values.
+
+However since the same role names may be used by multiple models, e.g.
+`deployerincloude-lite` uses the same node role names as `demo`, such
+changes, if made permanently, may have side effects.
+
+However it is now possible to specify role specific hardware config
+settings in the input model `servers.yml` file, in a `ci_settings`
+section, keyed by the name of the role specified in that `servers.yml`
+file.
+
+#### The ci_settings hardware config
+
+You can specify the following information for each unique role within a
+model in the `ci_settings` section of the servers.yml file:
+
+* `memory` - the amount of RAM, in MiB, to allocate for a Vagrant VM
+* `cpus` - the number of vCPUs to allocate to a Vagrant VM
+* `flavor` - the instance flavour to use for these nodes
+* `disks` - settings related to attached disks
+* * `boot` - boot disk settings
+* * * `size_gib` - size in GiB of the boot disk
+* * `extras` - additional disks settings
+* * * `count` - number of extra disks to attach
+* * * `size_gib` - size in GiB of each extra disk
+
+See the adt model's [servers.yml](ardana-vagrant-models/adt-vagrant/input-model/data/servers.yml)
+for an example.
+
+### Customising locally staged input models
+When you run astack.sh for the first time for a given cloud model, it will
+use the `bin/setup-vagrant-input-model` script to stage the input model for
+the specified cloud under `ardana-vagrant-models/<cloud>-vagrant/input-model`
+for you, and then re-use that staged model until you either delete it, or
+forcibly updating it using `--force` with the `setup-vagrant-input-model`
+script.
+
+This means that you can customise the input model, after it has been staged
+locally within your ardana-dev-tools clone, and use it to (re-)deploy your
+cloud.
+
 ## Pulling updated RPMs into your deployment
 
 The default astack.sh deployment, if you have just cloned ardana-dev-tools,
@@ -364,19 +432,12 @@ NOTES:
 You can disable this mechanism by specifying the --no-update-rpms option
 when running the astack.sh command.
 
-#### Special cases
-When building for Cloud8 (stable/pike branch) the RPM associated with the
-ardana-ansible git repo also pulls in an updated file from the ardana git
-repo, so if you want to rebuild that RPM for Cloud8 you should clone both
-of the ardana-ansible and ardana git repos beside ardana-dev-tools.  This
-is no longer required for Cloud9.
-
 ### Pulling in RPMs from IBS & OBS projects
 If you use the --ibs-prj or --obs-prj options you can specify the project,
 or even a package with a project, whose RPMs will be downloaded and added
 to the `NEW_RPMS` area.
 
-For example, or you have built a modified version of an Ardana Rocky Venv
+For example, if you have built a modified version of an Ardana Rocky Venv
 package, venv-openstack-keystone, under a branch in your OBS home project,
 home:jblogs:branches:Cloud:OpenStack:Rocky:venv, you would run astack.sh
 like so:
@@ -413,7 +474,7 @@ Finally you can mix both IBS and OBS projects and packages in the same run, e.g.
 	demo
 
 ### Adding IBS & OBS repos to SLES nodes
-Using the --ibs-repo & --open-repo you can specify IBS & OBS projects whose repos
+Using the --ibs-repo & --obs-repo you can specify IBS & OBS projects whose repos
 will be added to the SLES nodes in a cloud deployment.
 
 NOTES:
@@ -611,6 +672,11 @@ The development environment provides a set of cloud definitions that can be used
 
     A minimal single node cloud running a reduced number of services, disabling some of the Metering, Monitoring & Logging (MML) stack using a "hack"
 
+* demo: A 2 node basic cloud
+
+    A 2 node cloud with no MML stack. First node is a single node cloud control plane running only Keystone, Swift, Glance, Cinder, Neutron, Nova, Horizon and Tempest Openstack services, while the second node is a minimally sized compute node.
+    A good starting choice if you don't have a lot of memory.
+
 * deployerincloud: A 3 node cloud
 
     Cloud Control Plane (1 node: ha-proxy, Apache, MySQL, RabbitMQ, Keystone, Glance, Horizon, Nova, Neutron ) + 2 Compute Nodes, with deployer on controller node. Uses a simplified Swift ring model with EC disabled.
@@ -618,6 +684,7 @@ The development environment provides a set of cloud definitions that can be used
 * deployerincloud-lite: A 3 node cloud
 
     A cutdown version of deployerincloud using same "hack" as minimal to disable some of the MML stack.
+    Not recommended for anything other than playing with ardana-dev-tools.
 
 * standard: A 7 node single region cloud
 
@@ -651,7 +718,11 @@ The development environment provides a set of cloud definitions that can be used
 
 * multi-cp: A more complex multi-control plane multi-region cloud
 
-WARNING : The std-split, mid-size & multi-cp models may not be stable/functional right now.
+* adt: 2 node ardana-dev-tools validation testing cloud
+
+    Extremely mininal cloud (keystone, horizon, tempest OpenStack services only) derived from the `demo` model, with a controller that is also a deployer, and one additional resource node that is available for re-imaging with run-cobbler.
+
+WARNING : The mid-size & multi-cp models may not be stable/functional right now.
 
 Each variant has its own vagrant definition, under the ardana-vagrant-models directory, and associated cloud model defined in the ardana-input-model repo, under the 2.0/ardana-ci directory.
 

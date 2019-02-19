@@ -26,7 +26,7 @@ eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 source $(dirname $0)/libci.sh
 
 WORKSPACE=${WORKSPACE:-$PWD}
-CLOUDNAME="${1:-"deployerincloud"}"
+ARDANA_CLOUD_NAME="${1:-"adt"}"
 DEPLOYERNODE="$(get_deployer_node)"
 
 deployscript=test-cloud.sh

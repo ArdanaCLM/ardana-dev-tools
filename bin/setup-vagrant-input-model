@@ -1,0 +1,255 @@
+#!/bin/bash
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Ensure we have an input model available for the specified cloud under
+# $DEVTOOLS/ardana-vagrant-modesl/<cloud>-vagrant/input-model; if needed
+# copy the relevant model from the specified cloud in any local clone
+# of the ardana-input-model repo.
+#
+# Usage: setup-vagrant-input-model [--branch <branch>] <cloud>
+#
+
+set -eu
+set -o pipefail
+
+cmd_path="$(readlink -e "${BASH_SOURCE[0]}")"
+cmd_name="$(basename "${cmd_path}")"
+cmd_dir="$(dirname "${cmd_path}")"
+top_dir="$(dirname "${cmd_dir}")"
+play_dir="${top_dir}/ansible"
+avm_dir="${top_dir}/ardana-vagrant-models"
+
+opts_array=(
+    branch:
+    debug
+    force
+    verbose
+)
+
+declare -A opts_help
+opts_help["branch:"]="Branch or git SHA to use with git retrievals"
+opts_help["debug"]="Print debug messages"
+opts_help["force"]="Reset/recreate input model"
+opts_help["verbose"]="Print verbose messages"
+
+relative_to()
+{
+    local base_path full_path
+    base_path="$(readlink -m ${1})"
+    full_path="$(readlink -m ${2})"
+
+    echo "${full_path/${base_path}\//}"
+}
+
+git_exists_in_branch()
+{
+    local branch="${1}" tree_path="${2}" log_output
+
+    log_output="$(git --no-pager -C log --oneline >/dev/null 2>&1 "${branch}:${tree_path}")"
+    [[ -n "${log_output}" ]]
+}
+
+git_exists_locally()
+{
+    local log_output
+
+    # This will fail if the specified path doesn't exist
+    # within the scope of the current cloned repo.
+    log_output="$(git --no-pager -C "${top_dir}" log --oneline >/dev/null 2>&1 "$(relative_to "${top_dir}" "${1}")")"
+    [[ -n "${log_output}" ]]
+}
+
+stdout()
+{
+    echo "${@}"
+}
+
+stderr()
+{
+    echo 1>&2 "${@}"
+}
+
+error()
+{
+    stderr "ERROR: ${@}"
+}
+
+_verbose_on()
+{
+    [[ "${verbose_mode:+true}" == "true" ]]
+}
+
+_verbose()
+{
+    stderr "VERBOSE: ${@}"
+}
+
+verbose()
+{
+    if _verbose_on
+    then
+        _verbose "${@}"
+    fi
+}
+
+_debug_on()
+{
+    [[ "${debug_mode:+true}" == "true" ]]
+}
+
+_debug()
+{
+    stderr "DEBUG: ${@}"
+}
+
+debug()
+{
+    if _debug_on
+    then
+        _debug "${@}"
+    fi
+}
+
+usage()
+{
+    stdout "Usage: ${cmd_name} [OPTIONS]"
+    stdout "Where:"
+    stdout "    -h, --help"
+    stdout "            Displays this message."
+    for opt in ${opts_array[@]}
+    do
+        stdout "    --${opt//:/}"
+        stdout "            ${opts_help[${opt}]}"
+    done
+
+    exit ${1:-0}
+}
+
+# join opts_array members with ","
+printf -v long_opts ",%s" "${opts_array[@]:1}"
+long_opts="help,${opts_array[0]}${long_opts}"
+
+TEMP=$(getopt -o dh -l "${long_opts}" -n "${cmd_name}" -- "$@")
+if [ $? != 0 ] ; then stderr "Terminating..." ; exit 1 ; fi
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+debug_mode=${DEBUG:-}
+verbose_mode=${VERBOSE:-}
+cloud_name=
+force_mode=
+git_branch="$(git -C "${top_dir}" config \
+                 --file $(git rev-parse --show-toplevel)/.gitreview \
+                 --get gerrit.defaultbranch 2>/dev/null || echo master)"
+
+while true
+do
+    case "${1}" in
+    (--branch)
+        git_branch="${2}"
+        shift 2
+        ;;
+    (-d|--debug)
+        debug_mode=true
+        ;&
+    (-v|--verbose)
+        verbose_mode=true
+        shift
+        ;;
+    (--force)
+        force_mode=true
+        shift
+        ;;
+    (-h|--help)
+        usage
+        shift
+        ;;
+    (--)
+        shift
+        break
+        ;;
+    (*)
+        break
+        ;;
+    esac
+done
+
+# Cloud name should be after any options
+if (( $# > 0 ))
+then
+    cloud_name="${1}"
+    shift
+fi
+
+# Fail if there are still unprocessed arguments
+if (( $# > 0 ))
+then
+    error "Unhandled arguments: '${@}'"
+    usage 1
+fi
+
+# if cloud_name is empty, default to adt
+if [[ -z "${cloud_name}" ]]
+then
+    cloud_name=adt
+fi
+
+avm_cloud_dir="${avm_dir}/${cloud_name}-vagrant"
+if [[ ! -d "${avm_cloud_dir}" ]]
+then
+    error "Invalid cloud model name '${cloud_name}'"
+fi
+
+if _debug_on
+then
+    _debug "cloud_name='${cloud_name}'"
+    _debug "debug_mode='${debug_mode}'"
+    _debug "force_mode='${force_mode}'"
+    _debug "git_branch='${git_branch}'"
+fi
+
+avm_im_dir="${avm_cloud_dir}/input-model"
+
+if [[ -d "${avm_im_dir}" ]]
+then
+    if git_exists_locally "${avm_im_dir}"
+    then
+        stdout "Input model for '${cloud_name}' exists in local git repo, not forcing recreation of it."
+        exit 0
+    elif [[ -z "${force_mode}" ]]
+    then
+        stdout "Input model for '${cloud_name}' already exists locally, re-using."
+        exit 0
+    else
+        verbose "Cleaning out existing input model for '${cloud_name}'"
+        git clean -x -d -f -f "${avm_im_dir}"
+    fi
+fi
+
+verbose "Setting up input-model for '${cloud_name}'"
+
+pushd "${play_dir}" > /dev/null
+
+ansible-playbook \
+    $(_verbose_on && echo "-v") \
+    $(_debug_on && echo "-vvv") \
+    -i hosts/localhost \
+    -e input_model_name="${cloud_name}" \
+    -e input_model_branch="${git_branch}" \
+    -e input_model_dest="${avm_im_dir}" \
+    setup-vagrant-input-model.yml
+
+# vim:shiftwidth=4:tabstop=4:expandtab

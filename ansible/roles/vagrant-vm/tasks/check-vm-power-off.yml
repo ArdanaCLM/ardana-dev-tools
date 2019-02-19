@@ -20,7 +20,7 @@
 
 - name: vagrant-vm | check-vm-power-off | Loop checking power status until all shutdown
   virt:
-    name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
+    name: "{{ lookup('env', 'ARDANA_CLOUD_NAME') }}-vagrant_{{ item }}"
     command: status
   register: vm_status
   until: vm_status.status is defined and vm_status.status == 'shutdown'

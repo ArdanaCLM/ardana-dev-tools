@@ -25,9 +25,9 @@ eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
 
 source $(dirname $0)/libci.sh
 
-export CLOUDNAME="${1:-"deployerincloud"}"
+export ARDANA_CLOUD_NAME="${1:-"deployerincloud"}"
 
-pushd "$DEVTOOLS/ardana-vagrant-models/$CLOUDNAME-vagrant"
+pushd "$DEVTOOLS/ardana-vagrant-models/$ARDANA_CLOUD_NAME-vagrant"
 export DEPLOYERNODE="$(get_deployer_node)"
 ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
     $DEVTOOLS/ansible/vagrant-setup-pxe.yml \

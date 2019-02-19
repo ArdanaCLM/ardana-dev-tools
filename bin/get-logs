@@ -56,7 +56,7 @@ done
 source $(dirname $0)/libci.sh
 
 WORKSPACE=${WORKSPACE:-$PWD}
-CLOUDNAME="${1:-"deployerincloud"}"
+ARDANA_CLOUD_NAME="${1:-"adt"}"
 DEPLOYERNODE="$(awk '/^deployer_node/ {gsub(/\"/,"",$3);print $3}' Vagrantfile)"
 
 # Don't set -e as even on failure it worth trying to get logs.

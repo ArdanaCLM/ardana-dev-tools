@@ -36,7 +36,7 @@ source $(dirname $0)/libci.sh
 
 WORKSPACE=${WORKSPACE:-$PWD}
 JOB_TYPE=${1:-ci}
-CLOUDNAME="${2:-"dac-min"}"
+ARDANA_CLOUD_NAME="${2:-"adt"}"
 
 # Tags are optional, default to empty string to avoid unbound variable error
 TAGS="${3:-}"
@@ -77,5 +77,5 @@ logsubunit --inprogress tests
 timeout ${TEST_TIMEOUT}m $SCRIPT_HOME/run-in-deployer.sh \
     $SCRIPT_HOME/deployer/run-tests.sh \
     -- --timeout $TEST_TIMEOUT ${NO_IRONIC:+ --no-ironic} \
-        "$JOB_TYPE" "$CLOUDNAME" "$TAGS" || logtimeoutfail tests
+        "$JOB_TYPE" "$ARDANA_CLOUD_NAME" "$TAGS" || logtimeoutfail tests
 logsubunit --success tests

@@ -33,7 +33,7 @@
 
 - name: vagrant-vm | check-vm-power-on | Check that the vms are running
   virt:
-    name: "{{ lookup('env', 'CLOUDNAME') }}-vagrant_{{ item }}"
+    name: "{{ lookup('env', 'ARDANA_CLOUD_NAME') }}-vagrant_{{ item }}"
     state: running
   when: item != _vagrant_deployer
   with_items: "{{ _vagrant_all_list_result.stdout_lines }}"

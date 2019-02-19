@@ -162,8 +162,8 @@ args+=(
 
 set -x
 
-CLOUDNAME=${1:-demo}
-args+=( $CLOUDNAME )
+ARDANA_CLOUD_NAME=${1:-adt}
+args+=( $ARDANA_CLOUD_NAME )
 
 
 export ARDANA_PACKAGES_DIST='["packager", "ansible", "ardana-service", "config_processor", "installer-ui"]'
@@ -171,11 +171,11 @@ export ARDANA_PACKAGES_NONDIST='[]'
 
 source $SCRIPT_HOME/libci.sh
 
-pushd $DEVTOOLS/ardana-vagrant-models/${CLOUDNAME}-vagrant
+pushd $DEVTOOLS/ardana-vagrant-models/${ARDANA_CLOUD_NAME}-vagrant
 
 # Bring up the system
 $SCRIPT_HOME/astack.sh "${args[@]}"
 
-$SCRIPT_HOME/verify-bm-install $CLOUDNAME
+$SCRIPT_HOME/verify-bm-install $ARDANA_CLOUD_NAME
 
 # vim:shiftwidth=4:tabstop=4:expandtab
