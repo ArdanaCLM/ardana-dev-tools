@@ -59,7 +59,9 @@
   template:
     src: "{{ playbook_dir }}/roles/image-build/templates/{{ images_build_images[image_build_name].install_template }}.j2"
     dest: "{{ image_build_http_dir }}/{{ images_build_images[image_build_name].install_template | basename }}"
-  when: image_inputs_check_result | failed and images_build_images[image_build_name].install_template is defined
+  when:
+    - image_inputs_check_result | changed
+    - images_build_images[image_build_name].install_template is defined
 
 - name: image-build | build-packer-qcow2 | Create box Vagrantfile
   delegate_to: localhost
@@ -134,4 +136,4 @@
     echo md5sumd files
     mv "${image_output}.md5sum.tmp" "${image_output}.md5sum"
   environment: "{{ image_build_packer_env }}"
-  when: image_inputs_check_result | failed
+  when: image_inputs_check_result | changed
