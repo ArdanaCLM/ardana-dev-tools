@@ -158,6 +158,7 @@ export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
 export ARDANA_CLOUD_DEPLOYER=${ARDANA_CLOUD_DEPLOYER:-}
 export ARDANA_CLOUD_REPOS=${ARDANA_CLOUD_REPOS:-}
+export ARDANA_CLOUD_SOURCE=${ARDANA_CLOUD_SOURCE:-devel-staging}
 export ARDANA_CLOUD_CACHING_PROXY=${ARDANA_CLOUD_CACHING_PROXY:-}
 export ARDANA_CLOUD_MIRROR=${ARDANA_CLOUD_MIRROR:-}
 export ARDANA_CLOUD_HOS=${ARDANA_CLOUD_HOS:-}
@@ -282,27 +283,33 @@ while true ; do
         --c8-staging)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["staging"]'
+            export ARDANA_CLOUD_SOURCE="devel-staging"
             shift ;;
         --c8-devel)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["devel"]'
+            export ARDANA_CLOUD_SOURCE="devel"
             shift ;;
         --c8-updates-test)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
+            export ARDANA_CLOUD_SOURCE="Updates-test"
             shift ;;
         --c8-updates)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["updates", "pool"]'
+            export ARDANA_CLOUD_SOURCE="Updates"
             shift ;;
         --c8-pool)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["pool"]'
+            export ARDANA_CLOUD_SOURCE="Pool"
             shift ;;
         --c8-iso)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["iso"]'
             export ARDANA_ATTACH_ISOS=true
+            NO_UPDATE_RPMS=1
             shift ;;
         --c8-qa-tests)
             C8_QA_TESTS=1
@@ -326,27 +333,33 @@ while true ; do
         --c9-staging)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["staging"]'
+            export ARDANA_CLOUD_SOURCE="devel-staging"
             shift ;;
         --c9-devel)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["devel"]'
+            export ARDANA_CLOUD_SOURCE="devel"
             shift ;;
         --c9-updates-test)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
+            export ARDANA_CLOUD_SOURCE="Updates-test"
             shift ;;
         --c9-updates)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["updates", "pool"]'
+            export ARDANA_CLOUD_SOURCE="Updates"
             shift ;;
         --c9-pool)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["pool"]'
+            export ARDANA_CLOUD_SOURCE="Pool"
             shift ;;
         --c9-iso)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["iso"]'
             export ARDANA_ATTACH_ISOS=true
+            NO_UPDATE_RPMS=1
             shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
         --rhel-compute)
@@ -509,7 +522,12 @@ if [ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
         export ARDANA_NO_SETUP_QA=1
     fi
 
-    # default to staging (DCXS) level of repos
+    # default to Staging repos as Cloud package source
+    if [ -z "${ARDANA_CLOUD_SOURCE:-}" ]; then
+        export ARDANA_CLOUD_SOURCE="devel-staging"
+    fi
+
+    # default to Staging as set of Cloud repos to use
     if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
         export ARDANA_CLOUD_REPOS='["staging"]'
     fi
