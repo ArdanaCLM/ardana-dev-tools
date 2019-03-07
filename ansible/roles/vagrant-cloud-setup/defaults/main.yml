@@ -71,12 +71,12 @@ clmsetup:
     #
 
     # SLES12 SP4 Repos
-    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
-      path: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}"
-      name: "{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
-      alias: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
+      path: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}"
       distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates_test.enabled | bool) and
+      enabled: "{{ (sles.artifacts.repos.sles12sp4['updates-test'].enabled | bool) and
                    ('updates-test' in sles.config.enabled_repos) and
                    (sles_version == 'sles12sp4') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.updates.name }}"
@@ -97,12 +97,12 @@ clmsetup:
                    (sles_version == 'sles12sp4') }}"
 
     # SLES12 SP3 Repos
-    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
-      path: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}"
-      name: "{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
-      alias: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
+      path: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}"
       distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates_test.enabled | bool) and
+      enabled: "{{ (sles.artifacts.repos.sles12sp3['updates-test'].enabled | bool) and
                    ('updates-test' in sles.config.enabled_repos) and
                    (sles_version == 'sles12sp3') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
@@ -139,12 +139,12 @@ clmsetup:
       enabled: "{{ (cloud.artifacts.repos.soc9.devel.enabled | bool) and
                    ('devel' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc9') }}"
-    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates_test.name }}"
-      path: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
-      name: "{{ cloud.artifacts.repos.soc9.updates_test.name }}"
-      alias: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
+      path: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
+      name: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
+      alias: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
       distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc9.updates_test.enabled | bool) and
+      enabled: "{{ (cloud.artifacts.repos.soc9['updates-test'].enabled | bool) and
                    ('updates-test' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc9') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates.name }}"
@@ -181,12 +181,12 @@ clmsetup:
       enabled: "{{ (cloud.artifacts.repos.soc8.devel.enabled | bool) and
                    ('devel' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc8') }}"
-    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates_test.name }}"
-      path: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
-      name: "{{ cloud.artifacts.repos.soc9.updates_test.name }}"
-      alias: "{{ cloud.artifacts.repos.soc9.updates_test.alias }}"
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
+      path: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
+      name: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
+      alias: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
       distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc9.updates_test.enabled | bool) and
+      enabled: "{{ (cloud.artifacts.repos.soc9['updates-test'].enabled | bool) and
                    ('updates-test' in cloud.config.enabled_repos) and
                    (_clm_version == 'soc9') }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.updates.name }}"
@@ -237,9 +237,9 @@ clmsetup:
     #
 
     # SLES12 SP4 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.updates_test.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp4.updates_test.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp4.updates_test.alias }}-http"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
+      name: "{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}-http"
       distro: sles
       enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
                    ('updates-test' in sles.config.enabled_repos) and
@@ -260,9 +260,9 @@ clmsetup:
                    (sles_version == 'sles12sp4') }}"
 
     # SLES12 SP3 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.updates_test.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp3.updates_test.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp3.updates_test.alias }}-http"
+    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
+      name: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}-http"
+      alias: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}-http"
       distro: sles
       enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
                    ('updates-test' in sles.config.enabled_repos) and

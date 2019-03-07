@@ -44,4 +44,4 @@
     - item.key in _mirror.enabled
   with_dict: "{{ _mirror.repos | default({}) }}"
   retries: 3
-  delay: 15
+  delay: 30

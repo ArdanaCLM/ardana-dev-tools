@@ -26,7 +26,7 @@ sles_version: "sles{{ sles_major }}{{
 # SLES deployment settings
 sles:
   config:
-    enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates'], true) }}"
+    enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates', 'updates-test'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
     image_type: "{{ lookup('env', 'ARDANA_SLES_IMAGE_TYPE') | default('packer', true) }}"
     iso_milestone:
@@ -40,7 +40,7 @@ sles:
         path: "sles"
     repos:
       sles12sp4:
-        updates_test:
+        updates-test:
           name: "SLES12-SP4-Updates-test"
           alias: "SLE12SP4-Updates-test"
           enabled: true
@@ -53,7 +53,7 @@ sles:
           alias: "SLE12SP4-Pool"
           enabled: true
       sles12sp3:
-        updates_test:
+        updates-test:
           name: "SLES12-SP3-Updates-test"
           alias: "SLE12SP3-Updates-test"
           enabled: true

@@ -45,7 +45,7 @@ cloud:
           alias: "SOC8-Devel"
           enabled: true
         # heavily tested, candidate for inclusion in updates
-        updates_test:
+        updates-test:
           name: "SUSE-OpenStack-Cloud-8-Updates-test"
           alias: "SOC8-Updates-test"
           enabled: true
@@ -87,7 +87,7 @@ cloud:
           alias: "SOC9-Devel"
           enabled: true
         # heavily tested, candidate for inclusion in updates
-        updates_test:
+        updates-test:
           name: "SUSE-OpenStack-Cloud-9-Updates-test"
           alias: "SOC9-Updates-test"
           enabled: true
