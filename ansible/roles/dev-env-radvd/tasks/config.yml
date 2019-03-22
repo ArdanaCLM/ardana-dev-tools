@@ -70,5 +70,5 @@
 - name: dev-env-radvd | config | Write dev-env-radvd conf
   become: yes
   template:
-    src: radvd.conf.j2
+    src: "{{ playbook_dir }}/roles/dev-env-radvd/templates/radvd.conf.j2"
     dest: /etc/radvd.conf
