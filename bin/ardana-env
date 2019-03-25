@@ -144,26 +144,32 @@ then
     fi
 fi
 
-# Need to explicitly install some Python2 packages on openSUSE Leap 15 & Tumbleweed
-if is_opensuse_leap15 || is_opensuse_tumbleweed
-then
-    for p in python2-setuptools python2-sh
-    do
-        if [[ ! -d /usr/share/doc/packages/${p} ]]
-        then
-            req_pkgs+=( ${p} )
-        fi
-    done
-elif is_trusty
+# Need some system Python packages installed, Python2 versions in
+# some cases, and it is preferrable to check for the required packages
+# without triggering package cache refreshes, so we check for the
+# the associated directory under /usr/share/doc/packages/ existing.
+_needed_modules=( setuptools )
+if is_trusty
 then
     # python-sh is not available as a package for Ubuntu Trusty
     req_pips+=( sh )
 else
-    if ! python -c "import sh" 1>/dev/null 2>&1
-    then
-        req_pkgs+=( python-sh )
-    fi
+    _needed_modules+=( sh )
 fi
+_pyver=
+if is_opensuse_leap15 || is_opensuse_tumbleweed
+then
+    _pyver=2
+fi
+
+for m in "${_needed_modules[@]}"
+do
+    _pkg_name="python${_pyver}-${m}"
+    if [[ ! -d "/usr/share/doc/packages/${_pkg_name}" ]]
+    then
+        req_pkgs+=( ${_pkg_name} )
+    fi
+done
 
 # Need osc to be able to build SOC/CLM RPMs
 osc_cmd=/usr/bin/osc
@@ -197,6 +203,7 @@ fi
 # Install required packages if needed
 if (( ${#req_pkgs[@]} > 0 ))
 then
+    echo "Required packages: ${req_pkgs[@]}" 1>&2
     ${pkg_install} "${req_pkgs[@]}" 1>&2
 fi
 
@@ -273,6 +280,7 @@ fi
 # If additional pips are specified in the req_pips, install them if needed
 if (( ${#req_pips[@]} > 0 ))
 then
+    echo "Required pips: ${req_pips[@]}" 1>&2
     for pip in "${req_pips[@]}"
     do
         if ! (${bootstrap_ansible}/bin/pip freeze | cut -d= -f1 | grep -qs "^${pip}$") 1>&2
