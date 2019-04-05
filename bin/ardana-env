@@ -93,10 +93,11 @@ req_pips=()
 
 venv_cmd=/usr/bin/virtualenv
 
-# Determine which shell function will be used to install packages
+# Determine which command will be used to install packages, and distro
+# family specific settings
 # NOTES:
-#   * openSUSE Leap 42 bash includes quotes in distro_family value
 #   * debian and suse use different names for Python development package
+#   * debian and suse use different paths for package docs
 distro_family=$(get_distro_family)
 case "${distro_family}" in
 (debian)
@@ -110,10 +111,12 @@ case "${distro_family}" in
         fi
     fi
     [[ -e /usr/include/python2.7/Python.h ]] || req_pkgs+=( python-dev )
+    pkg_docs_dir=/usr/share/doc
     ;;
 (opensuse|suse)
     pkg_install="sudo zypper install --no-confirm"
     [[ -e /usr/include/python2.7/Python.h ]] || req_pkgs+=( python-devel )
+    pkg_docs_dir=/usr/share/doc/packages
     ;;
 (*)
     echo "Unsupported distro family: '${distro_family}'"
@@ -146,8 +149,8 @@ fi
 
 # Need some system Python packages installed, Python2 versions in
 # some cases, and it is preferrable to check for the required packages
-# without triggering package cache refreshes, so we check for the
-# the associated directory under /usr/share/doc/packages/ existing.
+# without triggering package cache refreshes, so we check if the
+# the associated directory under ${pkg_docs_dir} exists.
 _needed_modules=( setuptools )
 if is_trusty
 then
@@ -165,7 +168,7 @@ fi
 for m in "${_needed_modules[@]}"
 do
     _pkg_name="python${_pyver}-${m}"
-    if [[ ! -d "/usr/share/doc/packages/${_pkg_name}" ]]
+    if [[ ! -d "${pkg_docs_dir}/${_pkg_name}" ]]
     then
         req_pkgs+=( ${_pkg_name} )
     fi
