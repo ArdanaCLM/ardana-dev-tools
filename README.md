@@ -97,7 +97,7 @@ complete the setup process.
 ### Deployment Style
 
 Ardana supports deploying SOC/CLM consuming inputs built by the SUSE Open
-or Internal Build Services (OBS or IBS) to deploy a cloud using Vagrant
+or Internal Build Services (OBS or IBS) to deploy a cloud using Vagrant.
 
 Which version of SOC/CLM gets deployed depends on whether you use
 *--c8...* or *--c9...* options when running astack.sh; SOC/CLM version
@@ -134,14 +134,15 @@ use the ansible/dev-env-install.yml playbook that will detect that Vagrant
 plugins are missing/out-of-date, and re-install them.
 
 If you have upgraded you system, or copied your account from one system to
-another you may want/need to detele any vagrant home areas to ensure that
+another you may want/need to delete any vagrant home areas to ensure that
 they get rebuilt the next time you run astack.sh, e.g.
 
     rm -rf ~/.cache-ardana/vagrant/*/home
 
 ##### Supportted Vagrant versions
 
-Currently the Ardana DevEnv only supports the following Vagrant versions:
+Currently the Ardana DevEnv only supports the following Vagrant versions
+for all testing scenarios:
 
 1. 1.7.2 (Uses 1.7.4 to build the plugins)
 2. 1.7.4
@@ -151,25 +152,33 @@ Newer versions of Vagrant will work for SLES only deployments, however
 RHEL compute networking is incorrectly configured when the VMs are being
 created leading to deployment errors.
 
+Verified as working for SLES only deployments:
+1. 1.9.8 (Probably any 1.9.x, definitely 1.9.5+)
+2. 2.0.4 (Any 2.0.x)
+3. 2.1.5 (Any 2.1.x)
+4. 2.2.4 (Any 2.2.x)
+
 #### vagrant-libvirt dependency
 
 The primary Vagrant provider supported by Ardana is libvirt, requiring
 the vagrant-libvirt plugin.
 
-The default DevEnv/CI version (1.7 stream) is based on the rather old
-0.0.35 based released, customised with changes to support:
+The default DevEnv/CI version is based on the 0.0.45 vagrant-libvirt
+release, dynamically patched with some minor changes to support:
 
 * Using virtio-scsi as the SCSI controller model, rather than the normal
 LSI default.
+
+NOTE: Since we have stopped using the heavily customised 0.0.35 release
+we no longer support the following functionality:
+
 * Redirecting the console PTY device to a file via the added libvirt.serial
 action.
 
-The newer Vagrant (1.8+) streams now select the latest version of the
-vagrant-libvirt plugin currently available (0.0.43), dynamically patching
-it to add support for specifying virtio-scsi as the default SCSI controller
-model; this is currently required because the locally built Vagrant box
-images we create are virtio-scsi based and will fail to boot if brought
-up with the LSI model SCSI controller.
+NOTE: The Vagrant boxes we build for use with the Ardana DevEnv may fail
+to boot if you attempt to use them with a standard, unpatched, version
+of vagrant-libvirt because drivers for the default LSI SCSI may not be
+included in the image to save space.
 
 ### Ansible version
 
@@ -236,7 +245,12 @@ the last argument on the command line, after all other options, e.g.
 
 Some useful additional parameters to use:
 
-    --c9                   (Deploy a SOC/CLM version 9 cloud on SLES12 SP4)
+    --c9                   (Deploy a SOC/CLM version 9 cloud on SLES12 SP4;
+                            this is the default, using Devel:Cloud:9:Staging
+			    based package repos)
+    --c9-milestone MILESTONE
+                           (Deploy a SOC/CLM version 9 cloud on SLES12 SP4, using
+			    latest available build of specified milestone ISO)
     --c8                   (Deploy a SOC/CLM version 8 cloud on SLES12 SP3)
     --c8-hos               (Deploy a SOC/CLM 8 cloud using HOS, rather than SOC,
                             branded repos; otherwise the same as the --c8

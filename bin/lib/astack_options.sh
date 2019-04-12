@@ -42,6 +42,7 @@ long_opts=(
     c9-caching
     c9-devel
     c9-iso
+    c9-milestone:
     c9-mirror
     c9-pool
     c9-staging
@@ -367,6 +368,9 @@ while true ; do
             # Limit SLES repos to Updates & Pool only
             export ARDANA_SLES_REPOS='["updates", "pool"]'
             shift ;;
+        --c9-milestone)  # NOTE: this must immediately preceed --c9-iso
+            export ARDANA_CLOUD9_MILESTONE="${2}"
+            shift ;&  # continue with commands in next pattern's action block
         --c9-iso)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["iso"]'

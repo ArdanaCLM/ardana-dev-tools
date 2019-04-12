@@ -29,8 +29,8 @@ cloud:
     hos_mode: "{{ lookup('env', 'ARDANA_CLOUD_HOS') | default(False, true) }}"
     soc_mode: "{{ lookup('env', 'ARDANA_CLOUD_SOC') | default(False, true) }}"
     iso_milestone:
-      "8": "-GM"
-      "9": "-M{{ lookup('env', 'ARDANA_CLOUD9_MILESTONE') | default(9, true) }}"
+      "8": "-{{ lookup('env', 'ARDANA_CLOUD8_MILESTONE') | default('GM', true) }}"
+      "9": "-{{ lookup('env', 'ARDANA_CLOUD9_MILESTONE') | default('GMC1', true) }}"
   artifacts:
     repos:
       soc8:
