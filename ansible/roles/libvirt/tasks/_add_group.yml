@@ -17,16 +17,9 @@
 # Add current user in the libvirt group and start libvirtd
 ---
 
-- name: libvirt | _add_group | identify correct libvirt group
-  set_fact:
-    _libvirt_group:
-      "{% if ansible_os_family | lower == 'debian' %}libvirtd{% else %}libvirt{% endif %}"
-    _libvirt_service:
-      "{% if ansible_os_family | lower == 'debian' %}libvirt-bin{% else %}libvirtd{% endif %}"
-
 - name: libvirt | _add_group | check libvirt group defined
   group:
-    name: "{{ _libvirt_group }}"
+    name: "{{ libvirt_group }}"
     state: present
 
 - debug:
@@ -36,7 +29,7 @@
   become: yes
   user:
     name: "{{ lookup('env','USER') }}"
-    groups: "{{ _libvirt_group }}"
+    groups: "{{ libvirt_group }}"
     append: yes
 
 - name: libvirt | _add_group | ensure libvirtd.conf settings are correct
@@ -45,7 +38,7 @@
     dest: /etc/libvirt/libvirtd.conf
     line: '{{ item }}'
   with_items:
-    - 'unix_sock_group = "{{ _libvirt_group }}"'
+    - 'unix_sock_group = "{{ libvirt_group }}"'
     - 'unix_sock_rw_perms = "0770"'
     - 'auth_unix_rw = "none"'
   register: _libvirtd_conf_result
@@ -53,18 +46,18 @@
 - name: libvirt | _add_group | ensure libvirtd service enabled
   become: yes
   service:
-    name: "{{ _libvirt_service }}"
+    name: "{{ libvirt_service }}"
     enabled: yes
 
 - name: libvirt | _add_group | restart libvirtd service if needed
   become: yes
   service:
-    name: "{{ _libvirt_service }}"
+    name: "{{ libvirt_service }}"
     state: restarted
   when: _libvirtd_conf_result | changed
 
 - name: libvirt | _add_group | ensure libvirtd service started
   become: yes
   service:
-    name: "{{ _libvirt_service }}"
+    name: "{{ libvirt_service }}"
     state: started

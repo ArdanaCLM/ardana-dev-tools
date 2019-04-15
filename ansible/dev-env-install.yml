@@ -28,6 +28,7 @@
     - include: roles/dev-env/tasks/install.yml
 
 - include: dev-env-kvm-install.yml
+- include: dev-env-libvirt-install.yml
 - include: dev-env-vagrant-install.yml
 - include: dev-env-packer-install.yml
 - include: dev-env-radvd-install.yml
@@ -39,6 +40,8 @@
   roles:
     - role: dev-env-kvm
       kvm_role_mode: "validate"
+    - role: libvirt
+      libvirt_role_mode: "validate"
     - role: dev-env-vagrant
       vagrant_role_mode: "validate"
     - role: dev-env-packer

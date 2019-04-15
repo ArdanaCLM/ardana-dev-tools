@@ -17,14 +17,14 @@
 # Variables for the vagrant environment
 ---
 libvirt_apt_packages_default:
-    kvm:
+    qemu-kvm:
     libvirt-bin:
     libvirt-dev:
     libxml2-dev:
     libxslt-dev:
 
 libvirt_zypp_packages_default:
-    kvm:
+    qemu-kvm:
     libvirt:
     libvirt-devel:
     libvirt-python:
@@ -39,5 +39,17 @@ libvirt_zypp_packages: "{{ libvirt_zypp_packages_default |
                           update(libvirt_zypp_packages_update |
                                  default({})) }}"
 
-# define a default in case _add_group.yml is skipped
-_libvirt_group: "libvirtd"
+# determine appropriate libvirt group and service names
+libvirt_group: >-
+  {%- set _group = "libvirt" -%}
+  {%- if (ansible_distribution == "Ubuntu") and ((ansible_distribution_major_version | int) <= 16) -%}
+  {%-   set _group = "libvirtd" -%}
+  {%- endif -%}
+  {{- _group -}}
+
+libvirt_service: >-
+  {%- set _service = "libvirtd" -%}
+  {%- if (ansible_distribution == "Ubuntu") and ((ansible_distribution_major_version | int) <= 16) -%}
+  {%-   set _service = "libvirt-bin" -%}
+  {%- endif -%}
+  {{- _service -}}

@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,16 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Check the current user is in the libvirtd group.
+# Dynamically include appropriate play if requested
 ---
 
-- name: libvirt | _validate_group | Get user group membership
-  command: groups
-  register: user_groups
-  failed_when: false
-  changed_when: false
+- name: libvirt | main | Determine requested action if any
+  set_fact:
+    libvirt_role_mode: "{{ (libvirt_role_mode | default('none')) | lower }}"
 
-- name: libvirt | _validate_group | Validate user is in libvirt group
-  fail:
-    msg: "User is not in the {{ libvirt_group }} group, you may need to logout and in again"
-  when: not ( user_groups.stdout | search(libvirt_group) )
+- name: libvirt | main | Include specified task list, if any.
+  include: "{{ libvirt_role_mode }}.yml"
+  when:
+    - libvirt_role_mode != "none"
