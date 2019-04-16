@@ -250,7 +250,10 @@ Some useful additional parameters to use:
 			    based package repos)
     --c9-milestone MILESTONE
                            (Deploy a SOC/CLM version 9 cloud on SLES12 SP4, using
-			    latest available build of specified milestone ISO)
+			    latest available build of specified milestone ISO,
+                            for example:
+                              --c9-milestone RC7
+                              --c9-milestone GMC1)
     --c8                   (Deploy a SOC/CLM version 8 cloud on SLES12 SP3)
     --c8-hos               (Deploy a SOC/CLM 8 cloud using HOS, rather than SOC,
                             branded repos; otherwise the same as the --c8
