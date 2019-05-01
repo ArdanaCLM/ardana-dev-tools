@@ -32,8 +32,8 @@ usage() {
   echo
   echo "$SCRIPT_NAME [--ci]"
   echo
-  echo "--ci              -- Sets the same options for running in the CI"
-  echo "                     CDL lab."
+  echo "--ci              -- Sets the same options as used by the CI"
+  echo "                     environment."
 }
 
 OPTIONS=help,ci
@@ -62,6 +62,8 @@ sudo sysctl -w \
 # them with vagrant. If that didn't work, don't worry about it. We'll sweep
 # up any stragglers later using virsh directly.
 if which vagrant ; then
+    eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/dev-env-setup --vagrant-only)"
+
     vagrant --version
     # prune stale state
     vagrant global-status --prune || true
@@ -203,8 +205,8 @@ fi
 # Remove stale astack-ssh-config files
 find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf
 
-# Remove stale .astack-env files
-find $TOOLS_DIR -type f -name .astack-env | xargs rm -vf
+# Remove stale .astack_env files
+find $TOOLS_DIR -type f -name .astack_env | xargs rm -vf
 
 # Remove stale cached ISO images
 # Look for any files under the ~/.cache-ardana/isos tree older than
@@ -215,7 +217,7 @@ cached_isos=( $(find ~/.cache-ardana/isos/ -type f -atime +7 | \
                 grep -v "[.]sha256$" || true) )
 link_tgts=( $(find ~/.cache-ardana/ -type l | \
               grep -v "/.cache-ardana/\(sources\|venvs\)/" | \
-              xargs readlink -m) )
+              xargs readlink -m || true) )
 stale_isos=()
 if (( ${#cached_isos[@]} > 0 )); then
     # identify potential stale ISO files

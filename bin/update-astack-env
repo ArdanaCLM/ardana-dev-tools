@@ -14,7 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# This tool can be used to update the .astack-env file associated with a
+# This tool can be used to update the .astack_env file associated with a
 # astack managed cloud.
 #
 

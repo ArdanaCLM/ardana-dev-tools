@@ -265,7 +265,7 @@ fi
 # Deploy and configure your cloud
 pushd $clouddir
 
-# Generate the .astack-env before bringing up the cloud
+# Generate the .astack_env before bringing up the cloud
 generate_astack_env "FORCE"
 
 if [ -n "$USE_PROJECT_STACK" ]; then
