@@ -174,7 +174,7 @@ ensure_astack_env_exists()
     fi
 }
 
-# Generate the .astack-env file
+# Generate the .astack_env file
 generate_astack_env()
 {
     ensure_in_vagrant_dir generate_astack_env

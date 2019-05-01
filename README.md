@@ -504,7 +504,7 @@ as an argument to the ssh -F option, e.g.
     % cd ardana-vagrant-models/dac-min-vagrant
     % ssh -F astack-ssh-config controller
 
-#### .astack-env
+#### .astack_env
 
 This is a dump of the environment setting that were active when the cloud
 was being deployed, which can be sourced to setup the same environment
@@ -512,7 +512,7 @@ if you wish to run additional commands against the same cloud.
 
 #### ardana-vagrant
 
-This is a simple wrapper script that leverages the .astack-env file to
+This is a simple wrapper script that leverages the .astack_env file to
 setup the environment appropriately and then runs the vagrant command
 against the cloud, e.g.
 
@@ -520,7 +520,7 @@ against the cloud, e.g.
 
 #### ardana-vagrant-ansible
 
-This is a simple wrapper script that leverages the .astack-env file
+This is a simple wrapper script that leverages the .astack_env file
 to setup the environment appropriately and then runs ansible-playbook
 command against the cloud, using the vagrant.py script found under
 ardana-dev-tools/ansible/hosts as the inventory file, so that ansible
