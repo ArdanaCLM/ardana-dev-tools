@@ -502,7 +502,9 @@ module Ardana
             if sles_control_all
               distro = "sles"
             end
-          elsif serverInfo["role"].match("COMPUTE")
+          # compute or adt resource nodes
+          elsif (serverInfo["role"].match("COMPUTE") or
+                 serverInfo["role"].match("RESOURCE"))
             # check for blanket compute settings
             if sles_compute_all
               distro = "sles"

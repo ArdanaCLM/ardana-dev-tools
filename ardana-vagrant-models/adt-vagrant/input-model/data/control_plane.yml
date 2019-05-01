@@ -73,8 +73,8 @@
             - tempest
 
       resources:
-        - name: compute
-          resource-prefix: comp
+        - name: resource
+          resource-prefix: res
           server-role: RESOURCE-ROLE
           allocation-policy: any
           service-components:
