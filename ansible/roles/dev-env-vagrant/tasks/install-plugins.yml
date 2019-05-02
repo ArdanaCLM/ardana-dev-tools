@@ -13,13 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Install the specified vagrant plugins, checking to ensure that any
-# existing plugins are built with an appropriate vagrant version.
+# Install any vagrant plugins that are missing or not the appropriate
+# version.
 ---
-
-- name: dev-env-vagrant | install-plugins | Report version being installed
-  debug:
-    msg: "Installing Vagrant plugins {{ vagrant_settings.plugins }}"
 
 - name: dev-env-vagrant | install-plugins | Report missing plugins if any
   debug:
@@ -45,7 +41,7 @@
 # TODO(fergal): Add support for list of patches per plugin
 - name: dev-env-vagrant | install-plugins | Apply plugin patches if any
   patch:
-    basedir: "{{ vagrant_home }}/{{ item.patch.subdir | default('gems') }}"
+    basedir: "{{ vagrant_home }}/{{ vagrant_settings.gems_dir | default('gems') }}"
     src: "{{ role_path }}/files/vagrant-patch-plugins/{{ item.patch.file }}"
     strip: "{{ item.patch.strip | default(0) }}"
   with_items: vagrant_missing_plugins
