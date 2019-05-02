@@ -16,10 +16,9 @@
 # Settings used to install & manage the vagrant runtime environment
 ---
 
-# The user specified version, defaulting to 1.7.2, to be compatible with
-# the Legacy HOS CI which requires 1.7.2 for HOS 4 building, though with
-# HOS 5 we could potentially use 1.8.7.
-vagrant_version: "{{ lookup('env', 'ARDANA_VAGRANT_VERSION') | default('1.7.2', true) }}"
+# The user specified version, defaulting to 1.8.7; newer versions may
+# have issues with network setup for RHEL/CentOS computes.
+vagrant_version: "{{ lookup('env', 'ARDANA_VAGRANT_VERSION') | default('1.8.7', true) }}"
 
 # From the version we extract the major and minor version values and use
 # them to construct a "series" version, which is then used to determine
@@ -58,44 +57,33 @@ vagrant_requirements:
       - libvirt-dev
       - pkg-config
 
+vagrant_common_plugins:
+  - name: "vagrant-proxyconf"
+    version: "1.5.2"
+  - name: "vagrant-libvirt"
+    version: "{{ _vlp.latest }}"
+    patch:
+      file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
+
 vagrant_series_settings:
   series:
     # For 1.7 series we need to build plugins with 1.7.4 because in
     # March 2017, Hashicorp retired gems.hashicorp.com, causing any
-    # pluging building with versions earlier than 1.7.4 to fail.
+    # plugin building with versions earlier than 1.7.4 to fail.
     "1.7":
       versions:
         plugins: "1.7.4"
         runtime: "{{ vagrant_version }}"
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.0"
-        - name: "fog"
-          version: "1.29.0"
-        - name: "rack"
-          version: "1.6.4"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems"
-        - name: "vagrant-openstack-plugin"
-          version: "0.11.1"
-          patch:
-            file: "vagrant-openstack-plugin-0.11.1/create_server.rb.patch"
-            subdir: "gems"
+      gems_dir: "gems"
+      plugins: "{{ vagrant_common_plugins }}"
+
     "1.8":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.2"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems"
+      gems_dir: "gems"
+      plugins: "{{ vagrant_common_plugins }}"
+
     "1.9":
       versions:
         plugins: "{{ vagrant_version }}"
@@ -104,14 +92,9 @@ vagrant_series_settings:
         suse:
           libreadline:
             "42.3": 6
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.2"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems/2.3.4"
+      gems_dir: "gems/2.3.4"
+      plugins: "{{ vagrant_common_plugins }}"
+
     "2.0":
       versions:
         plugins: "{{ vagrant_version }}"
@@ -120,14 +103,9 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.2"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems/2.4.4"
+      gems_dir: "gems/2.4.4"
+      plugins: "{{ vagrant_common_plugins }}"
+
     "2.1":
       versions:
         plugins: "{{ vagrant_version }}"
@@ -136,14 +114,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.2"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems/2.4.4"
+      gems_dir: "gems/2.4.4"
+      plugins: "{{ vagrant_common_plugins }}"
 
     "2.2":
       versions:
@@ -153,14 +125,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.2"
-        - name: "vagrant-libvirt"
-          version: "{{ _vlp.latest }}"
-          patch:
-            file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
-            subdir: "gems/2.4.4"
+      gems_dir: "gems/2.4.4"
+      plugins: "{{ vagrant_common_plugins }}"
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"
 
