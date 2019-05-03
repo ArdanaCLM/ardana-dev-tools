@@ -37,7 +37,8 @@
 - name: libvirt | _validate_kvm | Check if nested enabled
   shell: systool -vm kvm_intel | grep -i nested
   register: nested_flag
-  when:  ( '{{ ansible_processor | join(",") }}' | search("Intel") )
+  when:
+    - ansible_processor | join(",") | search("Intel")
 
 - name: libvirt | _validate_kvm | Add option for nested KVM
   become: yes
@@ -48,7 +49,9 @@
     state: present
   with_items:
     - 'options kvm_intel nested=1'
-  when: ( '{{ ansible_processor | join(",") }}' ) and ( nested_flag.stdout | search("N") )
+  when:
+    - ansible_processor | join(",") | search("Intel")
+    - nested_flag.stdout | search("N")
   register: _modprobe_conf_result
 
 - name: libvirt | _validate_kvm | rmmod kvm_intel
