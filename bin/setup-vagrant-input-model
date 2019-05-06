@@ -151,9 +151,24 @@ debug_mode=${DEBUG:-}
 verbose_mode=${VERBOSE:-}
 cloud_name=
 force_mode=
-git_branch="$(git -C "${top_dir}" config \
-                 --file $(git rev-parse --show-toplevel)/.gitreview \
-                 --get gerrit.defaultbranch 2>/dev/null || echo master)"
+
+# Determine approprate default branch based upon environment
+# settings that would be set by an astack.sh run, or failing
+# that use the default branch in the top-level .gitreview or
+# master if not found.
+case "${ARDANA_CLOUD_VERSION:-}" in
+(9)
+    git_branch="master"
+    ;;
+(8)
+    git_branch="stable/pike"
+    ;;
+(*)
+    git_branch="$(cd "${top_dir}"; git config \
+                     --file $(git rev-parse --show-toplevel)/.gitreview \
+                     --get gerrit.defaultbranch 2>/dev/null || echo master)"
+    ;;
+esac
 
 while true
 do
