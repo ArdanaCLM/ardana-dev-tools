@@ -16,6 +16,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+aib_logs=/root/ardana_image_build
+aib_script=base
+mkdir -p ${aib_logs}
+exec 1>> ${aib_logs}/${aib_script}.log
+exec 2>> ${aib_logs}/${aib_script}.log
+
 # add cdrom as repo for install if needed
 #mkdir -p /media/cdrom
 #mount -t iso9660 /dev/cdrom /media/cdrom
@@ -28,8 +34,18 @@
 #enabled=1
 #EOF
 
-# we should have sufficient software installed by the kickstart
-#yum -y install gcc make gcc-c++ kernel-devel-`uname -r` zlib-devel openssl-devel readline-devel sqlite-devel perl wget dkms nfs-utils
+# Run yum distribution-synchronization to update to latest versions
+# of installed packages
+echo "[Running zypper update]"
+yum -y distribution-synchronization
+
+# We should have sufficient software installed by the kickstart package list.
+# However if there are additional packages we need to install, do so here
+#echo "[Install additional packages]"
+#yum -y install kernel-devel-`uname -r` dkms nfs-utils
 
 # Make ssh faster by not waiting on DNS
-echo "UseDNS no" >> /etc/ssh/sshd_config
+if ! grep -qs "^[[:space:]]*UseDNS[[:space:]][[:space:]]*no$" /etc/ssh/sshd_config; then
+	echo "[Adding 'UseDNS no' to sshd_config]"
+	echo "UseDNS no" >> /etc/ssh/sshd_config
+fi

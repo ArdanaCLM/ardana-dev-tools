@@ -59,7 +59,7 @@
       flavor: 'cloud-ardana-job-lvm-minimal'
 
     RESOURCE-ROLE:
-      memory: 1024
+      memory: 2048
       cpus: 1
       disks:
         boot:
