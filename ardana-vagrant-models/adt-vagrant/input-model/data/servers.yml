@@ -52,7 +52,7 @@
       cpus: 2
       disks:
         boot:
-          size_gib: 100
+          size_gib: 150
         extras:  # used for mysql & rabbitmq
           count: 2
           size_gib: 20
