@@ -17,5 +17,4 @@
 ---
 dependencies:
   - dev-env
-  - deployer
   - product

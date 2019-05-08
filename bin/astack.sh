@@ -43,7 +43,6 @@ usage() {
     echo "--no-setup            -- Don't run dev-env-install.yml"
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
     echo "                         guest or OVA images"
-    echo "--no-build            -- Don't build venv, reuse existing packages"
     echo "--no-update-rpms      -- Don't run updated_rpms.sh to rebuild RPMs"
     echo "--no-git-update       -- Don't update git cached sources"
     echo "--prebuilt-images     -- Download pre-built qcow2 images for use in"
@@ -116,18 +115,10 @@ usage() {
     echo "                         as RHEL computes. (repeatable)"
     echo "--sles12sp3           -- Use SLES12 SP3 as the SLES distro"
     echo "--sles12sp4           -- Use SLES12 SP4 as the SLES distro"
-    echo "--sles                -- Include any SLES artifacts"
-    echo "--sles-control        -- Switch control nodes to use sles"
-    echo "--sles-control-nodes nodes"
-    echo "                      -- Colon separated list of nodes to be setup"
-    echo "                         as SLES controllers. (repeatable)"
     echo "--sles-compute        -- Switch compute nodes to use sles"
     echo "--sles-compute-nodes nodes"
     echo "                      -- Colon separated list of nodes to be setup"
     echo "                         as SLES computes. (repeatable)"
-    echo "--sles-deployer       -- Switch deployer node to use sles"
-    echo "                         (deprecated - deployer will use whichever"
-    echo "                         distro is used for control plane."
     echo "--cobble-nodes nodes  -- Specify a list of nodes to re-image with cobbler"
     echo "                         before running the Ardana OpenStack deployment."
     echo "--cobble-rhel-nodes nodes"
@@ -140,7 +131,6 @@ usage() {
     echo "--no-config           -- Do not execute the config-processor"
     echo "--no-site             -- Do not execute the site.yml playbook during"
     echo "                         deployment"
-    echo "--update-only         -- Just update the git sources"
     echo "--ci                  -- Sets the same options for running in the CI"
     echo "                         CDL lab."
     echo "--run-tests           -- Run tests after deployment"
@@ -170,17 +160,29 @@ usage() {
     echo "                         in [0..8] e.g. 0,1,3,5 to indicate that these will"
     echo "                         need an IPv6 address.)"
     echo "--ipv6-all            -- All net interfaces will need an IPv6 address."
-    echo "--extra-vars          -- Pass extra vars to any locally run playbooks"
+    echo "--guest-images        -- Include any guest image artifacts"
+    echo "--extra-vars VARS     -- Pass extra vars to any locally run playbooks"
     echo ""
-    echo "Deprecated options:"
-    echo "--squashkit           -- Specify a kit to compare this against for squashing. You"
-    echo "                         probable don't need to run this."
+    echo "Deprecated options that have no effect:"
     echo "--c8-qa-tests         -- Do not use; legacy venv builds no longer"
     echo "                         supported."
     echo "--legacy              -- Do not use; legacy deployment no longer"
+    echo "--no-build            -- Don't build venv, reuse existing packages"
+    echo "--skip-extra-playbooks"
+    echo "                      -- Skip extra playbook on deployer setup."
+    echo "--sles                -- Include any SLES artifacts"
+    echo "--sles-control        -- Switch control nodes to use sles"
+    echo "--sles-control-nodes nodes"
+    echo "                      -- Colon separated list of nodes to be setup"
+    echo "                         as SLES controllers. (repeatable)"
+    echo "--sles-deployer       -- Switch deployer node to use sles"
+    echo "                         (deprecated - deployer will use whichever"
+    echo "                         distro is used for control plane."
+    echo "--squashkit           -- Specify a kit to compare this against for squashing. You"
+    echo "                         probable don't need to run this."
     echo "                         supported."
-    echo "--guest-images        -- Include any guest image artifacts"
     echo "--tarball TARBALL     -- Specify a prebuilt deployer tarball to use."
+    echo "--update-only         -- Just update the git sources"
 }
 
 ORIGINAL_ARGUMENTS=$@
@@ -218,10 +220,9 @@ feature_ansible() {
     done
 }
 
-# Update RPMs if needed.
-if [ -n "${ARDANA_CLOUD_DEPLOYER}" ]; then
-    # skip this if NO_UPDATE_RPMS is set
-    [ -n "${NO_UPDATE_RPMS:-}" ] || ${SCRIPT_HOME}/update_rpms.sh
+# Skip this if NO_UPDATE_RPMS is set
+if [ -z "${NO_UPDATE_RPMS:-}" ]; then
+    ${SCRIPT_HOME}/update_rpms.sh
 fi
 
 # download and include any specified OBS project RPMs
@@ -243,20 +244,6 @@ fi
 if [ -n "${ARDANA_DISABLE_SERVICES:-}" -a -n "${USE_PROJECT_STACK:-}" ]; then
     echo "Combining --disable-services and --project-stack isn't allowed." >&2
     exit 1
-fi
-
-if [ -n "$UPDATE_ONLY" ]; then
-    if [ "${ARDANA_GIT_UPDATE:-}" = "no" ]; then
-        echo "Running update-only with ARDANA_GIT_UPDATE turned off. This doesn't make sense."
-        echo "Turning git update on"
-        export ARDANA_GIT_UPDATE=yes
-    fi
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
-        $DEVTOOLS/ansible/get-venv-sources.yml
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
-        $DEVTOOLS/ansible/get-ansible-sources.yml
-    # We are only updating the git sources so exit now
-    exit 0
 fi
 
 # Cloud based configuration
@@ -296,8 +283,6 @@ fi
 if [[ -n "$ARDANA_UPGRADE_NO_SLES" ]]
 then
     unset ARDANA_SLES_ARTIFACTS
-    unset ARDANA_SLES_CONTROL
-    unset ARDANA_SLES_CONTROL_NODES
     unset ARDANA_SLES_COMPUTE
     unset ARDANA_SLES_COMPUTE_NODES
 fi
@@ -381,59 +366,6 @@ if [ -z "${NO_ARTIFACTS:-}" ]; then
     $SCRIPT_HOME/build-distro-artifacts
 fi
 
-# Build
-if [ -z "$NO_BUILD" -a -z "$DEPLOYER_TARBALL" ]; then
-    logsubunit --inprogress build
-    # artifacts should already have been build so skip
-    $SCRIPT_HOME/build-venv.sh \
-        ${CI:+--ci} \
-        ${ARDANA_CLOUD_ARTIFACTS:+--cloud} \
-        ${ARDANA_RHEL_ARTIFACTS:+--rhel} \
-        ${ARDANA_SLES_ARTIFACTS:+--sles} \
-        --no-artifacts \
-        --stop || logfail build
-    logsubunit --success build
-fi
-
-if [ -n "$SQUASH_KIT" ]; then
-    branchdir=$(get_branch_path)
-    scratchdir="scratch-$branchdir"
-    kitiso="$HOME/.cache-ardana/$branchdir/artifacts/$SQUASH_KIT"
-    url=$(dirname $(cat ${kitiso}.source))
-
-    kitcleanup() {
-        sudo umount $kittmp || true
-        rm -fr $kittmp
-        trap - SIGHUP SIGINT SIGTERM EXIT
-    }
-    kittmp=$(mktemp -d)
-    trap kitcleanup SIGHUP SIGINT SIGTERM EXIT
-
-    sudo mount $kitiso $kittmp
-
-    kittar=$(ls $kittmp/ardana/*.tar)
-    kittararray=( $kittar )
-    if [ ${#kittararray[@]} -ne 1 ]; then
-        echo "Failed to find the kit deployertarball from the kit in $url" >&2
-        exit 1
-    fi
-
-    # Produce venv_report.yaml
-    python $SCRIPT_HOME/../isogen/venv_diff_report.py \
-        --verbose \
-        --report $DEVTOOLS/venv_report.yaml \
-        $kittmp \
-        $DEVTOOLS/$scratchdir
-
-    # Squash venv packages in scratch area based on report
-    python $SCRIPT_HOME/../isogen/venv_squash_tool.py \
-        --report $DEVTOOLS/venv_report.yaml \
-        --previousurl $url \
-        $kittmp $DEVTOOLS/$scratchdir $ARTIFACTS_FILE
-
-    kitcleanup
-fi
-
 # Run any preparation step for features
 if [ -n "$FEATURE_PREPARE" ]; then
     feature_prepare prepare-artifacts.yml
@@ -457,23 +389,16 @@ fi
 
 generate_ssh_config "FORCE"
 
-if [[ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]]; then
-    # ensure we have up-to-date input model sources if not using
-    # a locally cloned ardana-input-model
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/localhost \
-        $DEVTOOLS/ansible/get-input-model-sources.yml
-
-    # setup the SOC/CLM nodes using a similar process to how
-    # the customer would in a real deployment
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
-        $DEVTOOLS/ansible/cloud-setup.yml \
-        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
-fi
+# setup the SOC/CLM nodes using a similar process to how
+# the customer would in a real deployment
+ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+    $DEVTOOLS/ansible/cloud-setup.yml \
+    -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
 
 # Run any feature hooks between ardana-init.bash and initialising the input model
 feature_ansible post-ardana-init.yml
 
-if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
+if [ -n "${COBBLER_ENABLED:-}" ]; then
     # Edit the servers.yml file on deployer to configure specified distros
     $SCRIPT_HOME/run-in-deployer.sh \
         $SCRIPT_HOME/deployer/add-distros.py \
@@ -485,7 +410,6 @@ if [[ ( -n "$COBBLER_ALL_NODES" ) || ( -n "$COBBLER_NODES" ) ]]; then
             ${COBBLER_SLES_NODES:+--sles-nodes=${COBBLER_SLES_NODES:-}} \
             ${COBBLER_RHEL_COMPUTE:+--rhel-compute} \
             ${COBBLER_SLES_COMPUTE:+--sles-compute} \
-            ${COBBLER_SLES_CONTROL:+--sles-control} \
             ${ARDANA_CLOUD_NAME}
 fi
 
@@ -549,15 +473,7 @@ if [ -z "$USE_PROJECT_STACK" ]; then
     fi
 fi
 
-if [ -z "${SKIP_EXTRA_PLAYBOOKS}" -o -n "$COBBLER_NODES" \
-     -o -n "$COBBLER_ALL_NODES" ]; then
-    if [ -z "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
-        # If requested via arguments, upload the distro ISOs to the deployer
-		ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
-            $DEVTOOLS/ansible/upload-distro-isos-to-deployer.yml \
-            -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
-    fi
-
+if [ -n "$COBBLER_NODES" -o -n "$COBBLER_ALL_NODES" ]; then
     # run cobbler-deploy.sh on deployer specifying which version
     # of SLES to use.
     $SCRIPT_HOME/run-in-deployer.sh \
@@ -653,16 +569,7 @@ logsubunit --success deploy
 
 if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
     run_in_args=""
-    # only set --ci option to run-in-deployer if not a SOC/CLM deployment
-    if [ \( -n "$CI" \) -a \( -z "${ARDANA_CLOUD_DEPLOYER}" \)]; then
-        run_in_args="--ci"
-    fi
-
-    run_test_args=""
-    # unless --c8-qa-tests specified, we just run tempest tests
-    if [ -z "${C8_QA_TEST:-}" ]; then
-        run_test_args="-- --tempest-only"
-    fi
+    run_test_args="--"
 
     pushd "${DEVTOOLS}/ardana-vagrant-models/${ARDANA_CLOUD_NAME}-vagrant"
     ${SCRIPT_HOME}/run-in-deployer.sh \

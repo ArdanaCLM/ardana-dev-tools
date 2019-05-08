@@ -1,6 +1,5 @@
 *.gem
 *.json
-isogen/__init__.py
 doc/source/.*.rst
 .keep
 ardana-ci/project/astack-options
@@ -12,8 +11,6 @@ ardana-ci/features/third-party/files/src/myservice-client/src/myservice-client-1
 .gitignore
 tools/elements/amphora-agent/install.d/75-run_setup_install
 tools/elements/haproxy-octavia/post-install.d/20-haproxy-tune-kernel
-isogen/sles/sles12sp3-autoyast.xml
-isogen/sles/add_nic.xslt
 Vagrantfile
 logs
 ansible/roles/vagrant-cloud-setup/templates/rhel.repo.j2
@@ -23,6 +20,5 @@ ansible/roles/lint/files/requirements.txt
 ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-openstack-plugin-0.11.1/create_server.rb.patch
 ansible/roles/dev-env-vagrant/files/vagrant-patch-plugins/vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch
 build-vagrant/README.md
-ansible/roles/venv/templates/manifest.j2
 ansible/roles/artifact-publisher/README.md
 zerodisk.sh

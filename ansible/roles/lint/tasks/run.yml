@@ -52,11 +52,18 @@
     chdir: "{{ lint_hierarchy_dir }}"
   changed_when: false
 
+- name: lint | run | Check for any host_vars dirs
+  shell: >-
+    find {{ lint_hierarchy_dir }} -type d -name "host_vars"
+  register: _find_host_vars_result
+  changed_when: false
+
 - name: lint | run | Yaml syntax check for host_vars
   shell: >-
     {{ lint_venv }}/bin/python {{ lint_parse_yaml }} */host_vars/*
   args:
     chdir: "{{ lint_hierarchy_dir }}"
+  when: _find_host_vars_result.stdout
   changed_when: false
 
 # Just record the output for now. We can't make this voting

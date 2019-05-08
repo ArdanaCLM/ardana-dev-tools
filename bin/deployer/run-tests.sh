@@ -36,14 +36,14 @@ eval set -- "$TEMP"
 # The overall test time available (in minutes)
 TEST_TIMEOUT=240
 NO_IRONIC=
-TEMPEST_ONLY=
 
 while true ; do
     case "$1" in
         -h|--help) usage ; exit 0 ;;
         --timeout) TEST_TIMEOUT=$2 ; shift 2 ;;
         --no-ironic) NO_IRONIC=1 ; shift ;;
-        --tempest-only) TEMPEST_ONLY=1 ; shift ;;
+        # option retained for backwards compatibility
+        --tempest-only) shift ;;
         --) shift ; break;;
         *) break ;;
     esac
@@ -98,42 +98,6 @@ ansible-playbook \
     -e tempest_test_axis=control_plane
 popd
 
-if [[ -n "${TEMPEST_ONLY}" ]]; then
-    echo "Completed tempest tests successfully; finishing now."
-    exit 0
-fi
-
-pushd "${ANSIBLE_NEXT}/group_vars"
-popd
-
-pushd "${HOME}/ardana-qa-ansible"
-
-# Run ardana-qa pre-deploy to setup the host as a test driver
-ansible-playbook \
-    -i hosts/default_hosts \
-    ardana-qa-pre-deploy.yml \
-    -e ardana_ansible_root=${ANSIBLE_NEXT} \
-    -e cache_folder=${HOME} \
-    -e test_driver_login=${USER} \
-    -e ardana_user=${USER}
-
-# Run ardana-qa deploy to deploy tests
-ansible-playbook \
-    -i hosts \
-    ardana-qa-deploy.yml \
-    --tags $TAGS \
-    --skip-tags=no-qa \
-    -e run_filter=${RUN_FILTER} \
-    -e cache_folder=${HOME} \
-    -e ardana_user=${USER} || [ $JOB_TYPE == 'upgrade-ci' ]
-
-# Run ardana-qa run to run tests
-ansible-playbook \
-    -i hosts \
-    ardana-qa-run.yml \
-    --tags $TAGS \
-    --skip-tags=no-qa \
-    -e run_filter=${RUN_FILTER} \
-    -e cache_folder=${HOME} || [ $JOB_TYPE == 'upgrade-ci' ]
+echo "Completed tempest tests successfully; finishing now."
 
 # vim:shiftwidth=4:tabstop=4:expandtab

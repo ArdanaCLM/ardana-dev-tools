@@ -21,9 +21,12 @@
 import argparse
 import logging
 import os
+import sys
 import yaml
 
-logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
+log_file = os.path.splitext(sys.argv[0])[0] + '.log'
+logging.basicConfig(level=logging.INFO, filename=log_file,
+                    format='%(levelname)s: %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -86,7 +89,7 @@ class Servers(object):
             distro = "sles"
 
         if distros is None:
-            distros = dict(sles='sles12sp3', rhel='rhel75')
+            distros = dict(sles='sles12sp4', rhel='rhel75')
 
         if arch is None:
             arch = 'x86_64'
@@ -225,8 +228,8 @@ def main():
                         '(colon separated list)')
 
     # distro versions to use
-    parser.add_argument('--sles', dest='sles_distro', default='sles12sp3',
-                        help='The version of SLES to use, e.g. "sles12sp3"')
+    parser.add_argument('--sles', dest='sles_distro', default='sles12sp4',
+                        help='The version of SLES to use, e.g. "sles12sp4"')
     parser.add_argument('--rhel', dest='rhel_distro', default='rhel75',
                         help='The version of RHEL to use, e.g. "rhel75"')
 
@@ -278,7 +281,8 @@ def main():
         elif server['id'] in rhel_node_ids:
             server_distro = 'rhel'
 
-        if (server_distro is None) and ("COMPUTE" in server['role']):
+        if (server_distro is None) and (("COMPUTE" in server['role']) or
+                                        ("RESOURCE" in server['role'])):
             # check for blanket all compute setting
             if args.sles_compute:
                 server_distro = 'sles'

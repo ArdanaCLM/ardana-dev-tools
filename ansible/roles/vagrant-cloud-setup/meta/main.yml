@@ -21,6 +21,5 @@ dependencies:
   - role: dev-env-cloud
   - role: clouddata-mirror-setup
   - role: package-constants
+  - role: image-build
   - role: vagrant-vm
-  - role: deployer
-  - role: venv

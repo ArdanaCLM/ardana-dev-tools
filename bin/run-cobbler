@@ -55,9 +55,7 @@ usage() {
     echo "--no-build          -- Don't build venvs, reuse existing packages"
     echo "--no-update-rpms    -- Don't build RPMs from local clones"
     echo "--pre-destroy       -- Destroy any existing instance of cloud first"
-    echo "--tarball <tarball> -- Use the specified legacy deployer tarball"
     echo "--rhel-compute      -- Enable RHEL compute re-imaging."
-    echo "--sles-control      -- Enable SLES control re-imaging."
     echo "--sles-compute      -- Enable SLES compute re-imaging."
 }
 
@@ -84,18 +82,14 @@ long_opts=(
     c9-updates-test
     ci
     help
-    legacy
     no-artifacts
-    no-build
     no-setup
     no-update-rpms
     pre-destroy
     rhel-compute
     sles-compute
-    sles-control
     sles12sp3
     sles12sp4
-    tarball:
 )
 
 # join long_opts members with ","
@@ -124,18 +118,12 @@ while true ; do
         --rhel-compute)
             args+=( --cobble-rhel-compute --rhel-compute )
             shift ;;
-        --sles-control)
-            args+=( --cobble-sles-control )
-            shift ;;
         --sles-compute)
             args+=( --cobble-sles-compute )
             shift ;;
-        --no-setup|--no-artifacts|--no-build|--no-update-rpms|--pre-destroy)
+        --ci|--no-setup|--no-artifacts|--no-update-rpms|--pre-destroy)
             args+=( $1 )
             shift ;;
-        --tarball)
-            args+=( $1 $2 )
-            shift 2;;
         --) shift ; break;;
         *) break ;;
     esac
@@ -156,7 +144,6 @@ export ARDANAUSER=${ARDANAUSER:-${_user}}
 export ARDANA_USER_HOME_BASE=${ARDANA_USER_HOME_BASE:-${_home_base}}
 
 args+=(
-    --skip-extra-playbooks
     --cobble-all-nodes
 )
 
@@ -164,10 +151,6 @@ set -x
 
 ARDANA_CLOUD_NAME=${1:-adt}
 args+=( $ARDANA_CLOUD_NAME )
-
-
-export ARDANA_PACKAGES_DIST='["packager", "ansible", "ardana-service", "config_processor", "installer-ui"]'
-export ARDANA_PACKAGES_NONDIST='[]'
 
 source $SCRIPT_HOME/libci.sh
 

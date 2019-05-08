@@ -41,5 +41,5 @@ shopt -s extglob
 GLOBIGNORE="ardana_version.yml:percona-post-upgrade.yml:percona-pre-upgrade.yml"
 # run a syntax-check passing in dumb values for variables that are prompted
 ansible-playbook -i hosts/localhost --syntax-check *.yml -e \
-  "old_deployer_hostname=dumb ardanauser_password=dumb encrypt=dumb rekey=dumb"
+  "old_deployer_hostname=dumb ardanauser_password=dumb encrypt=dumb rekey=dumb deployer_node=dumb"
 ansible-playbook -e dev_env_default_git_server=${GOZER_GIT_MIRROR} -i hosts/localhost lint-run.yml

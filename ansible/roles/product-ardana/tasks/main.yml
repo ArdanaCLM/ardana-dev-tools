@@ -36,5 +36,4 @@
 - include: _include_vars.yml var_file=deployer
 - include: _include_vars.yml var_file=image-build
 - include: _include_vars.yml var_file=apt-repos
-- include: _include_vars.yml var_file=venv
 - include: _include_vars.yml var_file=ardana-extensions

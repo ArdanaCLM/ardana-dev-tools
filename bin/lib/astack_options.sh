@@ -140,7 +140,6 @@ IBS_PRJS=()
 
 NO_SETUP=
 NO_ARTIFACTS=
-NO_BUILD=
 NO_UPDATE_RPMS=
 SOC_CLM_8=
 SOC_CLM_9=
@@ -159,7 +158,6 @@ export ARDANA_DISABLE_SPECTREV2=${ARDANA_DISABLE_SPECTREV2:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
-export ARDANA_CLOUD_DEPLOYER=${ARDANA_CLOUD_DEPLOYER:-}
 export ARDANA_CLOUD_REPOS=${ARDANA_CLOUD_REPOS:-}
 export ARDANA_CLOUD_SOURCE=${ARDANA_CLOUD_SOURCE:-devel-staging}
 export ARDANA_CLOUD_CACHING_PROXY=${ARDANA_CLOUD_CACHING_PROXY:-}
@@ -175,8 +173,6 @@ export ARDANA_UPGRADE_NO_SLES=${ARDANA_UPGRADE_NO_SLES:-}
 export ARDANA_SLES_ARTIFACTS=${ARDANA_SLES_ARTIFACTS:-}
 export ARDANA_SLES_MAJOR=${ARDANA_SLES_MAJOR:-}
 export ARDANA_SLES_SP=${ARDANA_SLES_SP:-}
-export ARDANA_SLES_CONTROL=${ARDANA_SLES_CONTROL:-}
-export ARDANA_SLES_CONTROL_NODES=${ARDANA_SLES_CONTROL_NODES:-}
 export ARDANA_SLES_COMPUTE=${ARDANA_SLES_COMPUTE:-}
 export ARDANA_SLES_COMPUTE_NODES=${ARDANA_SLES_COMPUTE_NODES:-}
 export ARDANA_SLES_MIRROR=${ARDANA_SLES_MIRROR:-1}  # default to enabled
@@ -198,7 +194,6 @@ COBBLER_NODES=
 COBBLER_RHEL_NODES=
 COBBLER_SLES_NODES=
 COBBLER_RHEL_COMPUTE=
-COBBLER_SLES_CONTROL=
 COBBLER_SLES_COMPUTE=
 COBBLER_ALL_NODES=
 COBBLER_ENABLED=
@@ -216,11 +211,6 @@ NO_LOG_DISABLE=
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
-BLDVM_MB=$(( (TOTMEM_GB / 4) * 1024 ))
-
-# Deprecated functionality
-ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
-C8_QA_TESTS=
 
 while true ; do
     case "$1" in
@@ -234,14 +224,12 @@ while true ; do
         --ci)
             SKIP_EXTRA_PLAYBOOKS=
             export CI=yes
-            export ARDANA_BUILD_MEMORY=${ARDANA_BUILD_MEMORY:-${BLDVM_MB}}
             # Since there could be up to 3 build VMs, only overcommit
             # system CPU resources by at most 50%
             export ARDANA_BUILD_CPU=$(( $(nproc) / 2 ))
             shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
-        --no-build) NO_BUILD=1 ; shift ;;
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
@@ -264,12 +252,8 @@ while true ; do
             SOC_CLM_8=true
             export ARDANA_CLOUD_ARTIFACTS=1
             shift ;;
-        --legacy)
-            ARDANA_LEGACY_DEPLOYER=1
-            shift ;;
-        --c8|--cloud8-deployer)
+        --c8)
             SOC_CLM_8=true
-            export ARDANA_CLOUD_DEPLOYER=1
             shift ;;
         --c8-hos)
             SOC_CLM_8=true
@@ -325,16 +309,12 @@ while true ; do
             export ARDANA_SLES_REPOS='["updates", "pool"]'
             NO_UPDATE_RPMS=1
             shift ;;
-        --c8-qa-tests)
-            C8_QA_TESTS=1
-            shift ;;
         --cloud9-artifacts)
             SOC_CLM_9=true
             export ARDANA_CLOUD_ARTIFACTS=1
             shift ;;
-        --c9|--cloud9-deployer)
+        --c9)
             SOC_CLM_9=true
-            export ARDANA_CLOUD_DEPLOYER=1
             shift ;;
         --c9-mirror)
             SOC_CLM_9=true
@@ -392,23 +372,14 @@ while true ; do
         --rhel-compute-nodes)
             ARDANA_RHEL_COMPUTE_NODES="${ARDANA_RHEL_COMPUTE_NODES:+${ARDANA_RHEL_COMPUTE_NODES}:}$2"
             shift 2 ;;
-        --sles) export ARDANA_SLES_ARTIFACTS=1 ; shift ;;
         --sles12sp3)
-            export ARDANA_SLES_ARTIFACTS=1
             export ARDANA_SLES_MAJOR=12
             export ARDANA_SLES_SP=3
             shift ;;
         --sles12sp4)
-            export ARDANA_SLES_ARTIFACTS=1
             export ARDANA_SLES_MAJOR=12
             export ARDANA_SLES_SP=4
             shift ;;
-        --sles-deployer|--sles-control)
-            export ARDANA_SLES_CONTROL=1
-            shift ;;
-        --sles-control-nodes)
-            ARDANA_SLES_CONTROL_NODES="${ARDANA_SLES_CONTROL_NODES:+${ARDANA_SLES_CONTROL_NODES}:}$2"
-            shift 2 ;;
         --sles-compute)
             export ARDANA_SLES_COMPUTE=1
             shift ;;
@@ -416,9 +387,6 @@ while true ; do
             ARDANA_SLES_COMPUTE_NODES="${ARDANA_SLES_COMPUTE_NODES:+${ARDANA_SLES_COMPUTE_NODES}:}$2"
             shift 2 ;;
         --guest-images) export ARDANA_GUEST_IMAGE_ARTIFACTS=1 ; shift ;;
-        --tarball)
-            export DEPLOYER_TARBALL=$2
-            shift 2 ;;
         --cobble-nodes)
             COBBLER_NODES="${COBBLER_NODES:+${COBBLER_NODES}:}$2"
             shift 2 ;;
@@ -429,7 +397,6 @@ while true ; do
             COBBLER_SLES_NODES="${COBBLER_SLES_NODES:+${COBBLER_SLES_NODES}:}$2"
             shift 2 ;;
         --cobble-rhel-compute) COBBLER_RHEL_COMPUTE=1 ; shift ;;
-        --cobble-sles-control) COBBLER_SLES_CONTROL=1 ; shift ;;
         --cobble-sles-compute) COBBLER_SLES_COMPUTE=1 ; shift ;;
         --cobble-all-nodes) COBBLER_ALL_NODES=1 ; shift ;;
         --disable-services)
@@ -441,8 +408,6 @@ while true ; do
             NO_SITE=1
             shift ;;
         --no-site) NO_SITE=1 ; shift ;;
-        --skip-extra-playbooks) SKIP_EXTRA_PLAYBOOKS=--skip-extra-playbooks ; shift ;;
-        --update-only) UPDATE_ONLY=1 ; shift ;;
         --project-stack)
             USE_PROJECT_STACK=$2
             shift 2 ;;
@@ -451,12 +416,18 @@ while true ; do
             shift 2 ;;
         --no-prepare) FEATURE_PREPARE= ; shift ;;
         --restrict-by-project) ZUUL_PROJECT=$2 ; shift 2 ;;
-        --squashkit) SQUASH_KIT=$2 ; shift 2 ;;
         --ipv4) export ARDANA_IPV4_NETWORKS="$2" ; shift 2 ;;
         --ipv6) export ARDANA_IPV6_NETWORKS="$2" ; shift 2 ;;
         --ipv6-all) export ARDANA_IPV6_NETWORKS=${DEFAULT_NET_INDICES} ; shift ;;
         --extra-vars)
             export EXTRA_VARS=$2
+            shift 2 ;;
+        # Handle deprecated options
+        --c8-qa-tests|--cloud8-deployer|--cloud9-deployer|--cobble-sles-control|--legacy|--no-build|--skip-extra-playbooks|--sles|--sles-control|--sles-deployer|--update-only)
+            echo "Deprecated option '${1}' - ignored"
+            shift ;;
+        --sles-control-nodes|--squashkit|--tarball)
+            echo "Deprecated option '${1} ${2}' - ignored"
             shift 2 ;;
         --) shift ; break;;
         *) break ;;
@@ -464,30 +435,37 @@ while true ; do
 done
 
 #
-# Check for deprecated functionality that is no longer supported
-#
-
-# Check if --legacy specified and fail with approriate error message
-if [ -n "${ARDANA_LEGACY_DEPLOYER:-}" ]; then
-    echo "ERROR: Legacy deployment mode (--legacy) is no longer supportted."
-    exit 1
-fi
-
-# Check if --c8-qa-tests specified and fail with approriate error message
-if [ -n "${C8_QA_TESTS:-}" ]; then
-    echo "ERROR: Extended QA tests (--c8-qa-tests) is no longer supportted."
-    exit 1
-fi
-
-# Check if --squash-kit specified and fail with approriate error message
-if [ -n "${C8_QA_TESTS:-}" ]; then
-    echo "ERROR: Legacy kit squashing (--squash-kit) is no longer supportted."
-    exit 1
-fi
-
-#
 # Sanity check option settings and set reasonable defaults of no specific options specified.
 #
+
+# Our product uses a SLES based control plane so we
+# always want SLES based artifacts
+export ARDANA_SLES_ARTIFACTS=1
+export ARDANA_CLOUD_ARTIFACTS=1
+
+# SOC/CLM requires that we are using ardana user homed under
+# /var/lib/ardana
+export ARDANAUSER=ardana
+export ARDANA_USER_HOME_BASE=/var/lib
+
+# default to Staging repos as Cloud package source
+if [ -z "${ARDANA_CLOUD_SOURCE:-}" ]; then
+    export ARDANA_CLOUD_SOURCE="devel-staging"
+fi
+
+# default to Staging as set of Cloud repos to use
+if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
+    export ARDANA_CLOUD_REPOS='["staging"]'
+fi
+
+# default to SOC mode if neither or both modes selected
+if [ \( -z "${ARDANA_CLOUD_HOS:-}" -a \
+        -z "${ARDANA_CLOUD_SOC:-}" \) -o \
+     \( -n "${ARDANA_CLOUD_HOS:-}" -a \
+        -n "${ARDANA_CLOUD_SOC:-}" \) ]; then
+    export ARDANA_CLOUD_SOC=1
+    export ARDANA_CLOUD_HOS=
+fi
 
 # Mixing SOC_CLM_8 & SOC_CLM_9 options is not supported.
 if [ -n "${SOC_CLM_8:-}" -a \
@@ -505,78 +483,26 @@ fi
 
 # Setup appropriate Cloud and SLES version settings
 if [ -n "${SOC_CLM_9:-}" ]; then
-    export ARDANA_CLOUD_DEPLOYER=1
     export ARDANA_CLOUD_VERSION=9
     export ARDANA_SLES_MAJOR=12
     export ARDANA_SLES_SP=4
+    if [ -n "${ARDANA_CLOUD_HOS:-}" ]; then
+        echo "ERROR: No HOS variant for SOC 9"
+        exit 1
+    fi
 elif [ -n "${SOC_CLM_8:-}" ]; then
-    export ARDANA_CLOUD_DEPLOYER=1
     export ARDANA_CLOUD_VERSION=8
     export ARDANA_SLES_MAJOR=12
     export ARDANA_SLES_SP=3
 fi
 
-# Select appropriate settings if SOC/CLM deployer selected
-if [ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]; then
-    export ARDANA_CLOUD_ARTIFACTS=1
-    export ARDANA_SLES_CONTROL=1
-
-    # SOC/CLM requires that we are using ardana user homed under
-    # /var/lib/ardana
-    export ARDANAUSER=ardana
-    export ARDANA_USER_HOME_BASE=/var/lib
-
-    # disable building of legacy product venvs
-    export ARDANA_PACKAGES_DIST='[]'
-
-    # ensure we build & upload QA venvs only if --c8-qa-tests specified
-    if [ -n "${C8_QA_TESTS:-}" ]; then
-        # ensure we run tests
-        RUN_TESTS=1
-
-        # We could explicitly clear NO_BUILD here to ensure that we
-        # force a build of the venvs, but since NO_BUILD defaults to
-        # empty, meaning we trigger a venv build, and would only be
-        # set if the --no-build option were specified, we trust that
-        # the caller knows what they are doing.
-    else
-        # disable building & uploading QA venvs
-        NO_BUILD=1
-        export ARDANA_PACKAGES_NONDIST='[]'
-        export ARDANA_NO_SETUP_QA=1
-    fi
-
-    # default to Staging repos as Cloud package source
-    if [ -z "${ARDANA_CLOUD_SOURCE:-}" ]; then
-        export ARDANA_CLOUD_SOURCE="devel-staging"
-    fi
-
-    # default to Staging as set of Cloud repos to use
-    if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
-        export ARDANA_CLOUD_REPOS='["staging"]'
-    fi
-
-    # default to enabling mirroring if caching proxy not enabled.
-    if [ -z "${ARDANA_CLOUD_MIRROR:-}" -a \
-         -z "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
-        export ARDANA_CLOUD_MIRROR=1
-    fi
-
-    # default to SOC mode if neither or both modes selected
-    if [ \( -z "${ARDANA_CLOUD_HOS:-}" -a \
-            -z "${ARDANA_CLOUD_SOC:-}" \) -o \
-         \( -n "${ARDANA_CLOUD_HOS:-}" -a \
-            -n "${ARDANA_CLOUD_SOC:-}" \) ]; then
-        export ARDANA_CLOUD_SOC=1
-        export ARDANA_CLOUD_HOS=
-    fi
+# default to enabling mirroring if caching proxy not enabled.
+if [ -z "${ARDANA_CLOUD_MIRROR:-}" -a \
+     -z "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
+    export ARDANA_CLOUD_MIRROR=1
 fi
 
-# Select default control plane and compute distros if none selected
-if [ -z "${ARDANA_SLES_CONTROL:-}" -a \
-     -z "${ARDANA_SLES_CONTROL_NODES:-}" ]; then
-    export ARDANA_SLES_CONTROL=1
-fi
+# Select default compute distro if none selected
 if [ -z "${ARDANA_SLES_COMPUTE:-}" -a \
      -z "${ARDANA_SLES_COMPUTE_NODES:-}" -a \
      -z "${ARDANA_RHEL_COMPUTE:-}" -a \
@@ -584,17 +510,8 @@ if [ -z "${ARDANA_SLES_COMPUTE:-}" -a \
     export ARDANA_SLES_COMPUTE=1
 fi
 
-# If a distro has been selected for control plane, compute or cobbler
+# If RHEL distro has been selected for compute or cobbler
 # usage then we will need to build the required artifacts for it.
-if [ -n "${ARDANA_SLES_CONTROL:-}" -o \
-     -n "${ARDANA_SLES_COMPUTE:-}" -o \
-     -n "${ARDANA_SLES_CONTROL_NODES:-}" -o \
-     -n "${ARDANA_SLES_COMPUTE_NODES:-}" -o \
-     -n "${COBBLER_SLES_CONTROL:-}" -o \
-     -n "${COBBLER_SLES_COMPUTE:-}" -o \
-     -n "${COBBLER_SLES_NODES:-}" ]; then
-    export ARDANA_SLES_ARTIFACTS=1
-fi
 if [ -n "${ARDANA_RHEL_COMPUTE:-}" -o \
      -n "${ARDANA_RHEL_COMPUTE_NODES:-}" -o \
      -n "${COBBLER_RHEL_COMPUTE:-}" -o \
@@ -604,16 +521,14 @@ fi
 
 # Will we be cobbling any nodes
 if [ -n "${COBBLER_NODES:-}" -o \
-     -n "${COBBLER_SLES_CONTROL:-}" -o \
      -n "${COBBLER_SLES_COMPUTE:-}" -o \
      -n "${COBBLER_SLES_NODES:-}" -o \
      -n "${COBBLER_RHEL_COMPUTE:-}" -o \
      -n "${COBBLER_RHEL_NODES:-}" -o \
      -n "${COBBLER_ALL_NODES}" ]; then
-     COBBLER_ENABLED=1
+    COBBLER_ENABLED=1
 
-     # For cobbler runs we want to attach ISOs
-     ARDANA_ATTACH_ISOS=1
+    export ARDANA_ATTACH_ISOS=true
 fi
 
 # if RHEL computes or cobbler enabled, need to attach ISOs

@@ -649,8 +649,8 @@ care of this step automatically.
 
 ### Build the SLES Vagrant Image
 
-You will now be able to build a SLES vagrant image for use in building venvs and
-booting the test infrastructure.
+You will now be able to build a SLES vagrant image for use in booting the test
+infrastructure.
 
     % env ARDANA_SLES_ARTIFACTS=true \
         bin/build-distro-artifacts

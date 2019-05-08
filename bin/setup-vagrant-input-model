@@ -25,6 +25,8 @@
 set -eu
 set -o pipefail
 
+eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/ardana-env)"
+
 cmd_path="$(readlink -e "${BASH_SOURCE[0]}")"
 cmd_name="$(basename "${cmd_path}")"
 cmd_dir="$(dirname "${cmd_path}")"

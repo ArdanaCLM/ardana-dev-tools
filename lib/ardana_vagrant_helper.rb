@@ -65,7 +65,6 @@ module Ardana
       DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_MEMORY"] ? ENV["ARDANA_DCTRL_MEMORY"].to_i : 30720,
       DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_MEMORY"] ? ENV["ARDANA_DCOMP_MEMORY"].to_i : 6144,
 
-      'build' => !!ENV["ARDANA_BUILD_MEMORY"] ? ENV["ARDANA_BUILD_MEMORY"] : 10240,
       'default' => 2048,
       DEPLOYER_NODE => 2048,
       VMFACTORY_NODE => !!ENV["ARDANA_VMF_MEMORY"] ? ENV["ARDANA_VMF_MEMORY"].to_i : 32768,
@@ -96,7 +95,6 @@ module Ardana
       DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_CPU"] ? ENV["ARDANA_DCTRL_CPU"].to_i : 4,
       DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_CPU"] ? ENV["ARDANA_DCOMP_CPU"].to_i : 4,
 
-      'build' => !!ENV["ARDANA_BUILD_CPU"] ? ENV["ARDANA_BUILD_CPU"] : 8,
       'default' => 2,
       DEPLOYER_NODE => 4,
       VMFACTORY_NODE => !!ENV["ARDANA_VMF_CPU"] ? ENV["ARDANA_VMF_CPU"].to_i : 16,
@@ -125,7 +123,6 @@ module Ardana
       DAC_CTRL_NODE => !!ENV["ARDANA_DCTRL_FLAVOR"] || 'standard.medium',
       DAC_COMP_NODE => !!ENV["ARDANA_DCOMP_FLAVOR"] || 'standard.small',
 
-      'build' => 'standard.large',
       'default' => 'standard.xsmall',
       VMFACTORY_NODE => 'standard.xlarge',
       ARDANA_HYPERVISOR_NODE => 'standard.xlarge',
@@ -220,7 +217,6 @@ module Ardana
         :cloud => {
           :version => ENV.fetch("ARDANA_CLOUD_VERSION", "9"),
           :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?,
-          :deployer => !ENV.fetch("ARDANA_CLOUD_DEPLOYER", "").empty?,
           :proxy_cache => {
             :enabled => !ENV.fetch("ARDANA_CLOUD_CACHING_PROXY", "").empty?,
             :name => "persistent-proxy-cache.qcow2",
@@ -242,9 +238,7 @@ module Ardana
           :artifacts => !ENV.fetch("ARDANA_SLES_ARTIFACTS", "").empty?,
           :major => ENV.fetch("ARDANA_SLES_MAJOR", "12"),
           :sp => ENV.fetch("ARDANA_SLES_SP", "3"),
-          :control => !ENV.fetch("ARDANA_SLES_CONTROL", "").empty?,
           :compute => !ENV.fetch("ARDANA_SLES_COMPUTE", "").empty?,
-          :control_nodes => ENV.fetch("ARDANA_SLES_CONTROL_NODES", "").split(":"),
           :compute_nodes => ENV.fetch("ARDANA_SLES_COMPUTE_NODES", "").split(":"),
         }
       }
@@ -273,10 +267,6 @@ module Ardana
 
     def get_image_output_dir()
       return get_product_branch_cache() + "/images"
-    end
-
-    def get_release_artifact_dir()
-      return get_product_branch_cache() + "/artifacts"
     end
 
     # adt ==> ardana-dev-tools
@@ -451,17 +441,14 @@ module Ardana
 
       # blanket node class directives
       rhel_compute_all = @ardana[:rhel][:compute]
-      sles_control_all = @ardana[:sles][:control]
       sles_compute_all = @ardana[:sles][:compute]
 
       # identify potential node specific overrides
       rhel_nodes = @ardana[:rhel][:compute_nodes]
-      sles_control_nodes = @ardana[:sles][:control_nodes]
-      sles_compute_nodes = @ardana[:sles][:compute_nodes]
-      sles_nodes = sles_control_nodes + sles_compute_nodes
+      sles_nodes = @ardana[:sles][:compute_nodes]
 
       # setup unique VNC ports for each server
-      vnc_base = 5910  # 590{1..9} range wil be used for build VMs
+      vnc_base = 5910  # Ardana vagrant VMs start at 5910
       server_details.each_with_index do |serverInfo, i|
         node_role = serverInfo["role"]
         if ci_settings.key?(node_role)
@@ -498,10 +485,7 @@ module Ardana
           distro = ""
 
           if serverInfo["role"].match("CONTROLLER")
-            # check for blanket controller settings
-            if sles_control_all
-              distro = "sles"
-            end
+            distro = "sles"
           # compute or adt resource nodes
           elsif (serverInfo["role"].match("COMPUTE") or
                  serverInfo["role"].match("RESOURCE"))
@@ -529,18 +513,6 @@ module Ardana
         end
       end
       return metal_cfg
-    end
-
-    def set_release(iso_files)
-      return if not @ardana[:attach_isos]
-      iso_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}"
-      if !File.exists?(iso_file)
-        iso_file = get_release_artifact_dir() + "/release.iso"
-      end
-      if !File.exists?(iso_file)
-        raise "Run 'ansible-playbook -i hosts/localhost get-release-artifacts.yml' to get the relase ISO"
-      end
-      iso_files.push(iso_file)
     end
 
     def set_sles(iso_files)
@@ -578,21 +550,9 @@ module Ardana
     def setup_iso(server: None, name: None, distros: [distro])
       iso_files = []
 
-      # /dev/sr0 - last release or bare SLES
-      if !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
-        set_release(iso_files)
-      elsif distros.any?{|d| d.include?("sles")}
-        set_sles(iso_files)
-      end
-
-      if distros.any?{|d| d.include?("sles")}
-        # SLES SDK only for legacy deployer or SLES build vm
-        if name.include? "build" or not @ardana[:cloud][:deployer]
-          set_sles_sdk(iso_files)
-        end
-        # SLES Cloud
-        set_sles_cloud(iso_files) if @ardana[:cloud][:artifacts]
-      end
+      # add SLES & SOC ISOs
+      set_sles(iso_files)
+      set_sles_cloud(iso_files) if @ardana[:cloud][:artifacts]
 
       # RHEL
       if distros.any?{|d| d.include?("rhel")}
@@ -610,21 +570,9 @@ module Ardana
 
     def provision_deployer(server: None, name: "deployer", distros: [], extra_vars: {}, disks: [])
       # Provisioning
-      # Add the pseudo host group defined in parallel-ansiblerepo-build.yml
       setup_vm(vm: server.vm, name: name, extra_vars: extra_vars, disks: disks)
 
       setup_iso(server: server, name: name, distros: distros)
-
-      if not @ardana[:cloud][:deployer]
-        server.vm.provision "ansible" do |ansible|
-          ansible.playbook = "#@dev_tool_path/ansible/deployer-setup.yml"
-          ansible.host_key_checking = false
-          ansible.limit = name + ",repo_parallel"
-          if extra_vars
-            ansible.extra_vars = extra_vars
-          end
-        end
-      end
     end
     private :provision_deployer
 
@@ -639,22 +587,14 @@ module Ardana
       distributions = server_details.map { |server| server["os-dist"] }.uniq
 
       server_details.each do |serverInfo|
-        use_release_artifact = !!ENV["ARDANA_USE_RELEASE_ARTIFACT"]
-
         node_type = determine_node_type(serverInfo["role"])
-
-        if serverInfo["os-dist"] == "sles" || serverInfo["os-dist"] == "rhel"
-          # RHEL & SLES support don't yet support booting from a release image.
-          use_release_artifact = false
-        end
 
         server_name = serverInfo["id"]
         box_name = serverInfo["os-dist"] + "box"
 
         @config.vm.define server_name do |server|
-          set_vm_box(vm: server.vm,
-                     box: box_name,
-                     use_release_artifact: use_release_artifact)
+          set_vm_box(vm: server.vm, box: box_name)
+
           add_access_network(vm: server.vm)
 
           # Reserve a VIP address for each node type in Ardana
@@ -674,7 +614,6 @@ module Ardana
           disks = []
           # add persistent volumes as appropriate
           if ((deployer_node == server_name) and
-              @ardana[:cloud][:deployer] and
               @ardana[:cloud][:proxy_cache][:enabled])
             # if using 'scsi' as the bus type the first additional disk on the
             # virtio-scsi controller gets probed last, so we add the proxy
@@ -701,7 +640,7 @@ module Ardana
 
           # Provisioning VM
           if deployer_node == server_name
-            if @ardana[:cloud][:deployer] and @ardana[:cloud][:proxy_cache][:enabled]
+            if @ardana[:cloud][:proxy_cache][:enabled]
               extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud][:proxy_cache][:name],
                             "ardana_proxy_cache_bus" => @ardana[:cloud][:proxy_cache][:bus],
                             "ardana_proxy_cache_lun" => @ardana[:cloud][:proxy_cache][:lun]}
@@ -724,83 +663,11 @@ module Ardana
       end
     end
 
-    def add_build
-      distros_info = {
-        "rhel" => {
-          :name => "build-rhel7",
-          :enabled => @ardana[:rhel][:artifacts],
-          :gfx_port => "5902"
-        },
-        "sles" => {
-          :name => "build-sles12",
-          :enabled => @ardana[:sles][:artifacts],
-          :gfx_port => "5901"
-        }
-      }
-      machines = []
-
-      # dirty hack to be able to have vagrant tell us what it knows about already
-      active_machines = ObjectSpace.each_object(Vagrant::Environment).first.active_machines
-      distros_info.each do |dist, dist_info|
-        if dist_info[:enabled] or
-           active_machines.map { |machine, _| machine.to_s == dist_info[:name] }.any?
-          machines << dist_info[:name]
-        end
-      end
-
-      if machines.empty?
-        machines << distros_info["sles"][:name]
-      end
-
-      machines.each do |machine|
-        @config.vm.define machine do |build|
-          distro = machine.split("-").last
-
-          box_name = !!ENV["ARDANA_OS_DIST"] ? ENV["ARDANA_OS_DIST"] : "#{distro}box"
-
-          # Add local cache volume on /dev/vda
-          ccache_path = "persistent-ardana-cache-#{distro}.qcow2"
-
-          set_vm_box(vm: build.vm, box: box_name)
-          add_access_network(vm: build.vm)
-
-          # Provisioning
-          setup_vm(vm: build.vm, name: machine, playbook: "vagrant-setup-build-vm",
-                   extra_vars: {"persistent_cache_qcow2" => ccache_path} )
-
-          set_vm_hardware(vm: build.vm, type: 'build',
-                          graphics_port: distros_info[distro][:gfx_port])
-
-          build.vm.provider :libvirt do |libvirt, override|
-            libvirt.storage :file, :path => ccache_path, :allow_existing => true, :size => '50G'
-          end
-
-          setup_iso(server: build, name: machine, distros: [distro])
-
-          set_proxy_config
-        end
-      end
-    end
-
-    def setup_vm(vm: None, name: None, playbook: "vagrant-setup-vm", extra_vars: {}, disks: [])
-
-      # override the playbook used if in Cloud deployer mode
-      if @ardana[:cloud][:deployer] and !(playbook.include? "build")
-        playbook = "vagrant-cloud-vm-setup"
-      end
+    def setup_vm(vm: None, name: None, playbook: "vagrant-cloud-vm-setup", extra_vars: {}, disks: [])
 
       vm.provider :libvirt do |libvirt, override|
         disks.each do |disk|
           libvirt.storage :file, disk
-        end
-
-        # BUG-5015 ensure that management network for build machines is
-        # different to cloud machines to prevent accidental replacement
-        # or overwrite of network configuration when bringing both
-        # up at the same time.
-        if name.start_with?("build-")
-          libvirt.management_network_name = "vagrant-libvirt-build"
-          libvirt.management_network_address = "192.168.120.0/24"
         end
       end
 
@@ -813,22 +680,21 @@ module Ardana
         end
       end
 
-      # If running in Legacy CI mode, or using Cloud deployment mode,
-      # and the provider is libvirt, and the vagrant-libvirt plugin has
-      # the "hack" implementing serial device configuration, then setup
-      # VM console logs to redirect to specified file.
-      if ENV.fetch("CI", "no").downcase == "yes" or @ardana[:cloud][:deployer]
-        vm.provider :libvirt do |libvirt, override|
+      # If the vagrant-libvirt plugin has the "hack" implementing
+      # serial device configuration, then setup # VM console logs
+      # to redirect to specified file.
+      vm.provider :libvirt do |libvirt, override|
+        if libvirt.respond_to?('serial')  # if vagrant-libvirt hack present
           libvirt.serial :type => "file",
             :source => {
               :path => File.absolute_path(
                 ( ENV['CONSOLE_LOG_DIR'] || "#{@dev_tool_path}/logs/console" ) + "/#{name}.log")
-            } if libvirt.respond_to?('serial')  # if vagrant-libvirt hack present
+            }
         end
       end
     end
 
-    def set_vm_box(vm: None, box: None, use_release_artifact: false)
+    def set_vm_box(vm: None, box: None)
       if openstack?
         vm.box = 'dummy'
         vm.box_url =
@@ -837,16 +703,7 @@ module Ardana
         vm.box = box
 
         # This sets the box for non-openstack vagrant configurations
-        # We check for the sles12box.json file so that developers who
-        # haven't yet rebuild their sles12 image will continue to still work.
-        if use_release_artifact
-          box_file = get_release_artifact_dir() + "/#{ENV['ARDANA_USE_RELEASE_ARTIFACT']}-sles12box.json"
-          if !File.exists?(box_file)
-            box_file = get_release_artifact_dir() + "/release-sles12box.json"
-          end
-        else
-          box_file = "#@dev_tool_path/#{box}.json"
-        end
+        box_file = "#@dev_tool_path/#{box}.json"
 
         if File.exists?(box_file)
           box_json = File.read(box_file)

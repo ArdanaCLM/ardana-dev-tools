@@ -19,11 +19,7 @@
 # The deployer version is the next release we are working against
 deployer_version: "{{ product_name_version_release }}"
 
-deployer_git_update : "{{ dev_env_global_git_update }}"
-
 _deployer_branch_default: "{{ product_branch }}"
-_deployer_legacy_branch_default: "stable/pike"
-_deployer_eon_branch_default: "master"
 
 _deployer_git_repositories_default:
   barbican-ansible:
@@ -50,12 +46,6 @@ _deployer_git_repositories_default:
   designate-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/designate-ansible"
     branch: "{{ _deployer_branch_default }}"
-  # NOTE: HPE references in EON repo specs here are safe to keep,
-  # in rebranding terms, as they are references to HPE's opensourced
-  # version of the EON code as used in previous releases
-  eon-ansible:
-    url: "{{ dev_env_git_servers.github }}/hpe-helion-os/hpe-eon-ansible"
-    branch: "{{ _deployer_eon_branch_default }}"
   glance-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/glance-ansible"
     branch: "{{ _deployer_branch_default }}"
@@ -71,9 +61,6 @@ _deployer_git_repositories_default:
   horizon-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/horizon-ansible"
     branch: "{{ _deployer_branch_default }}"
-  icinga-ansible:
-    url: "{{ dev_env_default_git_server }}/hp/icinga-ansible"
-    branch: "hp/prerelease/newton"
   ironic-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ironic-ansible"
     branch: "{{ _deployer_branch_default }}"
@@ -113,12 +100,6 @@ _deployer_git_repositories_default:
   osconfig-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/osconfig-ansible"
     branch: "{{ _deployer_branch_default }}"
-  server-ansible:
-    url: "{{ dev_env_default_git_server }}/hp/server-ansible"
-    branch: "hp/prerelease/newton"
-  sherpa-ansible:
-    url: "{{ dev_env_default_git_server }}/hp/sherpa-ansible"
-    branch: "hp/prerelease/newton"
   spark-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/spark-ansible"
     branch: "{{ _deployer_branch_default }}"
@@ -149,9 +130,6 @@ deployer_input_model_repositories:
     dest: "{{ deployer_input_model_dir }}/ardana-input-model"
 
 deployer_qa_git_repositories:
-  ardana-qa-ansible:
-    url: "{{ dev_env_default_git_server }}/ardana/ardana-qa-ansible"
-    branch: "{{ _deployer_branch_default }}"
   ardana-qa-tests:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-qa-tests"
     branch: "{{ _deployer_branch_default }}"

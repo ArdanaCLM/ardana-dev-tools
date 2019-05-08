@@ -90,7 +90,7 @@ source ${ARDANA_ASTACK_ENV}
 
 # if not even a playbook is specified, and this is a SOC/CLM cloud,
 # default to running cloud-setup.yml
-if (( $# < 1 )) && [[ -n "${ARDANA_CLOUD_DEPLOYER:-}" ]]; then
+if (( $# < 1 )); then
     set -- ${_tools_ansible_dir}/cloud-setup.yml
 fi
 

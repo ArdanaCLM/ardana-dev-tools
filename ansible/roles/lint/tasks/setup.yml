@@ -30,16 +30,16 @@
     recursive: yes
     delete: yes
   when: item.key | isdir(dev_env_sources_dir)
-  with_dict: "{{ deployer_git_repositories | update(deployer_qa_git_repositories) }}"
+  with_dict: "{{ deployer_git_repositories }}"
 
 - name: lint | setup | Clone extra code repos
   git:
     repo: "{{ item.value.url }}"
     dest: "{{ lint_hierarchy_dir }}/{{ item.key }}"
     version: "{{ item.value.branch }}"
-    update: "{{ deployer_git_update }}"
+    update: "{{ dev_env_global_git_update }}"
   when: not item.key | isdir(dev_env_sources_dir)
-  with_dict: "{{ deployer_git_repositories | update(deployer_qa_git_repositories) }}"
+  with_dict: "{{ deployer_git_repositories }}"
 
 - name: lint | setup | Set rsync exclusions
   copy:

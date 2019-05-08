@@ -17,8 +17,9 @@
 
 - hosts: "{{ deployer_node }}"
   roles:
-    - deployer
+    - artifacts
   tasks:
-    - include: roles/deployer/tasks/_upload_to_deployer.yml
-      vars:
-        upload_local_file: "{{ rhel7_yum_optional_tarball }}"
+    - name:
+      copy:
+        src: "{{ rhel7_yum_optional_tarball }}"
+        dest: "{{ image_build_user_home }}"

@@ -22,7 +22,6 @@
   roles:
     - dev-env
     - product
-    - deployer
   tasks:
     - name: Ensure async and cache directories exist
       file:

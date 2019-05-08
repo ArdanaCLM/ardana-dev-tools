@@ -17,8 +17,8 @@
 # Specify defaults for the developer environment
 ---
 dev_env_git_servers:
-  gozer: "https://gerrit.suse.provo.cloud"
-  gerrit: "https://gerrit.suse.provo.cloud"
+  gozer: "https://gerrit.prv.suse.net"
+  gerrit: "https://gerrit.prv.suse.net"
   github: "https://github.com"
   openstack: "https://git.openstack.org"
 
@@ -82,7 +82,6 @@ dev_env_download_isos: "{{ (dev_env_attach_isos | bool) or not (dev_env_use_preb
 
 # Should we use SOC/CLM artifacts and deployer setup
 dev_env_use_cloud_artifacts: "{{ lookup('env', 'ARDANA_CLOUD_ARTIFACTS') | default(False, true) }}"
-dev_env_use_cloud_deployer: "{{ lookup('env', 'ARDANA_CLOUD_DEPLOYER') | default(False, true) }}"
 
 # Should we use RHEL artifacts in build
 dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | default(False, true) }}"
@@ -90,7 +89,6 @@ dev_env_use_rhel7_artifacts: "{{ lookup('env', 'ARDANA_RHEL_ARTIFACTS') | defaul
 # Should we use SLES artifacts in build
 dev_env_use_sles12_artifacts: "{{ lookup('env', 'ARDANA_SLES_ARTIFACTS') | default(False, true) }}"
 dev_env_use_sles12_net_repos: "{{ lookup('env', 'ARDANA_SLES_NET_REPOS') | default(True, true) }}"
-dev_env_use_sles12_deployer: "{{ lookup('env', 'ARDANA_SLES_CONTROL') | default(False, true) }}"
 
 # Should we use Guest image artifacts in build (e.g for Octavia etc)
 dev_env_use_guest_image_artifacts: "{{ lookup('env', 'ARDANA_GUEST_IMAGE_ARTIFACTS') | default(False, true) }}"

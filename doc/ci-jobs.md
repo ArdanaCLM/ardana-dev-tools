@@ -59,13 +59,13 @@ repos *except the ones that you have checked out locally at the same level
 as ardana-dev-tools*.
 
 If you don't care about having the most up-to-date version of other people's
-code then you can run the playbook directly with the "-e deployer_git_update=false"
+code then you can run the playbook directly with the "-e dev_env_global_git_update=false"
 flag on the command line. This is much faster because reuses the code that is
 already in "scratch" from the last run, but of course has the downside that you
 are not comparing against the latest version of other people's code.
 
     cd ardana-dev-tools/ansible
-    ansible-playbook -i hosts/localhost -e deployer_git_update=false lint-run.yml
+    ansible-playbook -i hosts/localhost -e dev_env_global_git_update=false lint-run.yml
 
 ### YAML syntax
 
