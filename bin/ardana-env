@@ -178,6 +178,7 @@ done
 osc_cmd=/usr/bin/osc
 if [[ ! -x ${osc_cmd} ]] || ! version_at_least $(${osc_cmd} --version) 0.162
 then
+    req_pkgs+=( osc )
     if is_ubuntu
     then
         # Trusty version of osc is way too old, Xenial version is old,
@@ -195,9 +196,15 @@ then
             echo "Removing any existing osc related packages" 1>&2
             sudo apt-get --quiet --yes remove --purge osc obs-build 1>&2
         fi
+        req_pkgs+=( obs-build )
     fi
 
-    req_pkgs+=( osc )
+    for p in download_files format_spec_file obs_scm recompress set_version source_validator tar_scm
+    do
+        # for ubuntu need to remap '_' to '-' in package names
+        is_ubuntu && p=${p//_/-}
+        req_pkgs+=( obs-service-${p} )
+    done
 fi
 
 # Need createrepo to initialise the NEW_RPMS overrides repo
