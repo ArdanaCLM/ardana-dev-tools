@@ -27,3 +27,4 @@
 
 - name: dev-env-kvm | install | Setup KVM access for current user
   include: setup-access.yml
+  when: not (polkit_is_installed | bool)

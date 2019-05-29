@@ -23,3 +23,5 @@
   tags: libvirt-package-install
 - include: _add_group.yml
   tags: libvirt-group-add
+  when: not (polkit_is_installed | bool)
+- include: _config_service.yml

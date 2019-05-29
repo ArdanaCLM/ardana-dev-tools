@@ -1,6 +1,5 @@
 #
-# (c) Copyright 2015 Hewlett Packard Enterprise Development LP
-# (c) Copyright 2017 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,15 +13,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Validate the libvirt environment
+# Specify defaults for PolicyKit role
 ---
-
-- include: _validate_BIOS.yml
-  tags: libvirt-validate-BIOS
-- include: _validate_group.yml
-  tags: libvirt-validate-group
-  when: not (polkit_is_installed | bool)
-- include: _validate_kvm.yml
-  tags: libvirt-validate-kvm
-- include: _validate_access.yml
-  tags: libvirt-validate-access
+# Paths for PolicyKit configuration files
+dev_env_polkit_confdir: "/etc/polkit-1/rules.d"
+dev_env_polkit_conffile: "{{ dev_env_polkit_confdir }}/80-libvirt-manage-{{ ansible_user_id }}.rules"
