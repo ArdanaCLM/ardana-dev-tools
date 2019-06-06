@@ -462,7 +462,7 @@ module Ardana
             'cpus' => VM_CPU[node_type],
             'disks' => {
               'boot' => {
-                'size_gib' => 150
+                'size_gib' => 200
               }
             },
             'flavor' => VM_FLAVOR[node_type]
