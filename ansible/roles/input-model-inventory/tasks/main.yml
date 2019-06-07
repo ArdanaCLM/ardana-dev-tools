@@ -1,0 +1,69 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Setup ansible inventory for specified cloud's input model
+---
+
+- name: input-model-inventory | main | Show name of cloud being configured
+  debug:
+    msg: "Setting up inventory for '{{ dev_env_cloud_name }}' input model"
+    verbosity: 1
+
+- name: input-model-inventory | main | Retrieve cloud servers list
+  set_fact:
+    input_model_servers: "{{ (lookup('file', dev_env_servers_yml) | from_yaml).servers }}"
+
+- name: input-model-inventory | main | Lookup deployer_node setting
+  command: >-
+    awk 
+      -v dquote='"'
+      '$1 == "deployer_node" {print gensub(dquote, "", "g", $3)}'
+      {{ dev_env_vagrant_file }}
+  register: deployer_node_result
+
+- name: input-model-inventory | main | Extract deployer node name
+  set_fact:
+    input_model_deployer: "{{ deployer_node_result.stdout.strip() }}"
+
+- name: input-model-inventory | main | Show cloud deployer
+  debug:
+    var: input_model_deployer
+    verbosity: 1
+
+- name: input-model-inventory | main | Show cloud servers list
+  debug:
+    var: input_model_servers
+    verbosity: 1
+
+- name: input-model-inventory | main | Ensure host_vars directory exists
+  file:
+    path: "{{ playbook_dir }}/host_vars"
+    state: directory
+
+- name: input-model-inventory | main | Generate cloud top level inventory
+  template:
+    src: "cloud.yml.j2"
+    dest: "{{ playbook_dir }}/hosts/cloud.yml"
+
+- name: input-model-inventory | main | Generate cloud host_vars files
+  template:
+    src: "host.j2"
+    dest: "{{ playbook_dir }}/host_vars/{{ item.id }}"
+  with_items: "{{ input_model_servers }}"
+
+- name: input-model-inventory | main | Generate astack-ssh-config
+  template:
+    src: "astack-ssh-config.j2"
+    dest: "{{ dev_env_vagrant_dir }}/astack-ssh-config"

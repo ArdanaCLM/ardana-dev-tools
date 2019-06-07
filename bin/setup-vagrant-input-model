@@ -228,11 +228,13 @@ avm_cloud_dir="${avm_dir}/${cloud_name}-vagrant"
 if [[ ! -d "${avm_cloud_dir}" ]]
 then
     error "Invalid cloud model name '${cloud_name}'"
+    exit 1
 fi
 
 if _debug_on
 then
     _debug "cloud_name='${cloud_name}'"
+    _debug "verbose_mode='${verbose_mode}'"
     _debug "debug_mode='${debug_mode}'"
     _debug "force_mode='${force_mode}'"
     _debug "git_branch='${git_branch}'"

@@ -1,0 +1,11 @@
+---
+all:
+  children:
+    deployer:
+      hosts:
+        "{{ input_model_deployer | default(input_model_servers[0].id) }}":
+    cloud:
+      hosts:
+{% for server in input_model_servers %}
+        "{{ server.id }}":
+{% endfor %}

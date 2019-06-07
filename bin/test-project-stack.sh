@@ -76,10 +76,10 @@ test_plan="$base_project_files/tests/test-plan.yaml"
 DEPLOYERNODE="$(get_deployer_node)"
 
 project_tests="$base_project_files/tests"
-rsync -rav -e "ssh -F $ARDANA_VAGRANT_SSH_CONFIG" \
+rsync -rav -e "ssh -F $ARDANA_CLOUD_SSH_CONFIG" \
     $project_tests/* \
     $DEPLOYERNODE:~/ardana-ci-tests
 
 python $SCRIPT_HOME/lib/exec-test-plan.py \
-    --ssh-config $ARDANA_VAGRANT_SSH_CONFIG \
+    --ssh-config $ARDANA_CLOUD_SSH_CONFIG \
     $test_plan

@@ -101,7 +101,7 @@ PLAYBOOK="${2:-}"
 
 source $SCRIPT_HOME/libci.sh
 
-rsync -rav -e "ssh -F $ARDANA_VAGRANT_SSH_CONFIG" \
+rsync -rav -e "ssh -F $ARDANA_CLOUD_SSH_CONFIG" \
     --exclude='.git/***' \
     --exclude='.git*' \
     --exclude='.*.swp' \

@@ -522,10 +522,7 @@ against the cloud, e.g.
 
 This is a simple wrapper script that leverages the .astack_env file
 to setup the environment appropriately and then runs ansible-playbook
-command against the cloud, using the vagrant.py script found under
-ardana-dev-tools/ansible/hosts as the inventory file, so that ansible
-dynamically determines the appropriate inventory data for the running
-cloud from Vagrant, e.g.
+command against the cloud, e.g.
 
     % ./ardana-vagrant-ansible ../../ansible/cloud-setup.yml
 

@@ -16,7 +16,4 @@
 ---
 dependencies:
   - role: dev-env
-  - role: dev-env-sles
-  - role: dev-env-rhel
-  - role: dev-env-cloud
   - role: ardana-cache

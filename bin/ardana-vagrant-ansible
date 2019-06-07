@@ -36,7 +36,7 @@ Usage:
 See ansible-playbook(1) for other possible options.
 
 Automatically specifies the deployer_node variable setting via a -e option,
-and the vagrant.py dynamic inventory file if none has been specified.
+and the cloud.yml inventory file if none has been specified.
 
 If no playbook is specified will default to running the cloud-setup.yml
 playbook if running in SOC/CLM deployment mode.
@@ -77,8 +77,8 @@ set +u
 set -- "${args[@]}"
 set -u
 
-# if no inventory file specified, default to the vagrant.py one
-inventory_file="${_tools_ansible_dir}/hosts/vagrant.py"
+# if no inventory file specified, default to the cloud.yml one
+inventory_file="${_tools_ansible_dir}/hosts/cloud.yml"
 
 source ${_tools_bin_dir}/libci.sh
 

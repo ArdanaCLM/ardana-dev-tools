@@ -65,7 +65,8 @@ export VAGRANT_DEFAULT_PROVIDER=libvirt
 export ARDANA_SUBUNIT_VENV=$DEVTOOLS/tools/venvs/subunit
 export ARDANA_RUN_SUBUNIT_OUTPUT=${WORKSPACE:-$PWD}/ardanarun.subunit
 
-export ARDANA_VAGRANT_SSH_CONFIG="astack-ssh-config"
+export ARDANA_CLOUD_SSH_CONFIG="astack-ssh-config"
+export ARDANA_VAGRANT_SSH_CONFIG="vagrant-ssh-config"
 export ARDANA_ASTACK_ENV=".astack_env"
 
 export ARTIFACTS_FILE=$DEVTOOLS/artifacts-list.txt

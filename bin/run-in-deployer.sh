@@ -56,6 +56,6 @@ DEPLOYERNODE="$(get_deployer_node)"
 generate_ssh_config
 
 script="/home/$ARDANAUSER/$(basename $deployscript)"
-scp -F $ARDANA_VAGRANT_SSH_CONFIG $deployscript $DEPLOYERNODE:$script
+scp -F $ARDANA_CLOUD_SSH_CONFIG $deployscript $DEPLOYERNODE:$script
 
-vagrant_data_on_error "ssh -t -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE $script $@"
+vagrant_data_on_error "ssh -t -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE $script $@"

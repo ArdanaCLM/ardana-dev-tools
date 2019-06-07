@@ -1,0 +1,31 @@
+#
+# (c) Copyright 2015-2017 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Reset virtual machines to set pxe boot
+# The  environment variables need to be set externally
+#  export ARDANA_CLOUD_NAME=standard
+# This command needs to be run from the "vagrant directory"
+---
+
+- name: cobbler-vm | setup-vm-pxe | Toggle pxe_set on the vm
+  # On SUSE, need to be root to access domains created by vagrant
+  become: yes
+  local_action:
+    module: virsh_set_pxe_boot
+    name: "{{ dev_env_cloud_name }}-vagrant_{{ item }}"
+    set_pxe: "{{ dev_env_vm_pxe_setting }}"
+  when: item != _cloud_deployer
+  with_items: "{{ _cloud_cobbler_requested_vms }}"

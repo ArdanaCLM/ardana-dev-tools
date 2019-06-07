@@ -16,13 +16,15 @@
 #
 ---
 
-- hosts: vagrant
+- hosts: cloud
   tasks:
     - name: pkg-manifest | Set os-specific variables
       include_vars: "roles/pkg-manifest/vars/{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}.yml"
 
     - name: pkg-manifest | Get package information
-      shell: "{{ pkg_query }}"
+      command: "{{ pkg_query }}"
+      args:
+        warn: false
       register: pkgs_result
 
 - hosts: localhost
@@ -34,7 +36,7 @@
     - name: pkg-manifest | Generate unified package manifest
       set_fact:
         unified: >-
-          {% set newline = joiner("\n") %}{% for host in groups['vagrant'] -%}
+          {% set newline = joiner("\n") %}{% for host in groups['cloud'] -%}
           {{ newline()+hostvars[host]['pkgs_result'].stdout }}
           {%- endfor %}
 

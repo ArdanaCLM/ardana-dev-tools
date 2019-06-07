@@ -44,6 +44,6 @@ env ARDANA_CLEANUP_CI=true \
     "${@}"
 
 # cleanup any stale artifacts that may be left from previous incarnation
-rm -f "${ARDANA_VAGRANT_SSH_CONFIG}"
+rm -f "${ARDANA_CLOUD_SSH_CONFIG}" "${ARDANA_VAGRANT_SSH_CONFIG}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab

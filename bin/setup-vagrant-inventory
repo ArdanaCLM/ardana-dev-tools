@@ -1,0 +1,209 @@
+#!/bin/bash
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Ensure we have an input model available for the specified cloud under
+# $DEVTOOLS/ardana-vagrant-modesl/<cloud>-vagrant/input-model; if needed
+# copy the relevant model from the specified cloud in any local clone
+# of the ardana-input-model repo.
+#
+# Usage: setup-vagrant-input-model [--branch <branch>] <cloud>
+#
+
+set -eu
+set -o pipefail
+
+_tools_bin_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+eval "$(${_tools_bin_dir}/ardana-env)"
+source ${_tools_bin_dir}/libci.sh
+
+ensure_in_vagrant_dir "$(basename ${0})"
+
+ensure_astack_env_exists
+
+source ${ARDANA_ASTACK_ENV}
+
+cmd_path="$(readlink -e "${BASH_SOURCE[0]}")"
+cmd_name="$(basename "${cmd_path}")"
+cmd_dir="$(dirname "${cmd_path}")"
+top_dir="$(dirname "${cmd_dir}")"
+play_dir="${top_dir}/ansible"
+avm_dir="${top_dir}/ardana-vagrant-models"
+
+opts_array=(
+    debug
+    verbose
+)
+
+declare -A opts_help
+opts_help["debug"]="Print debug messages"
+opts_help["verbose"]="Print verbose messages"
+
+stdout()
+{
+    echo "${@}"
+}
+
+stderr()
+{
+    echo 1>&2 "${@}"
+}
+
+error()
+{
+    stderr "ERROR: ${@}"
+}
+
+_verbose_on()
+{
+    [[ "${verbose_mode:+true}" == "true" ]]
+}
+
+_verbose()
+{
+    stderr "VERBOSE: ${@}"
+}
+
+verbose()
+{
+    if _verbose_on
+    then
+        _verbose "${@}"
+    fi
+}
+
+_debug_on()
+{
+    [[ "${debug_mode:+true}" == "true" ]]
+}
+
+_debug()
+{
+    stderr "DEBUG: ${@}"
+}
+
+debug()
+{
+    if _debug_on
+    then
+        _debug "${@}"
+    fi
+}
+
+usage()
+{
+    stdout "Usage: ${cmd_name} [OPTIONS]"
+    stdout "Where:"
+    stdout "    -h, --help"
+    stdout "            Displays this message."
+    for opt in ${opts_array[@]}
+    do
+        stdout "    --${opt//:/}"
+        stdout "            ${opts_help[${opt}]}"
+    done
+
+    exit ${1:-0}
+}
+
+# join opts_array members with ","
+printf -v long_opts ",%s" "${opts_array[@]:1}"
+long_opts="help,${opts_array[0]}${long_opts}"
+
+TEMP=$(getopt -o dh -l "${long_opts}" -n "${cmd_name}" -- "$@")
+if [ $? != 0 ] ; then stderr "Terminating..." ; exit 1 ; fi
+# Note the quotes around `$TEMP': they are essential!
+eval set -- "$TEMP"
+
+debug_mode=${DEBUG:-}
+verbose_mode=${VERBOSE:-}
+cloud_name=
+
+while true
+do
+    case "${1}" in
+    (-d|--debug)
+        debug_mode=true
+        ;&
+    (-v|--verbose)
+        verbose_mode=true
+        shift
+        ;;
+    (-h|--help)
+        usage
+        shift
+        ;;
+    (--)
+        shift
+        break
+        ;;
+    (*)
+        break
+        ;;
+    esac
+done
+
+# Cloud name should be after any options
+if (( $# > 0 ))
+then
+    cloud_name="${1}"
+    shift
+fi
+
+# Fail if there are still unprocessed arguments
+if (( $# > 0 ))
+then
+    error "Unhandled arguments: '${@}'"
+    usage 1
+fi
+
+# if cloud_name is empty, default to adt
+if [[ -z "${cloud_name}" ]]
+then
+    cloud_name=adt
+fi
+
+avm_cloud_dir="${avm_dir}/${cloud_name}-vagrant"
+if [[ ! -d "${avm_cloud_dir}" ]]
+then
+    error "Invalid cloud model name '${cloud_name}'"
+    exit 1
+fi
+
+if _debug_on
+then
+    _debug "cloud_name='${cloud_name}'"
+    _debug "verbose_mode='${verbose_mode}'"
+    _debug "debug_mode='${debug_mode}'"
+fi
+
+avm_im_dir="${avm_cloud_dir}/input-model"
+
+if [[ ! -d "${avm_im_dir}" ]]
+then
+    error "Input model not setup for '${cloud_name}'!"
+    exit 1
+fi
+
+verbose "Setting up inventory for '${cloud_name}'"
+
+pushd "${play_dir}" > /dev/null
+
+ansible-playbook \
+    $(_verbose_on && echo "-v") \
+    $(_debug_on && echo "-vvv") \
+    -i hosts/localhost \
+    setup-vagrant-inventory.yml
+
+# vim:shiftwidth=4:tabstop=4:expandtab

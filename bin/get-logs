@@ -65,17 +65,17 @@ set +e
 # Download the Ansible logs from the deployer.
 # Note: This should be similar to the console log but it what we can get
 #       from a customer
-scp -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:~/.ansible/ansible.log ${WORKSPACE}
+scp -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:~/.ansible/ansible.log ${WORKSPACE}
 
 # Download the config processor info/HTML layout directly.
-scp -F $ARDANA_VAGRANT_SSH_CONFIG -r $ARDANAUSER@$DEPLOYERNODE:~/openstack/my_cloud/info ${CP_LOG_DIR}
-scp -F $ARDANA_VAGRANT_SSH_CONFIG -r $ARDANAUSER@$DEPLOYERNODE:~/openstack/my_cloud/html ${CP_LOG_DIR}
+scp -F $ARDANA_CLOUD_SSH_CONFIG -r $ARDANAUSER@$DEPLOYERNODE:~/openstack/my_cloud/info ${CP_LOG_DIR}
+scp -F $ARDANA_CLOUD_SSH_CONFIG -r $ARDANAUSER@$DEPLOYERNODE:~/openstack/my_cloud/html ${CP_LOG_DIR}
 
 # Download tempest logs from the deployer for uploading in logs.gozer
-ssh -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE sudo chmod 0644 /opt/stack/tempest/configs/tempest_*.conf
-scp -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/tempest/logs/{*.log,*.subunit} ${WORKSPACE}
-scp -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/tempest/configs/tempest_*.conf ${WORKSPACE}
-scp -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/hqe/*.subunit ${WORKSPACE}
+ssh -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE sudo chmod 0644 /opt/stack/tempest/configs/tempest_*.conf
+scp -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/tempest/logs/{*.log,*.subunit} ${WORKSPACE}
+scp -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/tempest/configs/tempest_*.conf ${WORKSPACE}
+scp -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/opt/stack/hqe/*.subunit ${WORKSPACE}
 
 # Collate all tempest subunit files into one for DB injection
 cat ${WORKSPACE}/testrepository*.subunit >> ${WORKSPACE}/tempest_all.subunit
@@ -91,7 +91,7 @@ sudo chown -R $(id -u):$(id -g) ${CONSOLE_LOG_DIR}
 # get these logs last, as a failure here will result in exiting with non-zero
 logsubunit --inprogress sosreport-run
 $SCRIPT_HOME/run-in-deployer.sh $SCRIPT_HOME/deployer/run-sosreport.sh &&
-    scp -F $ARDANA_VAGRANT_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/tmp/sosreport-report-archives/* ${WORKSPACE} || logfail sosreport-run
+    scp -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE:/tmp/sosreport-report-archives/* ${WORKSPACE} || logfail sosreport-run
 logsubunit --success sosreport-run
 
 exit 0

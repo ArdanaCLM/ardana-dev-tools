@@ -202,8 +202,9 @@ if [ -e ~/.cache-ardana/sources/ ] ; then
     done
 fi
 
-# Remove stale astack-ssh-config files
+# Remove stale ssh config files
 find $TOOLS_DIR -type f -name astack-ssh-config | xargs rm -vf
+find $TOOLS_DIR -type f -name vagrant-ssh-config | xargs rm -vf
 
 # Remove stale .astack_env files
 find $TOOLS_DIR -type f -name .astack_env | xargs rm -vf

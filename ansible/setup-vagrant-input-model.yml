@@ -23,7 +23,6 @@
       ardana-input-model:
         url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
         branch: "{{ input_model_branch }}"
-        #dest: "{{ dev_env_scratch_dir }}/input-model"
 
 - hosts: localhost
   connection: local
@@ -35,6 +34,6 @@
   tasks:
     - synchronize:
         src: "{{ local_input_model_clone }}/2.0/ardana-ci/{{ input_model_name }}/"
-        dest: "{{ input_model_dest }}/"
+        dest: "{{ input_model_dest | default(dev_env_input_model) }}/"
         archive: yes
         delete: yes

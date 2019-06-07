@@ -77,6 +77,7 @@ long_opts=(
     no-artifacts
     no-build
     no-config
+    no-cloud
     no-git-update
     no-prepare
     no-setup
@@ -197,6 +198,7 @@ COBBLER_RHEL_COMPUTE=
 COBBLER_SLES_COMPUTE=
 COBBLER_ALL_NODES=
 COBBLER_ENABLED=
+NO_CLOUD=
 NO_CONFIG=
 NO_SITE=
 UPDATE_ONLY=
@@ -356,7 +358,8 @@ while true ; do
             shift ;;
         --c9-milestone)  # NOTE: this must immediately preceed --c9-iso
             export ARDANA_CLOUD9_MILESTONE="${2}"
-            shift ;&  # continue with commands in next pattern's action block
+            shift  # only consume one argument as next pattern block also shifts
+            ;&  # continue with commands in next pattern's action block
         --c9-iso)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["iso"]'
@@ -402,12 +405,15 @@ while true ; do
         --disable-services)
             ARDANA_DISABLE_SERVICES="${ARDANA_DISABLE_SERVICES}${ARDANA_DISABLE_SERVICES:+' '}$2"
             shift 2 ;;
+        --no-cloud)
+            NO_CLOUD=1
+            ;&  # fall through to --no-config handling
         --no-config)
-            # If we don't run config processor then we shouldn't run site.yml either
             NO_CONFIG=1
+            ;&  # fall through to --no-site handling
+        --no-site)
             NO_SITE=1
             shift ;;
-        --no-site) NO_SITE=1 ; shift ;;
         --project-stack)
             USE_PROJECT_STACK=$2
             shift 2 ;;

@@ -1,0 +1,21 @@
+{% for server in input_model_servers %}
+{%   set _hosts = [ server.id, server['ip-addr'] ] %}
+{%   if server.id != 'deployer' %}
+{%     if server.id == (input_model_deployer | default(input_model_servers[0].id)) %}
+{%       set _ = _hosts.append('deployer') %}
+{%     endif %}
+{%   endif %}
+Host {{ _hosts | join(' ') }}
+  HostName {{ server['ip-addr'] }}
+  User {{ dev_env_cloud_user }}
+  Port 22
+  UserKnownHostsFile /dev/null
+  StrictHostKeyChecking no
+  PasswordAuthentication no
+  IdentityFile {{ dev_env_vagrant_dir }}/.vagrant/machines/{{ server.id }}/libvirt/private_key
+  IdentitiesOnly yes
+  LogLevel FATAL
+{%   if not loop.last %}
+
+{%   endif %}
+{% endfor %}

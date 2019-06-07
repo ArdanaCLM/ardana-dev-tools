@@ -14,8 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Include OS specific variable values for the vagrant-vm tasks
+# Perform minimal provisioning of the Vagrant VMs
 ---
 
-- name: main | include OS specific variables
-  include_vars: ../defaults/os_{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}.yml
+- name: vagrant-vm | main | Update hostname to match inventory name
+  become: yes
+  hostname:
+    name: "{{ inventory_hostname_short }}"

@@ -76,7 +76,7 @@ def list_running_boxes():
     return boxes
 
 
-def get_ssh_config(boxname=None, astack_cfg="astack-ssh-config"):
+def get_ssh_config(boxname=None, astack_cfg="vagrant-ssh-config"):
     """Gives back a map of the machine's ssh configurations.
 
     Queries for the ssh-config of all machines in a single run or just

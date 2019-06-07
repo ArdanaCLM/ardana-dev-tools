@@ -213,7 +213,7 @@ feature_ansible() {
     for FEATURE in $FEATURE_DIRS
     do
         if [ -e "$FEATURE/$FEATURE_SCRIPT" ]; then
-            ansible-playbook -i "$DEVTOOLS/ansible/hosts/vagrant.py" \
+            ansible-playbook -i "$DEVTOOLS/ansible/hosts/cloud.yml" \
                 "$FEATURE/$FEATURE_SCRIPT" \
                 --limit "$DEPLOYER_NODE"
         fi
@@ -313,16 +313,27 @@ if [ ! -d "${ARDANA_VAGRANT_DIR}" ]; then
     echo "${ARDANA_VAGRANT_DIR} not found" >&2; exit 1
 fi
 
-# Setup input model under ${ARDANA_VAGRANT_DIR}
-$SCRIPT_HOME/setup-vagrant-input-model \
-    --verbose \
-    "${ARDANA_CLOUD_NAME}"
-
 # Deploy and configure your cloud
 pushd ${ARDANA_VAGRANT_DIR}
 
 # Generate the .astack_env before bringing up the cloud
 generate_astack_env "FORCE"
+
+# Setup input model under ${ARDANA_VAGRANT_DIR}
+$SCRIPT_HOME/setup-vagrant-input-model \
+    --verbose \
+    "${ARDANA_CLOUD_NAME}"
+
+# Destroy any pre-existing incarnation of the cloud if requested
+if [ -n "${PRE_DESTROY:-}" ]; then
+    $SCRIPT_HOME/deploy-vagrant-destroy || logfail pre-destroy
+    logsubunit --inprogress pre-destroy
+fi
+
+# generate the inventory and astack-ssh-config for the new cloud
+$SCRIPT_HOME/setup-vagrant-inventory \
+    --verbose \
+    "${ARDANA_CLOUD_NAME}"
 
 if [ -n "$USE_PROJECT_STACK" ]; then
     # Assume this project is actually checked out
@@ -371,9 +382,21 @@ if [ -n "$FEATURE_PREPARE" ]; then
     feature_prepare prepare-artifacts.yml
 fi
 
-if [ -n "${PRE_DESTROY:-}" ]; then
-    $SCRIPT_HOME/deploy-vagrant-destroy || logfail pre-destroy
-    logsubunit --inprogress pre-destroy
+if [ -n "${NO_CLOUD:-}" ]; then
+    cat << _EOF_
+The environment has been prepared to create a cloud, but the --no-cloud
+option was specified. If you would like to deploy your cloud you should
+cd into the '${ARDANA_VAGRANT_DIR#${DEVTOOLS}/}' directory and run the
+following commands:
+
+    % ./ardana-vagrant up
+    % ./ardana-vagrant-ansible
+
+Once those commands have completed successfully you will have a cloud
+environment that is ready for you to log into and manually configure an
+input model and then deploy the cloud.
+_EOF_
+    exit 0
 fi
 
 # Bring up vagrant VM's
@@ -391,7 +414,7 @@ generate_ssh_config "FORCE"
 
 # setup the SOC/CLM nodes using a similar process to how
 # the customer would in a real deployment
-ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
     $DEVTOOLS/ansible/cloud-setup.yml \
     -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
 
@@ -433,21 +456,21 @@ fi
 # If --project-stack is set then modify the input model appropriately.
 if [ -n "$USE_PROJECT_STACK" ]; then
     # Copy and commit the project input model
-    scp -F $ARDANA_VAGRANT_SSH_CONFIG -r $project_input_model/* \
+    scp -F $ARDANA_CLOUD_SSH_CONFIG -r $project_input_model/* \
         $(get_deployer_node):~/openstack/my_cloud/definition/ || logfail deploy
     $SCRIPT_HOME/run-in-deployer.sh \
         $SCRIPT_HOME/deployer/commit-changes.sh \
         "Update project-stack input-model from $USE_PROJECT_STACK" || logfail deploy
 
     if [ -e "$base_project_files/tests" ]; then
-        scp -F $ARDANA_VAGRANT_SSH_CONFIG -r $base_project_files/tests \
+        scp -F $ARDANA_CLOUD_SSH_CONFIG -r $base_project_files/tests \
             $(get_deployer_node):~/ardana-ci-tests
     fi
 fi
 logsubunit --inprogress deploy
 
 if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
         $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml \
         -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
 fi
@@ -489,10 +512,10 @@ if [ -n "${COBBLER_NODES}" -o -n "$COBBLER_ALL_NODES" ] ; then
     if [ -n "${COBBLER_NODES}" ]; then
         export ARDANA_COBBLER_NODES="$COBBLER_NODES"
     fi
-    $SCRIPT_HOME/vagrant-set-pxe-on ${ARDANA_CLOUD_NAME} || logfail deploy
-    $SCRIPT_HOME/vagrant-check-power-off ${ARDANA_CLOUD_NAME} || logfail deploy
-    $SCRIPT_HOME/vagrant-set-pxe-off ${ARDANA_CLOUD_NAME} || logfail deploy
-    $SCRIPT_HOME/vagrant-check-power-on ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/cobbler-set-pxe-on ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/cobbler-check-power-off ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/cobbler-set-pxe-off ${ARDANA_CLOUD_NAME} || logfail deploy
+    $SCRIPT_HOME/cobbler-check-power-on ${ARDANA_CLOUD_NAME} || logfail deploy
     logsubunit --inprogress deploy
 fi
 
@@ -535,7 +558,7 @@ fi
 
 # Generate package manifest
 if [ -z "${COBBLER_NODES}" -a -z "$COBBLER_ALL_NODES" ] ; then
-    ansible-playbook -i $DEVTOOLS/ansible/hosts/vagrant.py \
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
             $DEVTOOLS/ansible/get-pkg-manifest.yml
 fi
 

@@ -20,8 +20,6 @@
 - hosts: localhost
   connection: local
   roles:
-    - dev-env-sles
-    - dev-env-rhel
     - image-build
     - apt-repos
   tasks:

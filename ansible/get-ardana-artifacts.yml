@@ -32,10 +32,6 @@
 - hosts: localhost
   connection: local
   roles:
-    - role: dev-env-sles
-    - role: dev-env-rhel
-    - role: dev-env-cloud
-
     # mirror the clouddata repo
     - role: clouddata-mirror-repo
 

@@ -22,10 +22,6 @@
 
 - hosts: localhost
   connection: local
-  roles:
-    - dev-env-sles
-    - dev-env-rhel
-    - dev-env-cloud
   tasks:
     - name: vagrant-attach-upgrade-iso | Run virsh command to attach new ISO
       shell: |

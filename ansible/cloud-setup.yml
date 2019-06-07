@@ -15,7 +15,10 @@
 #
 # Main playbook for setting up a SOC/CLM deployment
 ---
+
+- import_playbook: cloud-vm-setup.yml
+
 - hosts: all
   max_fail_percentage: 0
   roles:
-    - vagrant-cloud-setup
+    - cloud-setup

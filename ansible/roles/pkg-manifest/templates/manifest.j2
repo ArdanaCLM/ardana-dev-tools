@@ -17,8 +17,8 @@
 # Manifest for: all
 ---
 
-{% for host in groups['vagrant'] %}
-# .deb packages installed on {{ host }}
+{% for host in groups['cloud'] %}
+# packages installed on {{ host }}
 {{ host }}:
   packages:
   {% for package in (hostvars[host]['pkgs_result'].stdout_lines | sort) %}

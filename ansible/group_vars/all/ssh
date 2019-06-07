@@ -1,0 +1,4 @@
+---
+ansible_port: 22
+ansible_user: ardana
+ansible_ssh_common_args: -o PasswordAuthentication=no -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null

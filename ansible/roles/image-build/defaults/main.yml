@@ -15,11 +15,11 @@
 # under the License.
 #
 ---
-image_build_user: "{{ lookup('env','ARDANAUSER')|default('ardana', true) }}"
+image_build_user: "{{ dev_env_cloud_user }}"
 image_build_home_base: "{{ lookup('env','ARDANA_USER_HOME_BASE')|default('/var/lib', true) }}"
 image_build_user_home: "{{ image_build_home_base }}/{{ image_build_user }}"
 image_build_password: "{{ image_build_user }}"
-image_build_group: "{{ lookup('env','ARDANAUSER')|default('ardana', true) }}"
+image_build_group: "{{ dev_env_cloud_user }}"
 image_build_uid: 1001
 image_build_root_device: sda
 

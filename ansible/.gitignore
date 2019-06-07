@@ -2,3 +2,4 @@ VMware-*
 VMware-*
 vmware-*/
 ansible.cfg
+host_vars/

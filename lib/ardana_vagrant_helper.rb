@@ -663,7 +663,7 @@ module Ardana
       end
     end
 
-    def setup_vm(vm: None, name: None, playbook: "vagrant-cloud-vm-setup", extra_vars: {}, disks: [])
+    def setup_vm(vm: None, name: None, playbook: "vagrant-vm-setup", extra_vars: {}, disks: [])
 
       vm.provider :libvirt do |libvirt, override|
         disks.each do |disk|

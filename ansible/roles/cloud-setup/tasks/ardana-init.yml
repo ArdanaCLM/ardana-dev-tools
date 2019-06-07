@@ -1,0 +1,49 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to perform Ardana install/upgrade on a SOC/CLM deployer
+---
+
+- name: cloud-setup | ardana-init | Install ardana using SOC/CLM Media
+  become: yes
+  command: >-
+    zypper --non-interactive install --force {{ item }}
+  with_items: "{{ clmsetup.deployer.init_pkgs }}"
+
+- name: cloud-setup | ardana-init | Execute the ardana-init script
+  shell: /usr/bin/ardana-init
+  args:
+   executable: /bin/bash
+   chdir: "{{ image_build_user_home }}"
+  environment:
+     ARDANA_INIT_AUTO: 1
+  register: _ardana_init_result
+
+- name: cloud-setup | ardana-init | Print the ardana-init script output
+  debug:
+    msg: "{{ _ardana_init_result.stdout_lines }}"
+
+- name: cloud-setup | ardana-init | Create directory to hold CI model
+  file:
+    path: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"
+    state: directory
+    mode: 0700
+
+- name: cloud-setup | ardana-init | Synchronize CI model to deployer
+  synchronize:
+    src: "{{ dev_env_input_model }}/"
+    dest: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"
+    compress: no
+    delete: yes
