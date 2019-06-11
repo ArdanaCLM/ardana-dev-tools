@@ -15,7 +15,7 @@
 #
 ---
 
-- hosts: "{{ deployer_node }}"
+- hosts: deployer
   roles:
     - artifacts
   tasks:

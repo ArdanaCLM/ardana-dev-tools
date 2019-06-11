@@ -17,6 +17,6 @@
 # deployment.
 ---
 
-- hosts: all
+- hosts: cloud
   roles:
     - role: cloud-vm

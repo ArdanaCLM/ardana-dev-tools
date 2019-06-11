@@ -25,4 +25,4 @@
     name: "{{ dev_env_cloud_name }}-vagrant_{{ item }}"
     state: running
   when: item != _cloud_deployer
-  with_items: "{{ _vagrant_all_list_result.stdout_lines }}"
+  with_items: "{{ _all_vms_list_result.stdout_lines }}"

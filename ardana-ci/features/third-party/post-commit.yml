@@ -16,7 +16,7 @@
 #
 # Limited to the deployer
 ---
-- hosts: all
+- hosts: cloud
   tasks:
     - name: Copy up the model editing tool
       synchronize:

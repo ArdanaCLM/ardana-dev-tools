@@ -16,7 +16,7 @@
 #
 # Limited to the deployer
 ---
-- hosts: all
+- hosts: cloud
   tasks:
     - name: Run the remote test
       command: >

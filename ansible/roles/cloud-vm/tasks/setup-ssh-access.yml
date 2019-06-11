@@ -35,8 +35,9 @@
   with_items:
     - "id_rsa"
     - "id_rsa.pub"
-  when: >-
-    'deployer' in group_names
+  when:
+    - (( "deployer" in group_names ) or
+       ( inventory_hostname_short == "deployer" ))
 
 - name: cloud-vm | setup-ssh-access | Add public ssh key to authorized_keys
   lineinfile:

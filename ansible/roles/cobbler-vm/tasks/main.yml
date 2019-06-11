@@ -21,12 +21,12 @@
   set_fact:
     _cloud_deployer: "{{ lookup('env', 'DEPLOYERNODE') | default('deployer', true) }}"
 
-- name: cobbler-vm | main | Get all vagrant vms
-  shell:
-    ./ardana-vagrant status | grep libvirt | awk '{ print $1 }'
+- name: cobbler-vm | main | Get all cloud vms
+  command: >-
+    awk '/^Host/ {print $2}' {{ dev_env_ssh_conf_file }}
   args:
     chdir: "{{ dev_env_vagrant_dir }}"
-  register: _vagrant_all_list_result
+  register: _all_vms_list_result
   when: dev_env_cobbler_nodes | default("") == ""
 
 - name: cobbler-vm | main | List requested vms
@@ -42,5 +42,5 @@
 - name: cobbler-vm | main | Save
   set_fact:
     _cloud_cobbler_requested_vms: >-
-      {{ _vagrant_all_list_result.stdout_lines |
+      {{ _all_vms_list_result.stdout_lines |
          default( _vms_requested_result.stdout_lines ) }}

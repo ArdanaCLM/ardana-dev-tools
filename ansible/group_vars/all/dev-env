@@ -128,3 +128,5 @@ dev_env_cobbler_nodes: "{{ lookup('env', 'ARDANA_COBBLER_NODES') }}"
 
 # General settings
 dev_env_cloud_user: "{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
+dev_env_ssh_conf_name: "{{ lookup('env','ARDANA_VAGRANT_SSH_CONFIG') | default('astack-ssh-config', true) }}"
+dev_env_ssh_conf_file: "{{ dev_env_vagrant_dir }}/{{ dev_env_ssh_conf_name }}"

@@ -78,7 +78,7 @@ set -- "${args[@]}"
 set -u
 
 # if no inventory file specified, default to the cloud.yml one
-inventory_file="${_tools_ansible_dir}/hosts/cloud.yml"
+inventory_file="${inventory_file:-${_tools_ansible_dir}/hosts/cloud.yml}"
 
 source ${_tools_bin_dir}/libci.sh
 

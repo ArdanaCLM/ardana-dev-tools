@@ -19,7 +19,8 @@
 # You should not need to run this manually!
 ---
 
-- hosts: all
+# runs against localhost to talk to local libvirtd
+- hosts: localhost
   connection: local
   roles:
     - role: cobbler-vm

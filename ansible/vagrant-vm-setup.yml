@@ -17,6 +17,10 @@
 # deployment.
 ---
 
+# The all group here is limited to the set of Vagrant nodes only
 - hosts: all
   roles:
     - role: vagrant-vm
+  tasks:
+    - debug: var=groups
+    - debug: var=group_names
