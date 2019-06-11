@@ -1,0 +1,32 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Limited to the deployer
+---
+- name: Copy ansible changes for supporting centos rpm via optional repo on
+        RHEL computes
+  synchronize:
+    src: "{{ role_path }}/files/ansible/"
+    dest: openstack/ardana/ansible
+    recursive: yes
+- name: Execute play to setup optional rhel repo support changes
+  shell: |
+    export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
+    ansible-playbook set-deployer-rhel-repo.yml -vvvv -e "devtools_rhel_setup=true"
+  args:
+    chdir: openstack/ardana/ansible
+  register: _set_deployer_rhel_repo_result
+
+- debug: var=_set_deployer_rhel_repo_result.stdout_lines

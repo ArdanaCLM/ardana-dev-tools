@@ -128,6 +128,9 @@ usage() {
     echo "                      -- Specify a list of nodes to configured as SLES"
     echo "                         if being re-imaged by cobbler."
     echo "--cobble-all-nodes    -- Cobble all but the deployer nodes"
+    echo "--no-cloud            -- Just setup the environment to be ready to"
+    echo "                         deploy specified cloud, but don't bring it"
+    echo "                         up or deploy it."
     echo "--no-config           -- Do not execute the config-processor"
     echo "--no-site             -- Do not execute the site.yml playbook during"
     echo "                         deployment"
@@ -286,18 +289,6 @@ then
     unset ARDANA_SLES_COMPUTE
     unset ARDANA_SLES_COMPUTE_NODES
 fi
-
-# Enable ardana centos rpm repo support on RHEL required for nova computes.
-# Flag is enabled when one or more RHEL compute is present in deployment.
-if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
-    _centos_repo_feature=$DEVTOOLS/ardana-ci/features/enable-centos-rpms-on-rhel
-    if [ -d "$_centos_repo_feature" ]; then
-        if ! echo "$FEATURE_DIRS" | grep -qs "/$(basename "$_centos_repo_feature")\>"; then
-            FEATURE_DIRS="$FEATURE_DIRS $_centos_repo_feature"
-        fi
-    fi
-fi
-
 
 installsubunit
 logsubunit --inprogress total
@@ -469,9 +460,15 @@ if [ -n "$USE_PROJECT_STACK" ]; then
 fi
 logsubunit --inprogress deploy
 
+# Enable ardana centos rpm repo support on RHEL required for nova computes.
+# Flag is enabled when one or more RHEL compute is present in deployment.
 if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
     ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
         $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml \
+        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+
+    ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
+        $DEVTOOLS/ansible/cloud-rhel-deployer-setup.yml \
         -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
 fi
 
@@ -579,7 +576,7 @@ case "${ARDANA_CLOUD_NAME}" in
 esac
 
 ansible-playbook -i hosts/localhost dev-env-connect-deployer-to-extnet.yml $EXTRAARGS |
-  tee ${WORKSPACE:-$PWD}/dev-env-connect-deployer-to-extnet.log || logfail deploy
+  tee ${WORKSPACE:-$DEVTOOLS}/logs/dev-env-connect-deployer-to-extnet.log || logfail deploy
 
 # Enable routing between management and neutron provider network.
 # This is needed for octavia.
