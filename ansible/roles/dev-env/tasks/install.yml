@@ -16,12 +16,12 @@
 ---
 - include: ../../../roles/apt-repos/tasks/_check_apt.yml
 
-- include_vars: roles/dev-env/defaults/apt-packages.yml
+#- include_vars: roles/dev-env/defaults/apt-packages.yml
 
 - include: _install_apt_packages.yml
   when: ansible_os_family | lower == "debian"
 
-- include_vars: roles/dev-env/defaults/zypp-packages.yml
+#- include_vars: roles/dev-env/defaults/zypp-packages.yml
 
 - include: _install_zypp_packages.yml
   when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"

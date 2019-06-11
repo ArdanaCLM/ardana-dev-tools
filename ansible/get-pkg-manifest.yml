@@ -55,5 +55,5 @@
       vars:
         type: "package"
         branch: "{{ dev_env_artifact_branch }}"
-        version: "{{ deployer_version }}"
+        version: "{{ _clm_version }}"
         filename: "{{ pkg_manifest }}"

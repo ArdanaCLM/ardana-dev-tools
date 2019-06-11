@@ -17,4 +17,3 @@
 ---
 dependencies:
   - role: dev-env
-  - role: ardana-cache

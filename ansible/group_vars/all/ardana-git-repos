@@ -19,117 +19,107 @@
 # The deployer version is the next release we are working against
 deployer_version: "{{ product_name_version_release }}"
 
-_deployer_branch_default: "{{ product_branch }}"
+_ardana_branch_default: "{{ product_branch }}"
 
-_deployer_git_repositories_default:
+ardana_git_repositories:
   barbican-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/barbican-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   cassandra-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/cassandra-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ceilometer-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ceilometer-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   cinder-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/cinder-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   cluster-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/cluster-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   cobbler-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/cobbler-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   db-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/db-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   designate-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/designate-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   glance-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/glance-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   heat-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/heat-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ardana-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ardana-extensions-ses:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-extensions-ses"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   horizon-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/horizon-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ironic-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ironic-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   keystone-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/keystone-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   logging-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/logging-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   magnum-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/magnum-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   manila-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/manila-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   memcached-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/memcached-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   monasca-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/monasca-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   mq-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/mq-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   neutron-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/neutron-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   nova-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/nova-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   octavia-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/octavia-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ops-console-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/opsconsole-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   osconfig-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/osconfig-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   spark-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/spark-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   monasca-transform-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/monasca-transform-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   swift-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/swift-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   tempest-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/tempest-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   tls-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/tls-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
   ardana-service-ansible:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-service-ansible"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"
 
-deployer_git_repositories: "{{ _deployer_git_repositories_default |
-                               update(deployer_git_repositories_update |
-                                      default({})) }}"
-
-deployer_input_model_repositories:
+ardana_input_model_repositories:
   ardana-input-model:
     url: "{{ dev_env_default_git_server }}/ardana/ardana-input-model"
-    branch: "{{ _deployer_branch_default }}"
-    dest: "{{ deployer_input_model_dir }}/ardana-input-model"
-
-deployer_qa_git_repositories:
-  ardana-qa-tests:
-    url: "{{ dev_env_default_git_server }}/ardana/ardana-qa-tests"
-    branch: "{{ _deployer_branch_default }}"
+    branch: "{{ _ardana_branch_default }}"

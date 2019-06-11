@@ -17,8 +17,6 @@
 # Tasks that are to be run every time the role is included
 ---
 
-- include_vars: ../defaults/site-configs.yml
-
 - name: dev-env | main | check site specified
   fail:
     msg: |

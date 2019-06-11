@@ -16,6 +16,3 @@
 ---
 dependencies:
   - role: dev-env
-  - role: clouddata-mirror-setup
-  - role: package-constants
-  - role: image-build

@@ -21,7 +21,6 @@
   max_fail_percentage: 0
   roles:
     - dev-env
-    - product
   tasks:
     - name: Ensure async and cache directories exist
       file:
@@ -63,9 +62,7 @@
   serial: 10
   roles:
     - dev-env
-    - product
   tasks:
-    - debug: var=repo_development_source
     - set_fact:
         _source_cache_dir: "{{ repo_info | bare_cache_path }}"
       when: repo_info.url is defined
@@ -101,7 +98,6 @@
   gather_facts: no
   roles:
     - dev-env
-    - product
   tasks:
     - set_fact:
         _source_cache_dir: "{{ repo_info | bare_cache_path }}"

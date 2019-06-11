@@ -16,4 +16,3 @@
 ---
 dependencies:
   - role: dev-env-vagrant-settings
-  - role: ardana-cache

@@ -152,6 +152,9 @@
         "{{ image_build_realpath }}/diskimage.json"
     echo packer built
 
+    echo remove existing qcow2 which may be symlink
+    rm -f "${image_output}.qcow2"
+
     qemu-img convert -c -f qcow2 -O qcow2 -o cluster_size=2M \
         "${image_output}/packer-${image_name}" \
         "${image_output}.qcow2"

@@ -31,7 +31,7 @@
       --exclude=hosts/localhost
       --exclude=LICENSE
       --exclude=roles/deployer-setup/files/ardana-init.bash
-  with_dict: "{{ deployer_git_repositories | default({}) }}"
+  with_dict: "{{ ardana_git_repositories | default({}) }}"
   when:
     - not (item.value | find_local_repo | search(product_cache_base_directory))
   register: _sync_ansible_sources_result

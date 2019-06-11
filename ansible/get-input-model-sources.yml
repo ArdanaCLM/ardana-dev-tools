@@ -17,4 +17,4 @@
 
 - include: _get-git-sources.yml
   vars:
-     sources: "{{ deployer_input_model_repositories }}"
+     sources: "{{ ardana_input_model_repositories }}"

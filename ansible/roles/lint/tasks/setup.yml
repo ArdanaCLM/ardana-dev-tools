@@ -30,7 +30,7 @@
     recursive: yes
     delete: yes
   when: item.key | isdir(dev_env_sources_dir)
-  with_dict: "{{ deployer_git_repositories }}"
+  with_dict: "{{ ardana_git_repositories }}"
 
 - name: lint | setup | Clone extra code repos
   git:
@@ -39,7 +39,7 @@
     version: "{{ item.value.branch }}"
     update: "{{ dev_env_global_git_update }}"
   when: not item.key | isdir(dev_env_sources_dir)
-  with_dict: "{{ deployer_git_repositories }}"
+  with_dict: "{{ ardana_git_repositories }}"
 
 - name: lint | setup | Set rsync exclusions
   copy:
