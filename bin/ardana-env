@@ -93,6 +93,13 @@ req_pips=()
 
 venv_cmd=/usr/bin/virtualenv
 
+# Can the user successfully sudo? No, add the user using sudo
+if ! sudo -k -n true > /dev/null 2>&1 && [[ -d /etc/sudoers.d ]]
+then
+    # Append to sudoers file
+    echo "${USER} ALL=(ALL:ALL) NOPASSWD:ALL" | sudo tee "/etc/sudoers.d/${USER}" > /dev/null
+fi
+
 # Determine which command will be used to install packages, and distro
 # family specific settings
 # NOTES:
