@@ -22,6 +22,7 @@
   connection: local
   roles:
     - dev-env
+    - dev-env-polkit
     - artifacts
   tasks:
     - include: roles/artifacts/tasks/setup.yml

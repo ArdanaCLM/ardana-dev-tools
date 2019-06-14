@@ -24,3 +24,4 @@
 
 - name: dev-env-kvm | validate | Validate QEMU/KVM access working
   include: validate-access.yml
+  when: not (polkit_is_installed | bool)
