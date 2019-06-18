@@ -21,6 +21,6 @@
     libvirt_role_mode: "{{ (libvirt_role_mode | default('none')) | lower }}"
 
 - name: libvirt | main | Include specified task list, if any.
-  include: "{{ libvirt_role_mode }}.yml"
+  include_tasks: "{{ libvirt_role_mode }}.yml"
   when:
     - libvirt_role_mode != "none"

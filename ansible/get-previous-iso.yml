@@ -21,6 +21,6 @@
   roles:
     - artifacts
   tasks:
-    - include: roles/artifacts/tasks/get-artifacts.yml
+    - include_tasks: roles/artifacts/tasks/get-artifacts.yml
       vars:
         artifact_key: previous.iso

@@ -16,5 +16,5 @@
 # Actions performed by the lint role
 ---
 
-- include: setup.yml
-- include: run.yml
+- include_tasks: setup.yml
+- include_tasks: run.yml

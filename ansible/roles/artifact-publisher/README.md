@@ -9,7 +9,7 @@ want to archive for reuse. Then you add next add the following task to your
 playbook:
 
     - name: image-build | build-sles-qcow2 | Save artifact pointer
-      include: ../../artifact-publisher/tasks/save-artifact.yml
+      include_tasks: "{{ playbook_dir }}/roles/artifact-publisher/tasks/save-artifact.yml"
       vars:
         type: "sles"
         branch: "{{ image_artifact_branch.stdout }}"

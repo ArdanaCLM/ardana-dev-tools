@@ -21,10 +21,10 @@
     _packer_role_mode: "{{ packer_role_mode | default('install') }}"
 
 - name: dev-env-packer | main | Determine installed Packer version
-  include: get-installed-version.yml
+  include_tasks: get-installed-version.yml
 
 - name: dev-env-packer | main | Install Packer if needed
-  include: install.yml
+  include_tasks: install.yml
   when:
     - _packer_role_mode == "install"
     - packer_installed_version != packer_version

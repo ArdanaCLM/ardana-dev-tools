@@ -26,7 +26,7 @@
     - dev-env
     - apt-repos
   tasks:
-    - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
+    - include_tasks: roles/apt-repos/tasks/get-yum-extras-artifact.yml
       when: dev_env_use_rhel7_artifacts|bool
 
 - hosts: localhost

@@ -44,3 +44,11 @@
     dest: "~/.ssh/authorized_keys"
     line: "{{ item }}"
   with_lines: "cat {{ playbook_dir }}/roles/cloud-vm/files/id_rsa.pub"
+
+- name: cloud-vm | setup-ssh-access | Set appropriate completion flag
+  include_role:
+    name: flag-files
+  vars:
+    flag_group: "cloud-vm"
+    flag_action: "set"
+    flag_name: "ssh-access"

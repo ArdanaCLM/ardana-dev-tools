@@ -24,4 +24,4 @@
   roles:
     - dev-env
   tasks:
-    - include: roles/dev-env/tasks/connect_deployer_to_extnet.yml
+    - include_tasks: roles/dev-env/tasks/connect_deployer_to_extnet.yml

@@ -16,6 +16,7 @@
 # Tasks to setup local caching proxy server
 ---
 
-- include: _setup-squid.yml
+- name: cloud-setup | setup-caching-proxy | Setup squid
+  include_tasks: _setup-squid.yml
   when:
     - clmsetup.caching_proxy.enabled | bool

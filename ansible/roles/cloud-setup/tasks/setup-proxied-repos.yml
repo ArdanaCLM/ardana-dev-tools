@@ -43,6 +43,7 @@
   failed_when:
     - _proxy_repos_add_result.rc not in [0, 55]
 
-- include: refresh-repos.yml
+- name: cloud-setup | setup-proxied-repos | Refresh repos if needed
+  include_tasks: refresh-repos.yml
   when:
     - _proxy_repos_add_result | changed

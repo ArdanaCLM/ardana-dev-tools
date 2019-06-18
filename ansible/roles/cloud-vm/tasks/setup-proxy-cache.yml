@@ -109,3 +109,12 @@
     src: "{{ _proxy_cache_device }}"
     fstype: "{{ cloud.deployer.caching_proxy.fs.type }}"
     state: mounted
+
+- name: cloud-vm | setup-root-partition | Set appropriate completion flag
+  include_role:
+    name: flag-files
+  vars:
+    flag_group: "cloud-vm"
+    flag_action: "set"
+    flag_name: "proxy-cache"
+

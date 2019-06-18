@@ -15,4 +15,4 @@
 #
 ---
 
-- include: get-ardana-artifacts.yml
+- import_playbook: get-ardana-artifacts.yml

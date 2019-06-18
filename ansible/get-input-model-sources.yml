@@ -15,6 +15,6 @@
 #
 ---
 
-- include: _get-git-sources.yml
+- import_playbook: _get-git-sources.yml
   vars:
      sources: "{{ ardana_input_model_repositories }}"

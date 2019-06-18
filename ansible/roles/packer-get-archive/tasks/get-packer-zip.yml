@@ -25,7 +25,7 @@
     - dir: "{{ packer_download.cache_dir }}"
 
 - name: packer-get-archive | get-packer-zip | Get the packer zip
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ packer_download.zip_name }}"

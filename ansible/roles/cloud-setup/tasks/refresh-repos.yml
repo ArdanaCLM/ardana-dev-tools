@@ -40,4 +40,5 @@
     - clmsetup.caching_proxy.enabled | bool
     - inventory_hostname_short != deployer_node
 
-- include: _refresh-repos.yml
+- name: cloud-setup | refresh-repos | Trigger a refresh of all repos
+  include_tasks: _refresh-repos.yml

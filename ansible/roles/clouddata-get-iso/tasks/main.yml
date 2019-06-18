@@ -16,7 +16,7 @@
 # Tasks performed by the clouddata-get-iso role
 ---
 
-- include: get-iso.yml
+- include_tasks: get-iso.yml
   when: dev_env_use_cloud_artifacts | bool
   tags:
     - skip-isos

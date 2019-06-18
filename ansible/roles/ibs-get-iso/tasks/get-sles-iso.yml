@@ -35,7 +35,7 @@
     - sles.artifacts.iso[sles_version].sdk is defined
 
 - name: ibs-get-iso | get-sles-iso | Get the SLES media
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _ibs_sles_media.name | default('') }}"
@@ -53,7 +53,7 @@
       use_proxy: "{{ ibs_iso.use_proxy }}"
 
 - name: ibs-get-iso | get-sles-iso | Get the SLESDK media
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _ibs_slesdk_media.name | default('') }}"

@@ -25,14 +25,14 @@
     - dev-env-polkit
     - artifacts
   tasks:
-    - include: roles/artifacts/tasks/setup.yml
-    - include: roles/dev-env/tasks/install.yml
+    - include_tasks: roles/artifacts/tasks/setup.yml
+    - include_tasks: roles/dev-env/tasks/install.yml
 
-- include: dev-env-kvm-install.yml
-- include: dev-env-libvirt-install.yml
-- include: dev-env-vagrant-install.yml
-- include: dev-env-packer-install.yml
-- include: dev-env-radvd-install.yml
+- import_playbook: dev-env-kvm-install.yml
+- import_playbook: dev-env-libvirt-install.yml
+- import_playbook: dev-env-vagrant-install.yml
+- import_playbook: dev-env-packer-install.yml
+- import_playbook: dev-env-radvd-install.yml
 
 # make sure the validate task is the last one executed
 # to allow any information notify triggers to appear last
@@ -48,4 +48,4 @@
     - role: dev-env-packer
       packer_role_mode: "validate"
   tasks:
-    - include: roles/dev-env/tasks/validate.yml
+    - include_tasks: roles/dev-env/tasks/validate.yml

@@ -24,7 +24,7 @@
     - dir: "{{ clouddata_repo.mirrors_dir }}"
 
 - name: clouddata-mirror-repo | mirror-cloud-repo | Mirror SOC9 repos
-  include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/rsync-mirror-repos.yml"
   vars:
     _mirror:
       rsync_base: "{{ clouddata_repo.rsync_base}}"
@@ -37,7 +37,7 @@
     - (cloud_version | int) == 9
 
 - name: clouddata-mirror-repo | mirror-cloud-repo | Mirror SOC8 repos
-  include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/rsync-mirror-repos.yml"
   vars:
     _mirror:
       rsync_base: "{{ clouddata_repo.rsync_base}}"
@@ -50,7 +50,7 @@
     - (cloud_version | int) == 8
 
 - name: clouddata-mirror-repo | mirror-cloud-repo | Mirror HOS8 repos
-  include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/rsync-mirror-repos.yml"
   vars:
     _mirror:
       rsync_base: "{{ clouddata_repo.rsync_base}}"

@@ -17,24 +17,7 @@
 ---
 
 - name: cloud-setup | main | Determine deployer address from eth2
-  set_fact:
-    deployer_address: "{{ hostvars[deployer_node].ansible_eth2.ipv4.address }}"
-  when:
-    - deployer_address is not defined
-    - hostvars[deployer_node].ansible_eth2 is defined
-
-- name: cloud-setup | main | Determine deployer address from hed2
-  set_fact:
-    deployer_address: "{{ hostvars[deployer_node].ansible_hed2.ipv4.address }}"
-  when:
-    - deployer_address is not defined
-    - hostvars[deployer_node].ansible_hed2 is defined
-
-- name: cloud-setup | main | Fail if deployer_address not identified
-  fail:
-    msg: >
-      Unable to determine 'deployer_address' automatically; please specify
-      manually via a -e option.
+  include_tasks: get-deployer-address.yml
   when:
     - deployer_address is not defined
 
@@ -48,22 +31,27 @@
                         elif ardana_family == 'redhat' -%}rhel{%-
                         else -%}error{%- endif -%}"
 
-- include: setup-buildservice-repos.yml
+- name: cloud-setup | main | Setup Build Service repos
+  include_tasks: setup-buildservice-repos.yml
   when:
     - ardana_distro == "sles"
 
-- include: setup-deployer.yml
+- name: cloud-setup | main | Setup deployer
+  include_tasks: setup-deployer.yml
   when:
     - inventory_hostname_short == deployer_node
 
-- include: setup-proxied-repos.yml
+- name: cloud-setup | main | Setup proxy cached based repos on other nodes
+  include_tasks: setup-proxied-repos.yml
   when:
     - inventory_hostname_short != deployer_node
     - cloud.config.caching_proxy | bool
     - clmsetup.caching_proxy.enabled | bool
 
-- include: setup-remote-repos.yml
+- name: cloud-setup | main | Setup deployer repos on other nodes
+  include_tasks: setup-remote-repos.yml
   when:
     - inventory_hostname_short != deployer_node
 
-- include: refresh-repos.yml
+- name: cloud-setup | main | Refresh all repos
+  include_tasks: refresh-repos.yml

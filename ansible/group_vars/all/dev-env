@@ -130,3 +130,9 @@ dev_env_cobbler_nodes: "{{ lookup('env', 'ARDANA_COBBLER_NODES') }}"
 dev_env_cloud_user: "{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
 dev_env_ssh_conf_name: "{{ lookup('env','ARDANA_VAGRANT_SSH_CONFIG') | default('astack-ssh-config', true) }}"
 dev_env_ssh_conf_file: "{{ dev_env_vagrant_dir }}/{{ dev_env_ssh_conf_name }}"
+
+# DevEnv flag-files defaults
+dev_env_base_flag_files_dir: "/etc/ardana-dev-tools"
+
+# DevEnv Cloud VM Setup flag-files settings
+dev_env_cloud_vm_clear_flags: "{{ lookup('env', 'ARDANA_CLOUD_VM_CLEAR_FLAGS') | default(False, true) | bool }}"

@@ -18,7 +18,7 @@
 
 # Get the qcow2 image for rhel7.
 # This gets converted to box in covert-qcow2-to-box.yml
-- include: _get_artifact.yml
+- include_tasks: _get_artifact.yml
   vars:
     artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/saved_qcow2s/RHEL"

@@ -17,4 +17,4 @@
 ---
 
 # Download the packer archive
-- include: get-packer-zip.yml
+- include_tasks: get-packer-zip.yml

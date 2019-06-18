@@ -21,11 +21,11 @@
     msg: "Installing Vagrant version {{ vagrant_required_version }}"
 
 - name: dev-env-vagrant | install-package | Install Vagrant package (SUSE)
-  include: install-package-suse.yml
+  include_tasks: install-package-suse.yml
   when:
     - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
 
 - name: dev-env-vagrant | install-package | Install Vagrant package (Debian)
-  include: install-package-debian.yml
+  include_tasks: install-package-debian.yml
   when:
     - ansible_os_family | lower == "debian"

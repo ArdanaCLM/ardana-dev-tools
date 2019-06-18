@@ -25,4 +25,4 @@
   roles:
     - role: cobbler-vm
   tasks:
-    - include: roles/cobbler-vm/tasks/setup-vm-pxe.yml
+    - include_tasks: roles/cobbler-vm/tasks/setup-vm-pxe.yml

@@ -23,7 +23,7 @@
     - image-build
     - apt-repos
   tasks:
-    - include: roles/image-build/tasks/build-packer-qcow2.yml
+    - include_tasks: roles/image-build/tasks/build-packer-qcow2.yml
       vars:
         image_build_iso: "{{ rhel7_iso }}"
         image_build_name: rhel-7
@@ -32,14 +32,14 @@
         - dev_env_use_rhel7_artifacts|bool
         - not (dev_env_use_prebuilt_images|bool)
 
-    - include: roles/image-build/tasks/convert-qcow2-to-box.yml
+    - include_tasks: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: rhel-7
         image_build_box: "{{ images_build_images['rhel-7'].box }}"
       when:
         - dev_env_use_rhel7_artifacts|bool
 
-    - include: roles/image-build/tasks/build-packer-qcow2.yml
+    - include_tasks: roles/image-build/tasks/build-packer-qcow2.yml
       vars:
         image_build_iso: "{{ sles12_iso }}"
         image_build_name: sles-12
@@ -48,7 +48,7 @@
         - dev_env_use_sles12_artifacts|bool
         - false
 
-    - include: roles/image-build/tasks/convert-qcow2-to-box.yml
+    - include_tasks: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: sles-12
         image_build_box: "{{ images_build_images['sles-12'].box }}"
@@ -56,7 +56,7 @@
         - dev_env_use_sles12_artifacts|bool
         - false
 
-    - include: roles/image-build/tasks/build-packer-qcow2.yml
+    - include_tasks: roles/image-build/tasks/build-packer-qcow2.yml
       vars:
         image_build_iso: "{{ dev_env_product_images }}/{{ sles_version }}.iso"
         image_build_name: "{{ sles_version }}"
@@ -65,7 +65,7 @@
         - dev_env_use_sles12_artifacts|bool
         - not (dev_env_use_prebuilt_images|bool)
 
-    - include: roles/image-build/tasks/convert-qcow2-to-box.yml
+    - include_tasks: roles/image-build/tasks/convert-qcow2-to-box.yml
       vars:
         image_build_name: "{{ sles_version }}"
         image_build_box: "{{ images_build_images[sles_version].box }}"

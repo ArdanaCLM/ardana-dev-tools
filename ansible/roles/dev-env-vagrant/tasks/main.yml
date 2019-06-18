@@ -21,10 +21,10 @@
     _vagrant_role_mode: "{{ vagrant_role_mode | default('install') }}"
 
 - name: dev-env-vagrant | main | Determine installed Vagrant state
-  include: get-installed-versions.yml
+  include_tasks: get-installed-versions.yml
 
 - name: dev-env-vagrant | main | Install Vagrant runtime environment
-  include: install.yml
+  include_tasks: install.yml
   when:
     - _vagrant_role_mode == "install"
     - ((vagrant_missing_plugins | length > 0) or

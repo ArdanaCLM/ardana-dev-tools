@@ -294,3 +294,12 @@
   debug: var=vagrant_vm_filesystems
   when:
     - not vagrant_vm_resize_partition | skipped
+
+- name: cloud-vm | setup-root-partition | Set appropriate completion flag
+  include_role:
+    name: flag-files
+  vars:
+    flag_group: "cloud-vm"
+    flag_action: "set"
+    flag_name: "root-partition"
+

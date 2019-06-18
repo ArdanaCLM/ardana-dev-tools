@@ -22,7 +22,7 @@
     _sles_qcow2: "{{ sles.artifacts.images[sles.config.image_type] }}"
 
 - name: artifacts-get-qcow2 | get-sles-qcow2 | Get the SLES qcow2
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _sles_qcow2.name }}.qcow2"

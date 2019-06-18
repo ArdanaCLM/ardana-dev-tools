@@ -31,7 +31,7 @@
     - dir: "{{ clouddata_iso.isos_dir }}"
     - dir: "{{ clouddata_iso.images_dir }}"
 
-- include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+- include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ iso_name }}"

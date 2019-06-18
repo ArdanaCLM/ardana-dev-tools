@@ -17,12 +17,12 @@
 # Validate the libvirt environment
 ---
 
-- include: _validate_BIOS.yml
+- include_tasks: _validate_BIOS.yml
   tags: libvirt-validate-BIOS
-- include: _validate_group.yml
+- include_tasks: _validate_group.yml
   tags: libvirt-validate-group
   when: not (polkit_is_installed | bool)
-- include: _validate_kvm.yml
+- include_tasks: _validate_kvm.yml
   tags: libvirt-validate-kvm
-- include: _validate_access.yml
+- include_tasks: _validate_access.yml
   tags: libvirt-validate-access

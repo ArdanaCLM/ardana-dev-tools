@@ -25,4 +25,4 @@
   roles:
     - role: cobbler-vm
   tasks:
-    - include: roles/cobbler-vm/tasks/check-vm-power-off.yml
+    - include_tasks: roles/cobbler-vm/tasks/check-vm-power-off.yml

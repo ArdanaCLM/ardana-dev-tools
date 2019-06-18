@@ -27,7 +27,7 @@
     - role: dev-env-packer
       packer_role_mode: "validate"
   tasks:
-    - include: roles/dev-env/tasks/validate.yml
+    - include_tasks: roles/dev-env/tasks/validate.yml
     # do not include any additional tasks in this playbook
     # as it is the task about that is executed directly by
     # the dev-env-install play

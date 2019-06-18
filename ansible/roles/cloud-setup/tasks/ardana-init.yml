@@ -18,8 +18,9 @@
 
 - name: cloud-setup | ardana-init | Install ardana using SOC/CLM Media
   become: yes
-  command: >-
-    zypper --non-interactive install --force {{ item }}
+  zypper:
+    name: "{{ item }}"
+    force: yes
   with_items: "{{ clmsetup.deployer.init_pkgs }}"
 
 - name: cloud-setup | ardana-init | Execute the ardana-init script

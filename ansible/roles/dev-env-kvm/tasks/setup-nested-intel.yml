@@ -72,4 +72,4 @@
     - _kvm_intel_modprobe_unload_result | success
 
 - name: dev-env-kvm | setup-nested-intel | Validate KVM setup correctly
-  include: validate-nested-intel.yml
+  include_tasks: validate-nested-intel.yml

@@ -17,14 +17,14 @@
 ---
 
 - name: dev-env-kvm | install | Install QEMU/KVM requirements
-  include: install-requirements.yml
+  include_tasks: install-requirements.yml
 
 - name: dev-env-kvm | install | Setup nested virtualisation for KVM
-  include: setup-nested.yml
+  include_tasks: setup-nested.yml
 
 - name: dev-env-kvm | install | Check that KVM device exists
-  include: check-device.yml
+  include_tasks: check-device.yml
 
 - name: dev-env-kvm | install | Setup KVM access for current user
-  include: setup-access.yml
+  include_tasks: setup-access.yml
   when: not (polkit_is_installed | bool)

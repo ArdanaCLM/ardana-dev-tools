@@ -21,12 +21,12 @@
     _kvm_role_mode: "{{ kvm_role_mode | default('install') }}"
 
 - name: dev-env-kvm | main | Install QEMU/KVM
-  include: install.yml
+  include_tasks: install.yml
   when:
     - _kvm_role_mode == "install"
 
 - name: dev-env-kvm | main | Validate QEMU/KVM is setup
-  include: validate.yml
+  include_tasks: validate.yml
   when:
     - _kvm_role_mode != "install"
 

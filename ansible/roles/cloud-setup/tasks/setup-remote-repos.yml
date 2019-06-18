@@ -177,7 +177,8 @@
   tags:
     - rhel
 
-- include: _refresh-repos.yml
+- name: cloud-setup | setup-remote-repos | Refresh repos if needed
+  include_tasks: _refresh-repos.yml
   when:
     - ((_iso_repos_add_sles_result | changed) or (_iso_repos_add_rhel_result | changed) or
        (_dir_repos_add_sles_result | changed) or (_dir_repos_add_rhel_result | changed) or

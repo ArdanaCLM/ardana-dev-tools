@@ -23,4 +23,4 @@
   roles:
     - dev-env
   tasks:
-    - include: roles/dev-env/tasks/route_provider_nets.yml
+    - include_tasks: roles/dev-env/tasks/route_provider_nets.yml

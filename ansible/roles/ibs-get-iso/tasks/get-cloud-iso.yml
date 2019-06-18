@@ -29,7 +29,7 @@
     var: _ibs_clm_media
 
 - name: ibs-get-iso | get-cloud-iso | Get the SOC/CLM media
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _ibs_clm_media.name | default('') }}"

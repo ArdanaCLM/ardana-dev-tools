@@ -62,7 +62,8 @@
   failed_when:
     - _obs_repos_add_result.rc not in [0, 55]
 
-- include: _refresh-repos.yml
+- name: cloud-setup | setup-buildservice-repos | Refresh repos if needed
+  include_tasks: _refresh-repos.yml
   when:
     - ((_obs_repos_add_result | changed) or
        (_ibs_repos_add_result | changed))

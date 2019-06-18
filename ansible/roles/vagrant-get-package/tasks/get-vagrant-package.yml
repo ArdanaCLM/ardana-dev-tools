@@ -43,7 +43,7 @@
     _vagrant_sha: "vagrant_{{ _vagrant_ver }}_SHA256SUMS"
 
 - name: vagrant-get-package | get-vagrant-package | Get the Vagrant package
-  include: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
       name: "{{ _vagrant_pkg }}"

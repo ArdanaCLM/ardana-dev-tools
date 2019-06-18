@@ -17,5 +17,5 @@
 # Validate the developer environment
 ---
 
-- include: check-ansible-version.yml
+- include_tasks: check-ansible-version.yml
   when: _dev_env_ansible_installed is not defined

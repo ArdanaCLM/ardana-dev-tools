@@ -24,7 +24,7 @@
     - dir: "{{ clouddata_repo.mirrors_dir }}"
 
 - name: clouddata-mirror-repo | mirror-sles-repo | Mirror SLES repos
-  include: ../../../roles/ardana-cache/tasks/rsync-mirror-repos.yml
+  include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/rsync-mirror-repos.yml"
   vars:
     _mirror:
       rsync_base: "{{ clouddata_repo.rsync_base}}"

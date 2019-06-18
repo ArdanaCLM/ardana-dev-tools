@@ -16,7 +16,7 @@
 # Tasks performed by the artifacts-get-iso role
 ---
 
-- include: get-rhel-iso.yml
+- include_tasks: get-rhel-iso.yml
   when:
     - dev_env_use_rhel7_artifacts | bool
     - dev_env_download_isos | bool

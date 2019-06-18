@@ -17,11 +17,11 @@
 ---
 
 - name: dev-env-kvm | validate | Validate KVM device exists
-  include: check-device.yml
+  include_tasks: check-device.yml
 
 - name: dev-env-kvm | validate | Validate QEMU/KVM nested virtualisation
-  include: validate-nested.yml
+  include_tasks: validate-nested.yml
 
 - name: dev-env-kvm | validate | Validate QEMU/KVM access working
-  include: validate-access.yml
+  include_tasks: validate-access.yml
   when: not (polkit_is_installed | bool)

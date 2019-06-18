@@ -16,31 +16,36 @@
 # Tasks to setup the deployer in SOC/CLM based cloud
 ---
 
-- include: setup-isos.yml
+- name: cloud-setup | setup-deployer | Setup attached ISOs
+  include_tasks: setup-isos.yml
 
-- include: sync-mirrored-repos.yml
+- name: cloud-setup | setup-deployer | Sync mirrored repos
+  include_tasks: sync-mirrored-repos.yml
   when:
     - cloud.config.mirror_repos | bool
 
-- include: sync-override-repos.yml
+- name: cloud-setup | setup-deployer | Sync override repos
+  include_tasks: sync-override-repos.yml
 
-# TODO(fergal) Add support for sync'ing and unpacking tarball repos
-#- include: sync-tarball-repos.yml
+- name: cloud-setup | setup-deployer | Setup local access repos
+  include_tasks: setup-local-repos.yml
 
-- include: setup-local-repos.yml
-
-- include: setup-caching-proxy.yml
+- name: cloud-setup | setup-deployer | Setup caching proxy server
+  include_tasks: setup-caching-proxy.yml
   when:
     - cloud.config.caching_proxy | bool
     - clmsetup.caching_proxy.enabled | bool
 
-- include: setup-proxied-repos.yml
+- name: cloud-setup | setup-deployer | Setup proxy based repos
+  include_tasks: setup-proxied-repos.yml
   when:
     - cloud.config.caching_proxy | bool
     - clmsetup.caching_proxy.enabled | bool
 
-- include: ardana-init.yml
+- name: cloud-setup | setup-deployer | Install and init SOC/CLM
+  include_tasks: ardana-init.yml
   tags:
     - skip-ardana-init
 
-- include: sync-ansible-sources.yml
+- name: cloud-setup | setup-deployer | Upload ansible overrides
+  include_tasks: sync-ansible-sources.yml

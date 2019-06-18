@@ -21,4 +21,4 @@
   roles:
     - dev-env-radvd
   tasks:
-    - include: roles/dev-env-radvd/tasks/install.yml
+    - include_tasks: roles/dev-env-radvd/tasks/install.yml

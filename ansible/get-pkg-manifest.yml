@@ -51,7 +51,7 @@
         dest: "{{ pkg_manifest }}"
 
     - name: pkg-manifest | Register package manifest on localhost
-      include: roles/artifact-publisher/tasks/save-artifact.yml
+      include_tasks: roles/artifact-publisher/tasks/save-artifact.yml
       vars:
         type: "package"
         branch: "{{ dev_env_artifact_branch }}"

@@ -22,6 +22,6 @@
     _intel_cpu: "{{ ansible_processor | join(' ') | search('Intel') | bool }}"
 
 - name: dev-env-kvm | validate-nested | Validate KVM nested settings for Intel
-  include: validate-nested-intel.yml
+  include_tasks: validate-nested-intel.yml
   when:
     - _intel_cpu | bool

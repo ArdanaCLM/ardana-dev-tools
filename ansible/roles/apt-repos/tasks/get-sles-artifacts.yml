@@ -16,7 +16,7 @@
 #
 ---
 
-- include: _get_artifact.yml
+- include_tasks: _get_artifact.yml
   vars:
     artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/SLE"
@@ -24,7 +24,7 @@
     artifact_alias: "{{ artifact }}"
     filename: "{{ sles12_iso | basename }}"
 
-- include: _get_artifact.yml
+- include_tasks: _get_artifact.yml
   vars:
     artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}/SLE"
@@ -32,7 +32,7 @@
     artifact_alias: "{{ artifact }}"
     filename: "{{ sles12sdk_iso | basename }}"
 
-- include: _get_artifact.yml
+- include_tasks: _get_artifact.yml
   vars:
     artifact_url_use_proxy: "{{ artifact_site_use_proxy }}"
     artifact_base_url: "{{ dev_env_site_config.ardana_artifacts_host }}"
