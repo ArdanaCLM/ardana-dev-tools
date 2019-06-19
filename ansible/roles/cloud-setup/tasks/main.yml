@@ -36,13 +36,6 @@
   when:
     - inventory_hostname_short == deployer.name
 
-- name: cloud-setup | main | Setup proxy cached based repos on other nodes
-  include_tasks: setup-proxied-repos.yml
-  when:
-    - inventory_hostname_short != deployer.name
-    - cloud.config.caching_proxy | bool
-    - clmsetup.caching_proxy.enabled | bool
-
 - name: cloud-setup | main | Setup deployer repos on other nodes
   include_tasks: setup-remote-repos.yml
   when:

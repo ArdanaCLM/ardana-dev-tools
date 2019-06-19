@@ -30,18 +30,6 @@
 - name: cloud-setup | setup-deployer | Setup local access repos
   include_tasks: setup-local-repos.yml
 
-- name: cloud-setup | setup-deployer | Setup caching proxy server
-  include_tasks: setup-caching-proxy.yml
-  when:
-    - cloud.config.caching_proxy | bool
-    - clmsetup.caching_proxy.enabled | bool
-
-- name: cloud-setup | setup-deployer | Setup proxy based repos
-  include_tasks: setup-proxied-repos.yml
-  when:
-    - cloud.config.caching_proxy | bool
-    - clmsetup.caching_proxy.enabled | bool
-
 - name: cloud-setup | setup-deployer | Install and init SOC/CLM
   include_tasks: ardana-init.yml
   tags:

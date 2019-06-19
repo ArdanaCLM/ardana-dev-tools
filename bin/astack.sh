@@ -73,11 +73,6 @@ usage() {
     echo "                         before deploying to make debugging easier."
     echo "--c9|--cloud9-deployer"
     echo "                      -- Use SOC/CLM 9 deployer setup (default)"
-    echo "--c9-caching          -- Enable caching proxy, running on SOC/CLM 9"
-    echo "                         deployer, that will be used to access all"
-    echo "                         non-local repos"
-    echo "--c9-mirror           -- Enable local mirroring of repos (default"
-    echo "                         if caching proxy not enabled)"
     echo "--c9-staging          -- Use staging (DC9S), updates & pool repos"
     echo "                         (default)"
     echo "--c9-devel            -- Use devel (DC9), updates & pool repos"
@@ -94,11 +89,6 @@ usage() {
     echo "                      -- Use SOC/CLM 8 deployer setup"
     echo "--c8-hos              -- Enable HPE Helion OpenStack Cloud mode"
     echo "--c8-soc              -- Enable SUSE OpenStack Cloud mode (default)"
-    echo "--c8-caching          -- Enable caching proxy, running on SOC/CLM 8"
-    echo "                         deployer, that will be used to access all"
-    echo "                         non-local repos"
-    echo "--c8-mirror           -- Enable local mirroring of repos (default"
-    echo "                         if caching proxy not enabled)"
     echo "--c8-staging          -- Use staging (DC8S), updates & pool repos"
     echo "                         (default)"
     echo "--c8-devel            -- Use devel (DC8), updates & pool repos"
@@ -167,9 +157,14 @@ usage() {
     echo "--extra-vars VARS     -- Pass extra vars to any locally run playbooks"
     echo ""
     echo "Deprecated options that have no effect:"
+    echo "--c8-mirror|--c9-mirror"
+    echo "                      -- Mirroring always used now."
+    echo "--c8-caching|--c9-caching"
+    echo "                      -- No longer supported."
     echo "--c8-qa-tests         -- Do not use; legacy venv builds no longer"
     echo "                         supported."
     echo "--legacy              -- Do not use; legacy deployment no longer"
+    echo "                         supported."
     echo "--no-build            -- Don't build venv, reuse existing packages"
     echo "--skip-extra-playbooks"
     echo "                      -- Skip extra playbook on deployer setup."
@@ -434,13 +429,6 @@ $SCRIPT_HOME/run-in-deployer.sh \
 if [ "${ARDANA_SITE:-provo}" = "provo" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \
         "$SCRIPT_HOME/deployer/fix-ntp-server.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
-fi
-
-# If using caching proxy on deployer node, need to update firewall
-# rules to permit access to it.
-if [ -n "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
-    $SCRIPT_HOME/run-in-deployer.sh \
-        "$SCRIPT_HOME/deployer/add-squid-firewall-rules.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
 fi
 
 # If --project-stack is set then modify the input model appropriately.

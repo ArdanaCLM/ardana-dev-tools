@@ -161,8 +161,7 @@ export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
 export ARDANA_CLOUD_REPOS=${ARDANA_CLOUD_REPOS:-}
 export ARDANA_CLOUD_SOURCE=${ARDANA_CLOUD_SOURCE:-devel-staging}
-export ARDANA_CLOUD_CACHING_PROXY=${ARDANA_CLOUD_CACHING_PROXY:-}
-export ARDANA_CLOUD_MIRROR=${ARDANA_CLOUD_MIRROR:-}
+export ARDANA_CLOUD_MIRROR=${ARDANA_CLOUD_MIRROR:-1}
 export ARDANA_CLOUD_HOS=${ARDANA_CLOUD_HOS:-}
 export ARDANA_CLOUD_SOC=${ARDANA_CLOUD_SOC:-}
 export ARDANA_UPGRADE_NO_RHEL=${ARDANA_UPGRADE_NO_RHEL:-}
@@ -269,10 +268,6 @@ while true ; do
             SOC_CLM_8=true
             export ARDANA_CLOUD_MIRROR=1
             shift ;;
-        --c8-caching)
-            SOC_CLM_8=true
-            export ARDANA_CLOUD_CACHING_PROXY=1
-            shift ;;
         --c8-staging)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["staging"]'
@@ -321,10 +316,6 @@ while true ; do
         --c9-mirror)
             SOC_CLM_9=true
             export ARDANA_CLOUD_MIRROR=1
-            shift ;;
-        --c9-caching)
-            SOC_CLM_9=true
-            export ARDANA_CLOUD_CACHING_PROXY=1
             shift ;;
         --c9-staging)
             SOC_CLM_9=true
@@ -429,7 +420,10 @@ while true ; do
             export EXTRA_VARS=$2
             shift 2 ;;
         # Handle deprecated options
-        --c8-qa-tests|--cloud8-deployer|--cloud9-deployer|--cobble-sles-control|--legacy|--no-build|--skip-extra-playbooks|--sles|--sles-control|--sles-deployer|--update-only)
+        --c8-caching|--c9-caching) ;&  # fall through to next block
+        --c8-qa-tests|--cloud8-deployer|--cloud9-deployer) ;&
+        --cobble-sles-control|--sles|--sles-control|--sles-deployer) ;&
+        --skip-extra-playbooks|--legacy|--no-build|--update-only)
             echo "Deprecated option '${1}' - ignored"
             shift ;;
         --sles-control-nodes|--squashkit|--tarball)
@@ -502,9 +496,8 @@ elif [ -n "${SOC_CLM_8:-}" ]; then
     export ARDANA_SLES_SP=3
 fi
 
-# default to enabling mirroring if caching proxy not enabled.
-if [ -z "${ARDANA_CLOUD_MIRROR:-}" -a \
-     -z "${ARDANA_CLOUD_CACHING_PROXY:-}" ]; then
+# Ensure mirroring is enabled
+if [ -z "${ARDANA_CLOUD_MIRROR:-}" ]; then
     export ARDANA_CLOUD_MIRROR=1
 fi
 

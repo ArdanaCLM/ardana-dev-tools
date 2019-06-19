@@ -216,13 +216,7 @@ module Ardana
         :attach_isos => !ENV.fetch("ARDANA_ATTACH_ISOS", "").empty?,
         :cloud => {
           :version => ENV.fetch("ARDANA_CLOUD_VERSION", "9"),
-          :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?,
-          :proxy_cache => {
-            :enabled => !ENV.fetch("ARDANA_CLOUD_CACHING_PROXY", "").empty?,
-            :name => "persistent-proxy-cache.qcow2",
-            :size => "33G",
-            :bus => "scsi"
-          },
+          :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?
         },
         :debug => !ENV.fetch("ARDANA_DEBUG", "").empty?,
         :ip => {
@@ -610,25 +604,8 @@ module Ardana
           set_vm_hardware(vm: server.vm, hardware: serverInfo['hardware'],
                           graphics_port: serverInfo["graphics_port"])
 
-          disks = []
-          # add persistent volumes as appropriate
-          if ((deployer_node == server_name) and
-              @ardana[:cloud][:proxy_cache][:enabled])
-            # if using 'scsi' as the bus type the first additional disk on the
-            # virtio-scsi controller gets probed last, so we add the proxy
-            # cache persistent volume cache as the first disk
-            disks.push({
-                         :path => @ardana[:cloud][:proxy_cache][:name],
-                         :size => @ardana[:cloud][:proxy_cache][:size],
-                         :bus => @ardana[:cloud][:proxy_cache][:bus],
-                         :allow_existing => true
-                       })
-
-            # The proxy cache volume lun will be X:0:0:<lun> for scsi.
-            @ardana[:cloud][:proxy_cache][:lun] = disks.length
-          end
-
           # Add the requested number of disks for this node type
+          disks = []
           hw_disks = serverInfo['hardware']['disks']
           if hw_disks.key?('extras')
             (1..hw_disks['extras']['count']).each do |i|
@@ -638,14 +615,8 @@ module Ardana
           end
 
           # Provisioning VM
+          extra_vars = {}
           if deployer_node == server_name
-            if @ardana[:cloud][:proxy_cache][:enabled]
-              extra_vars = {"ardana_proxy_cache_volume" => @ardana[:cloud][:proxy_cache][:name],
-                            "ardana_proxy_cache_bus" => @ardana[:cloud][:proxy_cache][:bus],
-                            "ardana_proxy_cache_lun" => @ardana[:cloud][:proxy_cache][:lun]}
-            else
-              extra_vars = {}
-            end
             provision_deployer(server: server,
                                name: server_name,
                                distros: distributions,

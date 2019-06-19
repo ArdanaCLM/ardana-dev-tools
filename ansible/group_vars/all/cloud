@@ -23,7 +23,6 @@ cloud_version: "{{ lookup('env', 'ARDANA_CLOUD_VERSION') | default(9, true) }}"
 cloud:
   config:
     arch: "x86_64"
-    caching_proxy: "{{ lookup('env', 'ARDANA_CLOUD_CACHING_PROXY') | default(False, true) }}"
     enabled_repos: "{{ lookup('env', 'ARDANA_CLOUD_REPOS') | default(['staging'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_CLOUD_MIRROR') | default(False, true) }}"
     hos_mode: "{{ lookup('env', 'ARDANA_CLOUD_HOS') | default(False, true) }}"
@@ -132,21 +131,3 @@ cloud:
           link: "cloud9.iso"
           path: "install/SLE-12-SP4-Cloud9"
           enabled: true
-  deployer:
-    caching_proxy:
-      fs:
-        mount: /var/cache/proxy
-        type: ext4
-        user: squid
-        group: root
-      conf:
-        svc: squid
-        file: /etc/squid/squid.conf
-        type: aufs
-        L1: 16
-        L2: 256
-        port: 3128
-        max_size: "512 MB"
-        policy: "heap LFUDA"
-      pkgs:
-        - squid

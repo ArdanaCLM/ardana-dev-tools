@@ -33,11 +33,3 @@
   include_tasks: setup-root-partition.yml
   when:
     - flag_files.cloud_vm.root_partition is not defined
-
-- name: cloud-vm | main | Setup proxy cache (optional)
-  include_tasks: setup-proxy-cache.yml
-  args:
-    creates: "{{ dev_env_cloud_vm_proxy_cache_flag }}"
-  when:
-    - ardana_proxy_cache_volume is defined
-    - flag_files.cloud_vm.proxy_cache is not defined

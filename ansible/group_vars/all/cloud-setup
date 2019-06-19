@@ -16,18 +16,10 @@
 # Default settings used by the vagrant SOC/CLM VM setup process.
 ---
 
-_proxy_mounts: "{{ hostvars[deployer.name]['ansible_mounts'] |
-                   selectattr('mount', 'equalto',
-                              cloud.deployer.caching_proxy.fs.mount) |
-                   list }}"
-
 _clm_flavour: "{{ cloud.config.hos_mode | bool | ternary('hos8', 'soc8') }}"
 _clm_version: "{{ ((cloud_version | int) == 9) | ternary('soc9', _clm_flavour) }}"
 
 clmsetup:
-  caching_proxy:
-    enabled: "{{ _proxy_mounts | count | bool }}"
-    mounts: "{{ _proxy_mounts }}"
   server:
     sles:
       base: "/srv/www/"
@@ -233,141 +225,6 @@ clmsetup:
                    (_clm_version == 'hos8') }}"
 
     #
-    # Caching proxy based repos
-    #
-
-    # SLES12 SP4 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
-      name: "{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
-                   ('updates-test' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp4') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.updates.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp4.updates.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp4.updates.enabled | bool) and
-                   ('updates' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp4') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp4.pool.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp4.pool.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp4.pool.enabled | bool) and
-                   ('pool' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp4') }}"
-
-    # SLES12 SP3 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
-      name: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
-                   ('updates-test' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp3') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.updates.enabled | bool) and
-                   ('updates' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp3') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
-      name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}-http"
-      alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}-http"
-      distro: sles
-      enabled: "{{ (sles.artifacts.repos.sles12sp3.pool.enabled | bool) and
-                   ('pool' in sles.config.enabled_repos) and
-                   (sles_version == 'sles12sp3') }}"
-
-    # SUSE OpenStack Cloud 9 Repos
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.staging.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.staging.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.staging.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.staging.enabled | bool) and
-                   ('staging' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc9') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.devel.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.devel.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.devel.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.devel.enabled | bool) and
-                   ('devel' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc9') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.updates.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.updates.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.updates.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.updates.enabled | bool) and
-                   ('updates' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc9') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.pool.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.pool.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.pool.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.pool.enabled | bool) and
-                   ('pool' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc9') }}"
-
-    # SUSE OpenStack Cloud 8 Repos
-    # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S for both modes.
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.staging.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.staging.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.staging.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.staging.enabled | bool) and
-                   ('staging' in cloud.config.enabled_repos) and
-                   ((_clm_version == 'soc8') or (_clm_version == 'hos8')) }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.devel.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.devel.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.devel.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.devel.enabled | bool) and
-                   ('devel' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc8') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.updates.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.updates.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.updates.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.updates.enabled | bool) and
-                   ('updates' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc8') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.soc8.pool.name }}"
-      name: "{{ cloud.artifacts.repos.soc8.pool.name }}-http"
-      alias: "{{ cloud.artifacts.repos.soc8.pool.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.soc8.pool.enabled | bool) and
-                   ('pool' in cloud.config.enabled_repos) and
-                   (_clm_version == 'soc8') }}"
-
-    # HPE Helion OpenStack Cloud 8 Repos
-    # NOTE: currently no DC8S repo for HOS stream, so use SOC DC8S above for both modes.
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.hos8.devel.name }}"
-      name: "{{ cloud.artifacts.repos.hos8.devel.name }}-http"
-      alias: "{{ cloud.artifacts.repos.hos8.devel.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.hos8.devel.enabled | bool) and
-                   ('devel' in cloud.config.enabled_repos) and
-                   (_clm_version == 'hos8') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.hos8.updates.name }}"
-      name: "{{ cloud.artifacts.repos.hos8.updates.name }}-http"
-      alias: "{{ cloud.artifacts.repos.hos8.updates.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.hos8.updates.enabled | bool) and
-                   ('updates' in cloud.config.enabled_repos) and
-                   (_clm_version == 'hos8') }}"
-    - cached_url: "{{ clouddata_repo.base_url }}/{{ cloud.artifacts.repos.hos8.pool.name }}"
-      name: "{{ cloud.artifacts.repos.hos8.pool.name }}-http"
-      alias: "{{ cloud.artifacts.repos.hos8.pool.alias }}-http"
-      distro: sles
-      enabled: "{{ (cloud.artifacts.repos.hos8.pool.enabled | bool) and
-                   ('pool' in cloud.config.enabled_repos) and
-                   (_clm_version == 'hos8') }}"
-
-    #
     # Override repo - hosts locally built RPMs that we want to supersede
     # any versions available in standard SOC/CLM sources, except for the
     # PTF repo.
@@ -380,8 +237,6 @@ clmsetup:
       distro: sles
       enabled: True
 
-    # TODO(fergal) Add optional yum extras repo tarball info with tarball
-    # rather than mirror attribute here.
   deployer:
     init_pkgs:
       - patterns-cloud-ardana
