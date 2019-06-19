@@ -33,18 +33,27 @@
       {{ dev_env_vagrant_file }}
   register: deployer_node_result
 
+- name: input-model-inventory | main | Show cloud deployer name
+  debug:
+    var: _deployer_name
+    verbosity: 1
+
 - name: input-model-inventory | main | Extract deployer node name
   set_fact:
-    input_model_deployer: "{{ deployer_node_result.stdout.strip() }}"
+    _deployer_name: "{{ deployer_node_result.stdout.strip() | default('deployer', true) }}"
 
-- name: input-model-inventory | main | Show cloud deployer
-  debug:
-    var: input_model_deployer
-    verbosity: 1
+- name: input-model-inventory | main | Retrieve cloud deployer entry
+  set_fact:
+    input_model_deployer: "{{ (input_model_servers | selectattr('id', 'equalto', _deployer_name) | list)[0] }}"
 
 - name: input-model-inventory | main | Show cloud servers list
   debug:
     var: input_model_servers
+    verbosity: 1
+
+- name: input-model-inventory | main | Show cloud deployer entry
+  debug:
+    var: input_model_deployer
     verbosity: 1
 
 - name: input-model-inventory | main | Ensure host_vars directory exists
@@ -56,6 +65,11 @@
   template:
     src: "cloud.yml.j2"
     dest: "{{ playbook_dir }}/hosts/cloud.yml"
+
+- name: input-model-inventory | main | Generate cloud group_vars/all/deployer
+  template:
+    src: "deployer.j2"
+    dest: "{{ playbook_dir }}/group_vars/all/deployer"
 
 - name: input-model-inventory | main | Generate cloud host_vars files
   template:

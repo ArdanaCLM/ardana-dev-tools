@@ -35,8 +35,8 @@ Usage:
 
 See ansible-playbook(1) for other possible options.
 
-Automatically specifies the deployer_node variable setting via a -e option,
-and the cloud.yml inventory file if none has been specified.
+Automatically specifies the cloud.yml inventory file if none has been
+specified.
 
 If no playbook is specified will default to running the cloud-setup.yml
 playbook if running in SOC/CLM deployment mode.
@@ -94,11 +94,10 @@ if (( $# < 1 )); then
     set -- ${_tools_ansible_dir}/cloud-setup.yml
 fi
 
-# specify inventory file and deployer_node var setting as initial
-# arguments when calling ansible-playbook
+# specify inventory file var setting as initial arguments when
+# calling ansible-playbook
 ap_args=(
     -i ${inventory_file}
-    -e deployer_node="$(get_deployer_node)"
 )
 
 # optionally include the --skip-tags opts if needed

@@ -18,27 +18,27 @@
 
 - name: cloud-setup | refresh-repos | Check deployer port 79 http access
   wait_for:
-    host: "{{ deployer_address }}"
+    host: "{{ deployer.address }}"
     port: 79
   changed_when: false  # we don't consider this to ever "change"
   when:
-    - inventory_hostname_short != deployer_node
+    - inventory_hostname_short != deployer.name
 
 - name: cloud-setup | refresh-repos | Check caching proxy active (local)
   command: squidclient --ping -g 1 -I 1
   changed_when: false  # we don't consider this to ever "change"
   when:
     - clmsetup.caching_proxy.enabled | bool
-    - inventory_hostname_short == deployer_node
+    - inventory_hostname_short == deployer.name
 
 - name: cloud-setup | refresh-repos | Check caching proxy active (remote)
   wait_for:
-    host: "{{ deployer_address }}"
+    host: "{{ deployer.address }}"
     port: 3128
   changed_when: false  # we don't consider this to ever "change"
   when:
     - clmsetup.caching_proxy.enabled | bool
-    - inventory_hostname_short != deployer_node
+    - inventory_hostname_short != deployer.name
 
 - name: cloud-setup | refresh-repos | Trigger a refresh of all repos
   include_tasks: _refresh-repos.yml

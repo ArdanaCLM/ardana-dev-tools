@@ -406,8 +406,7 @@ generate_ssh_config "FORCE"
 # setup the SOC/CLM nodes using a similar process to how
 # the customer would in a real deployment
 ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
-    $DEVTOOLS/ansible/cloud-setup.yml \
-    -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+    $DEVTOOLS/ansible/cloud-setup.yml
 
 # Run any feature hooks between ardana-init.bash and initialising the input model
 feature_ansible post-ardana-init.yml
@@ -464,12 +463,10 @@ logsubunit --inprogress deploy
 # Flag is enabled when one or more RHEL compute is present in deployment.
 if [ -n "${ARDANA_RHEL_OPTIONAL_REPO_ENABLED:-}" ]; then
     ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
-        $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml \
-        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+        $DEVTOOLS/ansible/upload-rhel-centos-tarball-to-deployer.yml
 
     ansible-playbook -i $DEVTOOLS/ansible/hosts/cloud.yml \
-        $DEVTOOLS/ansible/cloud-rhel-deployer-setup.yml \
-        -e "{\"deployer_node\": \"$(get_deployer_node)\"}"
+        $DEVTOOLS/ansible/cloud-rhel-deployer-setup.yml
 fi
 
 # Run any feature hooks between initialising the input model and running CP

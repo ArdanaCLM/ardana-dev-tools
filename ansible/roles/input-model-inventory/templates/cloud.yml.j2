@@ -1,11 +1,10 @@
-{% set _dplyr = input_model_deployer | default(input_model_servers[0].id) %}
 ---
 all:
   children:
-{% if _dplyr != 'deployer' %}
+{% if input_model_deployer.id != 'deployer' %}
     deployer:
       hosts:
-        "{{ _dplyr }}":
+        "{{ input_model_deployer.id }}":
 {% endif %}
     cloud:
       hosts:

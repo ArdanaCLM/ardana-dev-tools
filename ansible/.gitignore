@@ -3,3 +3,4 @@ VMware-*
 vmware-*/
 ansible.cfg
 host_vars/
+group_vars/all/deployer

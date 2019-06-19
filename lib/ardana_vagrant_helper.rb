@@ -583,7 +583,6 @@ module Ardana
       ip_offset = 1
       prev_node_type = ""
 
-      deployer_info = server_details.find { |server| server["id"] == deployer_node }
       distributions = server_details.map { |server| server["os-dist"] }.uniq
 
       server_details.each do |serverInfo|
@@ -654,7 +653,7 @@ module Ardana
                                disks: disks)
           else
             setup_vm(vm: server.vm, name: server_name,
-                     extra_vars: {"deployer_address" => deployer_info["ip-addr"]},
+                     extra_vars: {},
                      disks: disks)
           end
 

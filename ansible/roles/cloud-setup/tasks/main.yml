@@ -16,11 +16,6 @@
 # Tasks performed by the cloud-setup role
 ---
 
-- name: cloud-setup | main | Determine deployer address from eth2
-  include_tasks: get-deployer-address.yml
-  when:
-    - deployer_address is not defined
-
 - name: cloud-setup | main | Determine distro family
   set_fact:
     ardana_family: "{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}"
@@ -39,19 +34,19 @@
 - name: cloud-setup | main | Setup deployer
   include_tasks: setup-deployer.yml
   when:
-    - inventory_hostname_short == deployer_node
+    - inventory_hostname_short == deployer.name
 
 - name: cloud-setup | main | Setup proxy cached based repos on other nodes
   include_tasks: setup-proxied-repos.yml
   when:
-    - inventory_hostname_short != deployer_node
+    - inventory_hostname_short != deployer.name
     - cloud.config.caching_proxy | bool
     - clmsetup.caching_proxy.enabled | bool
 
 - name: cloud-setup | main | Setup deployer repos on other nodes
   include_tasks: setup-remote-repos.yml
   when:
-    - inventory_hostname_short != deployer_node
+    - inventory_hostname_short != deployer.name
 
 - name: cloud-setup | main | Refresh all repos
   include_tasks: refresh-repos.yml
