@@ -27,7 +27,7 @@
   command: vconfig rem vlan{{ dev_env_ext_net.vlan }}
   register: _vconfig_rem_result
   failed_when:
-    - _vconfig_rem_result | failed
+    - _vconfig_rem_result is failed
     - not ('No such device' in _vconfig_rem_result.stderr)
 
 - name: dev-env | connect_deployer_to_extnet | Set the vlan naming convention

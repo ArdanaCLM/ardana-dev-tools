@@ -13,10 +13,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the cloud-setup role
+# Tasks to refresh the configured package repos
 ---
 
-- name: cloud-setup | main | Setup deployer repos on other nodes
-  include_tasks: setup-remote-repos.yml
-  when:
-    - inventory_hostname_short != deployer.name
+- name: cloud-refresh-repos | main | Confirm deployer serving on port 79
+  include_tasks: check-port-79.yml
+
+- name: cloud-refresh-repos | main | Trigger a refresh of all repos
+  include_tasks: refresh-repos.yml

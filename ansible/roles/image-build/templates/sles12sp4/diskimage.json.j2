@@ -52,7 +52,7 @@
         "spectre_v2=off ",
 {% endif %}
 {% for item in _sles_repo_links_result.results %}
-{% if not (item | skipped) %}
+{% if item is not skipped %}
         "sles_{{ item.item.name.split('-', 2)[-1] | lower | replace('-', '_') }}_url=http://{{ '{{' }} .HTTPIP {{ '}}' }}:{{ '{{' }} .HTTPPort {{ '}}' }}/{{ item.item.name }} ",
 {% endif %}
 {% endfor %}

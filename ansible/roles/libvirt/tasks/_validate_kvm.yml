@@ -57,12 +57,12 @@
 - name: libvirt | _validate_kvm | rmmod kvm_intel
   become: yes
   command: rmmod kvm_intel
-  when: _modprobe_conf_result | changed
+  when: _modprobe_conf_result is changed
 
 - name: libvirt | _validate_kvm | modprobe kvm_intel
   become: yes
   command: modprobe kvm_intel
-  when: _modprobe_conf_result | changed
+  when: _modprobe_conf_result is changed
 
 - name: libvirt | _validate_kvm | Check that /dev/kvm exists
   stat:

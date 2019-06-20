@@ -29,6 +29,6 @@
             {{ ardana_images_dir }}/cloud{{ cloud_version }}.iso hda --type cdrom --mode readonly
       register: attach_disk_result
       # Required for an intermitant eject QEMU bug in version 2.5.0 (ubuntu 16.04)
-      until: (attach_disk_result | success)
+      until: (attach_disk_result is success)
       retries: 5
       delay: 2

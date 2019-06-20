@@ -1,0 +1,77 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to setup package repos for remote access on nodes other than the
+# deployer.
+---
+
+- name: cloud-remote-repos | main | Confirm deployer serving on port 79
+  include_role:
+    name: cloud-refresh-repos
+    tasks_from: check-port-79.yml  # have already confirmed deployer port 79
+
+- name: cloud-remote-repos | main | Check if deployer has repos
+  delegate_to: "{{ deployer.name }}"
+  stat:
+    path: "{{ clmsetup.server[item.distro].base }}/{{ clmsetup.distros[item.distro].dir }}/{{ item.path }}"
+  with_items: "{{ clmsetup.isos + clmsetup.repos }}"
+  register: deployer_repos_found_result
+
+- name: cloud-remote-repos | main | Setup found deployer repos (SUSE)
+  become: yes
+  zypper_repository:
+    name: "{{ item.item.name }}"
+    description: "{{ item.item.alias }}"
+    repo: "http://{{ deployer.address }}:79/{{ clmsetup.distros[
+                     item.item.distro].http }}/{{ item.item.path }}"
+    auto_import_keys: yes
+    autorefresh: no
+    runrefresh: no
+    disable_gpg_check: "{{ item.item.no_gpg_check | default('no') }}"
+    priority: "{{ item.item.priority | default(99) }}"
+    enabled: "{{ zypper_repo_enabled | default('yes') }}"
+    state: "{{ zypper_repo_state | default('present') }}"
+  register: deployer_repos_add_result
+  with_items: "{{ deployer_repos_found_result.results }}"
+  when:
+    - ardana_family == "suse"
+    - item is not skipped
+    - item.stat.exists
+    - item.item.distro == ardana_distro
+  failed_when:
+    # needed because zypper_repository is not idempotent for .repo files
+    - deployer_repos_add_result is failed
+    - ("Repository named \'" + item.item.name +
+       "\' already exists. Please use another alias." not in deployer_repos_add_result.stderr)
+
+- name: cloud-remote-repos | main | Setup found deployer repos (RHEL)
+  become: yes
+  template:
+    src: rhel.repo.j2
+    dest: "/etc/yum.repos.d/{{ item.item.alias }}.repo"
+  register: deployer_repos_add_result
+  with_items: "{{ deployer_repos_found_result.results }}"
+  when:
+    - ardana_family == "redhat"
+    - item is not skipped
+    - item.stat.exists
+    - item.item.distro == ardana_distro
+
+- name: cloud-remote-repos | main | Refresh repos if needed
+  include_role:
+    name: cloud-refresh-repos
+    tasks_from: refresh-repos.yml  # have already confirmed deployer port 79
+  when:
+    - deployer_repos_add_result is changed

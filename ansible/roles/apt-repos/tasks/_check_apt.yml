@@ -46,7 +46,7 @@
     true
 
   register: dpkglock_result
-  until: dpkglock_result | success and dpkglock_result.stdout == ""
+  until: dpkglock_result is success and dpkglock_result.stdout == ""
   retries: 60
   delay: 2
   changed_when: false

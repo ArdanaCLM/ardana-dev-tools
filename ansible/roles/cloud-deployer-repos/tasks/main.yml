@@ -16,24 +16,14 @@
 # Tasks to setup the deployer in SOC/CLM based cloud
 ---
 
-- name: cloud-setup | setup-deployer | Setup attached ISOs
+- name: cloud-deployer | main | Setup attached ISOs
   include_tasks: setup-isos.yml
 
-- name: cloud-setup | setup-deployer | Sync mirrored repos
-  include_tasks: sync-mirrored-repos.yml
-  when:
-    - cloud.config.mirror_repos | bool
-
-- name: cloud-setup | setup-deployer | Sync override repos
+- name: cloud-deployer | main | Sync override repos
   include_tasks: sync-override-repos.yml
 
-- name: cloud-setup | setup-deployer | Setup local access repos
+- name: cloud-deployer | main | Sync mirrored repos
+  include_tasks: sync-mirrored-repos.yml
+
+- name: cloud-deployer | main | Setup locally accessible repos
   include_tasks: setup-local-repos.yml
-
-- name: cloud-setup | setup-deployer | Install and init SOC/CLM
-  include_tasks: ardana-init.yml
-  tags:
-    - skip-ardana-init
-
-- name: cloud-setup | setup-deployer | Upload ansible overrides
-  include_tasks: sync-ansible-sources.yml

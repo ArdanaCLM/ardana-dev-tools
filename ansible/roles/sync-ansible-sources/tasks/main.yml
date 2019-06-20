@@ -18,7 +18,20 @@
 #
 ---
 
-- name: cloud-setup | sync-ansible-sources | Sync any local ansible source to deployer
+- name: sync-ansible-sources | main | Deployer has been ardana-init'd?
+  stat:
+    path: "~/openstack/ardana/ansible/"
+  register: _ardana_ansible_stat_result
+
+- name: sync-ansible-sources | main | Fail if deployer not ardana-init'd
+  fail:
+    msg: >-
+      The ~ardana/openstack/ardana/ansible directory doesn't exist. Please
+      ensure that you have run ardana-init to setup the deployer node.
+  when:
+    - not _ardana_ansible_stat_result.stat.exists
+
+- name: sync-ansible-sources | main | Sync any local ansible source to deployer
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
     dest: "~/openstack/ardana/ansible/"
@@ -34,6 +47,7 @@
   with_dict: "{{ ardana_git_repositories | default({}) }}"
   when:
     - not (item.value | find_local_repo | search(product_cache_base_directory))
+    - sync_ansible_repos is not defined or item.value in sync_ansible_repos
   register: _sync_ansible_sources_result
 
 # TODO(fergal): remove when we move forward to a version of
@@ -43,18 +57,19 @@
 # one argument, which must be formatted acceptably for use in
 # an exec() call, i.e. no extraneous characters such as quotes
 # that may be needed for shell invocations.
-- name: cloud-setup | sync-ansible-sources | Ansible 2.4 synchronize exclude issues workaround
+- name: sync-ansible-sources | main | Ansible 2.4 synchronize exclude issues workaround
   shell: |
     set -vxe
     cd ${HOME}/openstack/ardana/ansible/
     rm -rf .git* .copyrightignore LICENSE roles/deployer-setup/files/ardana-init.bash
     find . -name "*.pyc" -delete
     find . -name ".git*" -delete
+  changed_when: false
   when:
     - ansible_version.major == 2
     - ansible_version.minor == 4
 
-- name: cloud-setup | sync-ansible-sources | Save local ansible source changes if any
+- name: sync-ansible-sources | main | Save local ansible source changes if any
   shell: |
     set -eu
 
@@ -63,4 +78,4 @@
   args:
     chdir: "~/openstack"
     executable: "/bin/bash"
-  when: _sync_ansible_sources_result | changed
+  when: _sync_ansible_sources_result is changed

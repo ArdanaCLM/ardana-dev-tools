@@ -35,4 +35,4 @@
   when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
 
 - include_tasks: _debug_apt_lock.yml
-  when: debug_apt_result | failed and ansible_os_family | lower == "debian"
+  when: debug_apt_result is failed and ansible_os_family | lower == "debian"

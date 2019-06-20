@@ -28,7 +28,7 @@
 
 - name: libvirt | _debug_apt_lock | Scan logfile for apt processes starting
   shell: |
-    grep -e 'Start-Date: ' -e 'Commandline: ' /var/log/apt/history.log | tail -n 50 
+    grep -e 'Start-Date: ' -e 'Commandline: ' /var/log/apt/history.log | tail -n 50
     tail -n 200 /var/log/dpkg.log
     true
   register: log_result
