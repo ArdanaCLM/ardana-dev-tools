@@ -14,8 +14,8 @@ directories parallel to ardana-dev-tools:
 
 ```
 pushd ../..
-git clone http://git.suse.provo.cloud/openstack/keystone
-git clone http://git.suse.provo.cloud/openstack/nova
+git clone http://git.ci.prv.suse.net/openstack/keystone
+git clone http://git.ci.prv.suse.net/openstack/nova
 # ... etc ...
 popd
 ```

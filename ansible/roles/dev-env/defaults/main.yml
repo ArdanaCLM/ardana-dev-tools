@@ -17,8 +17,8 @@
 # Specify defaults for the developer environment
 ---
 dev_env_git_servers:
-  gozer: "https://gerrit.suse.provo.cloud"
-  gerrit: "https://gerrit.suse.provo.cloud"
+  gozer: "https://gerrit.ci.prv.suse.net"
+  gerrit: "https://gerrit.ci.prv.suse.net"
   github: "https://github.com"
   openstack: "https://git.openstack.org"
 

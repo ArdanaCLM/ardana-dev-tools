@@ -20,17 +20,17 @@ sites_default:
   provo:
     # proxy: host: web-proxy.example.com
     pip:
-      host: bandersnatch.suse.provo.cloud
+      host: bandersnatch.ci.prv.suse.net
       port:
       prefix:
     apt:
-      host: apt.suse.provo.cloud
+      host: apt.ci.prv.suse.net
       port:
     artefact:
-      host: tarballs.suse.provo.cloud
+      host: tarballs.ci.prv.suse.net
       port:
       use_proxy: no
-    ardana_artifacts_host: http://ardana.suse.provo.cloud
+    ardana_artifacts_host: http://ardana.ci.prv.suse.net
     ibs:
       #host: ibs-mirror.prv.suse.net
       host: 10.84.2.50
@@ -41,6 +41,6 @@ sites_default:
       host: 10.86.33.251
       use_proxy: no
     git:
-      host: git.suse.provo.cloud
+      host: git.ci.prv.suse.net
 
 sites: "{{ sites_default | update(sites_update | default({})) }}"

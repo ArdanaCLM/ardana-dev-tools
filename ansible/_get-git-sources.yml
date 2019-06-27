@@ -73,6 +73,7 @@
         dest: "{{ _source_cache_dir }}"
         version: "{{ repo_info.branch }}"
         update: "{{ dev_env_global_git_update }}"
+        accept_hostkey: True
         bare: yes
         force: yes
       environment:

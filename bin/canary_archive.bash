@@ -33,7 +33,7 @@
 # the script below.
 #
 # - scp:
-#     site: 'server.suse.provo.cloud'
+#     site: 'server.ci.prv.suse.net'
 #     files:
 #       - target: 'tarballs/ardana'
 #         source: '{stream}/**'

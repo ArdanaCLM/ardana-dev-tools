@@ -837,7 +837,7 @@ _services_default:
       - oslo.log
     version: "{{ package_version }}"
 
-  # dev_env_site_config['artefact']['host'] maps to tarballs.suse.provo.cloud,
+  # dev_env_site_config['artefact']['host'] maps to tarballs.ci.prv.suse.net,
   # 'artefact' matches the spelling used elsewhere to reference this url
   # as of the most recent versions, tarballs.... is an acceptable source for
   # external content

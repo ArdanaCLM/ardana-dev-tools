@@ -40,8 +40,8 @@ export ANSIBLE_HOST_KEY_CHECKING=False
 export PYTHONUNBUFFERED=1
 
 # Used in run-lint.bash
-export GOZER_GIT_MIRROR=${GOZER_GIT_MIRROR:-https://gerrit.suse.provo.cloud}
-export PYPI_MIRROR_URL=${PYPI_MIRROR_URL:-http://${PYPI_BASE_HOST:-pypi.suse.provo.cloud}/openstack/latest}
+export GOZER_GIT_MIRROR=${GOZER_GIT_MIRROR:-https://gerrit.ci.prv.suse.net}
+export PYPI_MIRROR_URL=${PYPI_MIRROR_URL:-http://${PYPI_BASE_HOST:-pypi.ci.prv.suse.net}/openstack/latest}
 
 # Default to using an ardana user, with home directory /var/lib/ardana
 # which can be overriden by setting up these environment variables
