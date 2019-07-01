@@ -74,14 +74,16 @@ vagrant_series_settings:
       versions:
         plugins: "1.7.4"
         runtime: "{{ vagrant_version }}"
-      gems_dir: "gems"
+      gems_dirs:
+        - "gems"
       plugins: "{{ vagrant_common_plugins }}"
 
     "1.8":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
-      gems_dir: "gems"
+      gems_dirs:
+        - "gems"
       plugins: "{{ vagrant_common_plugins }}"
 
     "1.9":
@@ -92,7 +94,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "42.3": 6
-      gems_dir: "gems/2.3.4"
+      gems_dirs:
+        - "gems/2.3.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.0":
@@ -103,7 +106,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.1":
@@ -114,7 +118,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.2":
@@ -125,7 +130,9 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
+        - "gems/2.4.6"
       plugins: "{{ vagrant_common_plugins }}"
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"

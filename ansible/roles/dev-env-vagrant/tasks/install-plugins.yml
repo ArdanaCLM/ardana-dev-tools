@@ -38,10 +38,19 @@
       {%- endif  %}
   with_items: "{{ vagrant_missing_plugins }}"
 
+- name: dev-env-vagrant | install-plugins | Which gems_dir to use?
+  set_fact:
+    gems_dir: >-
+      {{ lookup('first_found', params) }}
+  vars:
+    params:
+      files: "{{ vagrant_settings.gems_dirs | default(['gems']) }}"
+      paths: "{{ vagrant_home }}"
+
 # TODO(fergal): Add support for list of patches per plugin
 - name: dev-env-vagrant | install-plugins | Apply plugin patches if any
   patch:
-    basedir: "{{ vagrant_home }}/{{ vagrant_settings.gems_dir | default('gems') }}"
+    basedir: "{{ gems_dir }}"
     src: "{{ role_path }}/files/vagrant-patch-plugins/{{ item.patch.file }}"
     strip: "{{ item.patch.strip | default(0) }}"
   with_items: "{{ vagrant_missing_plugins }}"
