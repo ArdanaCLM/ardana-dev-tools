@@ -210,7 +210,7 @@ module Ardana
       @config = config
       @metal_cfg = nil
       @dev_tool_path = File.expand_path(File.join(File.dirname(__FILE__), "/.."))
-      @git_uri_base = 'http://git.suse.provo.cloud/cgit/ardana/'
+      @git_uri_base = 'http://git.ci.prv.suse.net/cgit/ardana/'
       @persistent_deployer_apt_cache = "persistent-apt-cache-v2.qcow2"
       @ardana = {
         :attach_isos => !ENV.fetch("ARDANA_ATTACH_ISOS", "").empty?,

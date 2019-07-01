@@ -63,7 +63,7 @@ def cache_path(url, base, alternative=None):
 
 def external_artifact_url(item, site_config):
     base_url = site_config.get(
-        "ardana_artifacts_host", "http://ardana.suse.provo.cloud")
+        "ardana_artifacts_host", "http://ardana.ci.prv.suse.net")
 
     return urlparse.urljoin(base_url, item["path"])
 

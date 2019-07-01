@@ -43,7 +43,7 @@ if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
 
-gerrit_server="gerrit.suse.provo.cloud"
+gerrit_server="gerrit.prv.suse.net"
 gerrit_port="29418"
 age="1h"
 test_data=
