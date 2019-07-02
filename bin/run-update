@@ -14,11 +14,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Run through the Ardana upgrade workflow to update the Cloud
-# from Cloud8 to Cloud9, for selected Devel or Product stream.
+# Run through the Ardana update workflow to update the Cloud
+# within the same stream using updated package sources.
 #
 
-set -ex
+set -eux
 set -o pipefail
 
 cmd_name="$(basename ${BASH_SOURCE[0]})"
@@ -36,26 +36,29 @@ usage() {
     set +x
     echo "${cmd_name} [options] [cloud]"
     echo
-    echo "cloud defaults to 'adt', a minimal 2 node cloud"
+    echo "cloud defaults to adt, a minimal 2 node cloud"
     echo
-    echo "--all-services      -- Enable all services in initial Cloud8 deployment."
-    echo "--adv-services      -- Enable advanced services in initial Cloud8 deployment."
-    echo "--basic-services    -- Enable basic services in initial Cloud8 deployment."
-    echo "--min-services      -- Enable minimal services in initial Cloud8 deployment."
-    echo "--no-mml-services   -- Disable all related MML services in Cloud8 deployment."
-    echo "--hos               -- Use the HOS flavour of Cloud8; SOC is default."
-    echo "--c8-run-tests      -- Tempest test the C8 cloud before upgrade."
-    echo "--devel             -- Test DC8 ==> DC9 upgrade."
+    echo "--all-services      -- Enable all services in initial Cloud deployment."
+    echo "--adv-services      -- Enable advanced services in initial Cloud deployment."
+    echo "--basic-services    -- Enable basic services in initial Cloud deployment."
+    echo "--min-services      -- Enable minimal services in initial Cloud deployment."
+    echo "--no-mml-services   -- Disable all related MML services in Cloud deployment."
+    echo "--c8, --c8-devel    -- Test DC8 ==> DC8S update."
+    echo "--c8-hos            -- Use the HOS flavour of Cloud8; SOC is default."
+    echo "--c8-pool           -- Test C8 Pool ==> Updates update."
+    echo "--c8-updates        -- Test C8 Pool + Updates ==> Updates-test update."
+    echo "--c9, --c9-devel    -- Test DC9 ==> DC9S update. (default)"
+    echo "--c9-pool           -- Test C9 Pool ==> Updates update."
+    echo "--c9-updates        -- Test C9 Pool + Updates ==> Updates-test update."
     echo "--enable            -- Specify service-component to enable. (repeatable)"
     echo "--disable           -- Specify service-component to disable. (repeatable)"
-    echo "--staging           -- Test DC8S ==> DC9S upgrade. (default)"
-    echo "--updates           -- Test C8+Updates ==> C9+Updates upgrade."
-    echo "--updates-test      -- Test C8+Updates-test ==> C9+Updates-test upgrade."
     echo "--no-setup          -- Don't run dev-env-install.yml."
     echo "--no-update-rpms    -- Don't build RPMs from local clones."
+    echo "--patch             -- Use the zypper patch method."
     echo "--pre-destroy       -- Destroy any existing instance of cloud first."
     echo "--rhel-compute      -- Enable RHEL computes."
     echo "--sles-compute      -- Enable SLES computes (default)."
+    echo "--update            -- Use the zypper update method."
 }
 
 # Manage list of long options as a sorted array of option names which
@@ -64,22 +67,26 @@ long_opts=(
     all-services
     adv-services
     basic-services
+    c8
+    c8-devel
+    c8-hos
+    c8-pool
+    c8-updates
+    c9
+    c9-devel
+    c9-pool
+    c9-updates
     ci
-    c8-run-tests
-    hos
-    devel
-    disable
-    enable
-    updates
-    updates-test
     help
     min-services
     no-mml-services
     no-setup
     no-update-rpms
+    patch
     pre-destroy
     rhel-compute
     sles-compute
+    update
 )
 
 # join long_opts members with ","
@@ -96,12 +103,12 @@ fi
 # Note the quotes around `$TEMP': they are essential!
 eval set -- "$TEMP"
 
+cloud_version=
 pre_destroy=
-zypper_method=dist-upgrade
-common_args=( --no-ansible-sync )
-cloud_type=
-cloud8_args=( --c8 )
-cloud9_args=( --c9 )
+zypper_method=
+common_args=()
+cloud_args=( --no-update-rpms )  # only build RPMs for update cloud
+update_args=()
 svc_groups_to_enable=()
 svc_groups_to_disable=()
 
@@ -131,22 +138,42 @@ while true ; do
         set_service_state "${2}" false
         shift 2
         ;;
-    (--c8-run-tests)
-        cloud8_args+=( "--run-tests" )
-        shift
-        ;;
-    (--hos)
-        cloud8_args+=( "--c8-hos" )
-        shift
-        ;;
-    (--devel|--staging|--updates|--updates-test)
-        cloud_type="${1:2}"
+    (--c8|--c8-*|--c9|--c9-*)
+        cloud_version="${1:3:1}"
+        case "${1}" in
+        (*-devel)
+            cloud_args+=( "--c${cloud_version}-devel" )
+            update_args+=( "--c${cloud_version}-staging" )
+            ;;
+        (*-hos)
+            if [[ "${cloud_version}" != "8" ]]
+            then
+                echo "ERROR: There is no HOS variant for Cloud${cloud_version}!"
+                exit 1
+            fi
+            common_args+=( "${1}" )
+            ;&
+        (*-pool)
+            cloud_args+=( "--c${cloud_version}-pool" )
+            update_args+=( "--c${cloud_version}-updates" )
+            ;;
+        (*-updates)
+            cloud_args+=( "--c${cloud_version}-updates" )
+            update_args+=( "--c${cloud_version}-updates-test" )
+            ;;
+        esac
         shift
         ;;
     (--rhel-compute|--sles-compute)
-        ;&
+        common_args+=( "${1}" )
+        shift
+        ;;
     (--ci|--no-setup|--no-update-rpms)
         common_args+=( "${1}" )
+        shift
+        ;;
+    (--patch|--update)
+        zypper_method="${1:2}"
         shift
         ;;
     (--pre-destroy)
@@ -163,15 +190,28 @@ while true ; do
     esac
 done
 
-# default to Staging cloud sources if none specified
-if [[ -z "${cloud_type:-}" ]]
+if [[ -z "${cloud_version}" ]]
 then
-    cloud_type=staging
+    cloud_version=9
 fi
 
-# Set the desired cloudsource for both clouds
-cloud8_args+=( "--c8-${cloud_type}" )
-cloud9_args+=( "--c9-${cloud_type}" )
+if [[ -z "${zypper_method}" ]]
+then
+    zypper_method=update
+fi
+
+# Ensure common args has something in it to keep bash checking happy
+common_args+=( --c${cloud_version} )
+
+if (( ${#cloud_args[@]} == 0 ))
+then
+    cloud_args+=( "--c${cloud_version}-devel" )
+fi
+
+if (( ${#update_args[@]} == 0 ))
+then
+    update_args+=( "--c${cloud_version}-staging" )
+fi
 
 # Setup default service group enablement/disablement
 if (( ${#svc_groups_to_enable[@]} == 0 ))
@@ -188,11 +228,11 @@ fi
 cloud_name="${1:-adt}"
 vagrant_dir="${adt_top}/ardana-vagrant-models/${cloud_name}-vagrant"
 
-# Setup specified services for Cloud 8 deployment
-setup_services_groups 8 svc_groups_to_enable svc_groups_to_disable
+# Setup specified services for initial cloud deployment
+setup_services_groups "${cloud_version}" svc_groups_to_enable svc_groups_to_disable
 
-# Add --disabled-services entries to cloud8_args
-generate_disabled_services_entries cloud8_args
+# Add --disabled-services entries to cloud_args
+generate_disabled_services_entries cloud_args
 
 # Initialise the deployer utils environment BEFORE any output direction
 setup_deployer_utils "${cloud_name}"
@@ -202,143 +242,123 @@ setup_deployer_utils "${cloud_name}"
 exec > >(tee "${log_file}")
 exec 2>&1
 
+echo "Updating Cloud${cloud_version} model '${cloud_name}' using zypper '${zypper_method}'"
+
 set -x
 
-# Retrieve artifacts needed for both Cloud8 and Cloud9 runs
+# Retrieve artifacts for initial cloud and updates runs
 ${cmd_dir}/astack.sh \
     "${common_args[@]}" \
-    "${cloud8_args[@]}" \
+    "${cloud_args[@]}" \
     ${pre_destroy} \
     --no-cloud \
     "${cloud_name}"
 
-find "${adt_top}/../C8_NEW_RPMS" -type f -name "*.rpm"
+find "${adt_top}/../C${cloud_version}_NEW_RPMS" -type f -name "*.rpm"
 
 # no need to run setup phase again, so skip in future astack invocations
 common_args+=( --no-setup )
 
 ${cmd_dir}/astack.sh \
     "${common_args[@]}" \
-    "${cloud9_args[@]}" \
+    "${update_args[@]}" \
+    --no-update-rpms \
     --no-cloud \
     "${cloud_name}"
 
-find "${adt_top}/../C9_NEW_RPMS" -type f -name "*.rpm"
+find "${adt_top}/../C${cloud_version}_NEW_RPMS" -type f -name "*.rpm"
 
 # all artifacts have been retrieved so no need to retrieve again
 common_args+=( --no-artifacts )
 
-# all version specific override RPMs have been built at this point
-# so no need to build again.
-common_args+=( --no-update-rpms )
-
 # Force re-creation of the local input-model cache
 rm -rf "${vagrant_dir}/input-model"
 
-# Bring up the cloud, using already fetched artifacts, optionally
-# running tempest tests to confirm correct operation.
+# Bring up the cloud, using already fetched artifacts, running
+# tempest tests to confirm correct operation.
 ${cmd_dir}/astack.sh \
     "${common_args[@]}" \
-    "${cloud8_args[@]}" \
+    "${cloud_args[@]}" \
+    --run-tests \
     "${cloud_name}"
+
+find "${adt_top}/../C${cloud_version}_NEW_RPMS" -type f -name "*.rpm"
 
 source ${cmd_dir}/libci.sh
 
 pushd "${ansible_dir}"
 
-if [[ -n "${switch_to_fernet_before_upgrade:-}" ]]
-then
-    #
-    # Switch Keystone to using fernet token provider
-    #
-
-    # use cloud8-keystone-switch-to-fernet to switch to fernet token provider
-    deployer_run ${cmd_dir}/deployer/cloud8-keystone-switch-to-fernet
-
-    # run config-cloud.sh to regenerate the scratch area with updated Ardana inputs.
-    deployer_run ${cmd_dir}/deployer/config-cloud.sh
-
-    # run keystone-deploy playbook to apply changes
-    ardana_scratch_run_playbook \
-        all \
-        keystone-deploy
-fi
-
-#
-# Switch deployer repos from Cloud8/SP3 to Cloud9/SP4
-#
-
-# disable/remove existing zypper repos on the deployer
+# disable/remove existing zypper repos
 ${cmd_dir}/ardana --cloud ${cloud_name} \
     ansible-playbook \
         -i hosts/cloud.yml \
-        --limit deployer \
         ${ansible_dir}/cloud-repos-update.yml \
         -e zypper_repo_enabled=no \
         -e zypper_repo_state=absent
 
-# remove the C8-Overrides repo from other nodes
-deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper rr C8-Overrides' || true"
-
-# Switch to upgrade cloud settings
+# Switch to update cloud settings
 ${cmd_dir}/astack.sh \
     "${common_args[@]}" \
-    "${cloud9_args[@]}" \
+    "${update_args[@]}" \
     --no-cloud \
     "${cloud_name}"
 
-# create/enable upgrade zypper repos
+# create/enable new zypper repos
 ${cmd_dir}/ardana --cloud ${cloud_name} \
     ansible-playbook \
         -i hosts/cloud.yml \
-        cloud-deployer-repos.yml
-
-# dist-upgrade deployer from SLE 12 SP3 to SLE 12 SP4
-deployer_ssh sudo zypper dist-upgrade -ly
+        cloud-repos-update.yml
 
 # Install/Update Cloud pattern packages and run ardana-init, but skip model init
+# TODO(fergal): Convert to running ardana-update-pkgs
 ${cmd_dir}/ardana --cloud ${cloud_name} \
     ansible-playbook \
         -i hosts/cloud.yml \
         cloud-deployer-init.yml \
         -e skip_model_init
 
-# run the cloud9-input-model-upgrade script on the deployer
-deployer_run ${cmd_dir}/deployer/cloud9-input-model-upgrade
-
-# run config-cloud.sh to regenerate the scratch area with updated Ardana inputs.
+# Run config-cloud.sh utility script to regenerate the config processor data
+# and recreate the scratch area.
 deployer_run ${cmd_dir}/deployer/config-cloud.sh
 
-# run the upgrade playbook for all nodes
+# run the update-pkgs playbook
 ardana_scratch_run_playbook \
-    all \
-    ardana-upgrade
+    OPS-LM--first-member:tempest_all \
+    ardana-update-pkgs \
+    -e zypper_update_method=${zypper_method} \
+    -e zypper_update_gpg_checks=true \
+    -e zypper_update_licenses_agree=true \
+    -e zypper_update_include_reboot_patches=true
 
-# Reboot all nodes (but the deployer node) one at a time.
-non_deployer_nodes=( $(deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible 'resources:!OPS-LM--first-member' --list-hosts" | tr -s '[[:space:]]' ' ') )
-for node in "${non_deployer_nodes[@]}"
-do
+if deployer_needs_update
+then
     ardana_scratch_run_playbook \
-        "${node}" \
-        ardana-reboot
-done
+        OPS-LM--first-member:tempest_all \
+        ardana-update
+fi
 
-# this will fail saying deployer node needs to be manually rebooted
-# and that we need to run _ardana-post-reboot.yml after rebooting.
-ardana_scratch_run_playbook \
-    OPS-LM--first-member \
-    ardana-reboot || true
+if deployer_needs_reboot
+then
+    # this will fail saying deployer node needs to be manually rebooted
+    # and that we need to run _ardana-post-reboot.yml after rebooting.
+    ardana_scratch_run_playbook \
+        OPS-LM--first-member \
+        ardana-reboot || true
 
-# Now "manually" reboot the deployer node
-${cmd_dir}/ardana --cloud ${cloud_name} \
-    ansible-playbook \
-        -i hosts/cloud.yml \
-        ${ansible_dir}/cloud-deployer-reboot.yml
+    # Now "manually" reboot the deployer node
+    ${cmd_dir}/ardana --cloud ${cloud_name} \
+        ansible-playbook \
+            -i hosts/cloud.yml \
+            ${ansible_dir}/cloud-deployer-reboot.yml
 
-# now run the _ardana_post-reboot.yml playbook to bring the services online again
-ardana_scratch_run_playbook \
-    OPS-LM--first-member \
-    _ardana-post-reboot
+    # now run the _ardana_post-reboot.yml playbook
+    ardana_scratch_run_playbook \
+        OPS-LM--first-member \
+        _ardana-post-reboot
+fi
+
+# use update-non-deployer-nodes to update the remaining nodes in the cloud
+deployer_run ${cmd_dir}/deployer/update-non-deployer-nodes update
 
 # use run-tests.sh to validate cloud is working correctly
 deployer_run ${cmd_dir}/deployer/run-tests.sh ci ${cloud_name}

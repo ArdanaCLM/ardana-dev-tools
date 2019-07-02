@@ -1,0 +1,247 @@
+#
+# (c) Copyright 2015-2016 Hewlett Packard Enterprise Development LP
+# (c) Copyright 2017 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  baremetal:
+    subnet: 192.168.110.0
+    netmask: 255.255.255.0
+    server-interface: eth2
+
+  servers:
+
+    - id: clm-0001
+      hostname: clm-0001
+      ip-addr: 192.168.110.254
+      role: CLM-ROLE
+      server-group: RACK1
+      mac-addr: 52:54:00:aa:01:01
+      ilo-ip: 192.168.109.2
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: dbmq-0001
+      ip-addr: 192.168.110.3
+      role: DBMQ-CONTROLLER-ROLE
+      server-group: RACK1
+      mac-addr: 52:54:00:aa:02:01
+      ilo-ip: 192.168.109.3
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: dbmq-0002
+      ip-addr: 192.168.110.4
+      role: DBMQ-CONTROLLER-ROLE
+      server-group: RACK2
+      mac-addr: 52:54:00:aa:02:02
+      ilo-ip: 192.168.109.4
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: dbmq-0003
+      ip-addr: 192.168.110.5
+      role: DBMQ-CONTROLLER-ROLE
+      server-group: RACK3
+      mac-addr: 52:54:00:aa:02:03
+      ilo-ip: 192.168.109.5
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: swift-0001
+      ip-addr: 192.168.110.6
+      role: SWIFT-CONTROLLER-ROLE
+      server-group: RACK1
+      mac-addr: 52:54:00:aa:03:01
+      ilo-ip: 192.168.109.6
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: swift-0002
+      ip-addr: 192.168.110.7
+      role: SWIFT-CONTROLLER-ROLE
+      server-group: RACK2
+      mac-addr: 52:54:00:aa:03:02
+      ilo-ip: 192.168.109.7
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: swift-0003
+      ip-addr: 192.168.110.8
+      role: SWIFT-CONTROLLER-ROLE
+      server-group: RACK3
+      mac-addr: 52:54:00:aa:03:03
+      ilo-ip: 192.168.109.8
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: osc-0001
+      ip-addr: 192.168.110.9
+      role: OSC-CONTROLLER-ROLE
+      server-group: RACK2
+      mac-addr: 52:54:00:aa:04:01
+      ilo-ip: 192.168.109.9
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: osc-0002
+      ip-addr: 192.168.110.10
+      role: OSC-CONTROLLER-ROLE
+      server-group: RACK3
+      mac-addr: 52:54:00:aa:04:02
+      ilo-ip: 192.168.109.10
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: mml-0001
+      ip-addr: 192.168.110.11
+      role: MML-CONTROLLER-ROLE
+      server-group: RACK1
+      mac-addr: 52:54:00:aa:05:01
+      ilo-ip: 192.168.109.11
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: mml-0002
+      ip-addr: 192.168.110.12
+      role: MML-CONTROLLER-ROLE
+      server-group: RACK2
+      mac-addr: 52:54:00:aa:05:02
+      ilo-ip: 192.168.109.12
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: mml-0003
+      ip-addr: 192.168.110.13
+      role: MML-CONTROLLER-ROLE
+      server-group: RACK3
+      mac-addr: 52:54:00:aa:05:03
+      ilo-ip: 192.168.109.13
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: sles-comp-0001
+      ip-addr: 192.168.110.14
+      role: SLES-COMPUTE-ROLE
+      server-group: RACK1
+      mac-addr: 52:54:00:aa:06:01
+      ilo-ip: 192.168.109.14
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: sles-comp-0002
+      ip-addr: 192.168.110.15
+      role: SLES-COMPUTE-ROLE
+      server-group: RACK2
+      mac-addr: 52:54:00:aa:06:02
+      ilo-ip: 192.168.109.16
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+    - id: rhel-comp-0001
+      ip-addr: 192.168.110.16
+      role: RHEL-COMPUTE-ROLE
+      server-group: RACK3
+      mac-addr: 52:54:00:aa:07:01
+      ilo-ip: 192.168.109.16
+      ilo-password: password
+      ilo-user: admin
+      nic-mapping: VAGRANT
+
+  ci_settings:
+
+    CLM-ROLE:
+      memory: 3072
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 200
+      flavor: 'cloud-ardana-job-lvm-minimal'
+
+    DBMQ-CONTROLLER-ROLE:
+      memory: 3072
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 50
+        extras:  # used for db, mq
+          count: 2
+          size_gib: 20
+      flavor: 'cloud-ardana-job-lvm-dbmq'
+
+    SWIFT-CONTROLLER-ROLE:
+      memory: 3072
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 50
+        extras:  # used for & swift x3
+          count: 3
+          size_gib: 20
+      flavor: 'cloud-ardana-job-lvm-swift'
+
+    OSC-CONTROLLER-ROLE:
+      memory: 13824
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 50
+        extras:  # used for cinder x2
+          count: 2
+          size_gib: 20
+      flavor: 'cloud-ardana-job-lvm-osc'
+
+    MML-CONTROLLER-ROLE:
+      memory: 8192
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 50
+        extras:  # used for mml x2
+          count: 2
+          size_gib: 20
+      flavor: 'cloud-ardana-job-lvm-mml'
+
+    SLES-COMPUTE-ROLE:
+      memory: 6144
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 200
+      flavor: 'cloud-ardana-job-lvm-compute'
+
+    RHEL-COMPUTE-ROLE:
+      memory: 6144
+      cpus: 2
+      disks:
+        boot:
+          size_gib: 200
+      flavor: 'cloud-ardana-job-lvm-compute'

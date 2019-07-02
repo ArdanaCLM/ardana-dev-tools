@@ -526,22 +526,34 @@ make it easier to work with an astack managed cloud.
 
 #### astack-ssh-config
 
-This is the output of the vagrant ssh-config command, generated with
-the same environment settings used to deploy the cloud, so it has the
-correct user and home directory settings configured for the vagrant
-image being used.
+This is the generated ssh config file with entries for each cloud node
+by IP address and node name, as specified in the servers.yml file of the
+cloud's input model; if the deployer node is not called by that name then
+a deployer alias will be added associated with the relevant name.
 
-This means you can run ssh or scp command to your cloud using this file
-as an argument to the ssh -F option, e.g.
+This means you can run ssh or scp commands for your cloud using this file
+as an argument to the -F option, e.g.
 
     % cd ardana-vagrant-models/dac-min-vagrant
     % ssh -F astack-ssh-config controller
 
 #### .astack_env
 
-This is a dump of the environment setting that were active when the cloud
-was being deployed, which can be sourced to setup the same environment
-if you wish to run additional commands against the same cloud.
+This is a dump of just the relevant environment settings that were active
+when the cloud was being setup, which can be sourced to setup the same
+environment if you wish to run additional commands against the same cloud.
+
+#### ardana
+
+This utility can be found in the ardana-dev-tools/bin directory and can
+be run either from under an ardana-vagrant-models/${cloud}-vagrant
+directory, in which case it will automatically determine the relevant
+cloud model name, or with a --cloud ${cloud} option to specify the
+cloud model to use.
+
+This command loads the .astack_env file for the determined cloud model
+and then treats the rest of the command line as a command to be run
+under the specified cloud models environment.
 
 #### ardana-vagrant
 
@@ -562,6 +574,45 @@ command against the cloud, e.g.
 If no arguments are specified it will run the cloud-setup.yml playbook
 against the cloud; if you don't want to run the ardana-init command
 again, you can specify the --skip-ardana-init option.
+
+#### run-cobbler
+
+The ardana-dev-tools/bin/run-cobbler script can be used to exercise and
+validate the cobbler based re-imaging process in a virtual environment.
+
+To do this the run-cobbler script brings up the specified cloud's nodes
+as normal using Vagrant, and installs the specified Cloud version on the
+deployer, and configures the cloud's input model. However at that point
+it modifies the servers.yml of the input model to specify the desired
+distro for the relevant nodes, and then kicks off a bm-reimage for those
+nodes, using libvirt hackery (via the virsh command line tool) to modify
+the definitions of all but the deployer VM such that they reboot into
+network boot (PXE) mode and get re-imaged by the active bm-reimage play,
+after which the run-cobbler script verifies that all the re-imaged nodes
+have been successfully re-imaged with the specified distribution.
+
+NOTE: Currently the run-cobbler script doesn't try to deploy a cloud on
+the re-imaged nodes, though recent changes to how the cloud is managed
+(to eliminate the reliance on Vagrant for generating ansible inventory)
+should make that possible.
+
+#### run-update
+
+The ardana-dev-tools/bin/run-update script can be used to test updating
+a Cloud with new Ardana software packages, either just updating between
+existing cloudsources, e.g. from Devel to Staging, or optionally
+including override packages built from Ardana repos cloned beside the
+ardana-dev-tools clone, e.g. to test candidate Gerrit patches.
+
+#### run-upgrade
+
+The ardana-dev-tools/bin/run-upgrade script can be used to test upgrading
+a Cloud with new Ardana software packages, either just upgrading between
+SOC8 (or HOS8) to Cloud9, either released (Pool+Updates), Devel or Staging
+cloudsoruces, optionally including override packages built from Ardana repos
+cloned beside the ardana-dev-tools clone, e.g. to test candidate Gerrit
+patches for either Cloud8 or Cloud9 to verify correct operation within the
+upgrade process.
 
 ## Deploying manually
 
@@ -702,6 +753,10 @@ The development environment provides a set of cloud definitions that can be used
 
     A minimal single node cloud running a reduced number of services, disabling some of the Metering, Monitoring & Logging (MML) stack using a "hack"
 
+* adt: 2 node ardana-dev-tools validation testing cloud
+
+    Extremely mininal cloud (keystone, horizon, tempest OpenStack services only) derived from the `demo` model, with a controller that is also a deployer, and one additional resource node that is available for re-imaging with run-cobbler.
+
 * demo: A 2 node basic cloud
 
     A 2 node cloud with no MML stack. First node is a single node cloud control plane running only Keystone, Swift, Glance, Cinder, Neutron, Nova, Horizon and Tempest Openstack services, while the second node is a minimally sized compute node.
@@ -740,17 +795,21 @@ The development environment provides a set of cloud definitions that can be used
 
     A cutdown version of standard cloud with 2 computes removed and deployer at first controller (dac).
 
-* std-split: A 5 node single region multi-control plane cloud
+* std-split: A 5 node single region multi-cluster control plane cloud
 
     Based on the standard cloud with 2 compute removed, using 3 single node control planes, 1 for core openstack services, 1 for DB & RabbitMQ, and 1 for MML stack, though Swift services are shared among all 3 to allow for a complete Swift ring model with EC disabled. Control node sizing are minimised to match running service requirements.
+
+* std-basic: An 8 node single region multi-cluster control plane cloud
+
+    A multi-cluster control plane with a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster and 2 computes, with a standalone deployer node, deploying only basic services, similar to the demo model, e.g. Keystone, Swift, Glance, Cinder, Neutron, Nova, Horizon, Tempest.
+
+* std-upgrade: A 15 node single region multi-cluster control plane cloud
+
+    A multi-cluster control plane with a 3 node DB/MQ cluster, a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster, a 3 node MML cluster, and 3 computes, with a standalone deployer node. This model draws upon the mid-size and multi-cp CI models, and the example entry-scale-kvm-mml and mid-scale-kvm models for inspiration to target advanced deployment scenarios to aid in upgrade and update testing.
 
 * mid-size: A multi-control plane, multi region cloud
 
 * multi-cp: A more complex multi-control plane multi-region cloud
-
-* adt: 2 node ardana-dev-tools validation testing cloud
-
-    Extremely mininal cloud (keystone, horizon, tempest OpenStack services only) derived from the `demo` model, with a controller that is also a deployer, and one additional resource node that is available for re-imaging with run-cobbler.
 
 WARNING : The mid-size & multi-cp models may not be stable/functional right now.
 

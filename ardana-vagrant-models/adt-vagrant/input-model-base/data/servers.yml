@@ -48,7 +48,7 @@
   ci_settings:
 
     CONTROLLER-ROLE:
-      memory: 2048
+      memory: 3072
       cpus: 2
       disks:
         boot:

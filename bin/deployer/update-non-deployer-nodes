@@ -1,0 +1,126 @@
+#!/bin/bash
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Runs on the deployer to update non-deployer nodes using specified
+# zypper method.
+#
+
+set -eux
+set -o pipefail
+
+export PYTHONUNBUFFERED=1
+
+# method to use when updating SLES nodes
+zypper_method="${1:-update}"
+
+pushd "${HOME}/scratch/ansible/next/ardana/ansible"
+
+entry_in()
+{
+    local entry="${1}"
+    shift
+
+    (( $# > 0 )) || return 1
+
+    [[ " ${@} " =~ " ${entry} " ]]
+}
+
+# Need to determine list of non-deployer nodes in update/upgrade order
+# Candidate nodes contains (possibly duplicated) nodes in desired order
+# which will be reduced down to uniq list of nodes in desired order
+candidate_nodes=(
+    $(ansible 'FND-MDB:!OPS-LM--first-member' --list-hosts)
+    $(ansible 'FND-RMQ:!OPS-LM--first-member' --list-hosts)
+    $(ansible 'KEY-API:!OPS-LM--first-member' --list-hosts)
+    $(ansible 'resources:!OPS-LM--first-member' --list-hosts)
+)
+nodes=()
+for n in "${candidate_nodes[@]}"
+do
+    if (( ${#nodes[@]} == 0 )) || ! entry_in "${n}" "${nodes[@]}"
+    then
+        nodes+=( "${n}" )
+    fi
+done
+
+pkgs_extra_opts=(
+    -e zypper_update_method=${zypper_method}
+    -e zypper_update_gpg_checks=true
+    -e zypper_update_licenses_agree=true
+    -e zypper_update_include_reboot_patches=true
+)
+
+node_run_playbook()
+{
+    local node="${1}" pb="${2}"
+
+    shift 2
+
+    echo "***** [ Running '${pb}' for node '${node}' ] *****"
+    ansible-playbook ardana-"${pb}".yml \
+        --limit "${node}" \
+        "${@}"
+}
+
+node_update_status()
+{
+    local node="${1}"
+
+    shift
+
+    node_run_playbook "${node}" update-status "${@}"
+}
+
+node_update_needs_playbook()
+{
+    local node="${1}" pb="${2}"
+
+    shift 2
+
+    if node_update_status "${node}" "${@}" 2>&1 | grep "\<ardana-${pb}.yml\>" >/dev/null 2>&1
+    then
+        node_run_playbook "${node}" "${pb}" "${@}"
+    fi
+}
+
+node_needs_update()
+{
+    node_update_status "${1}" 2>&1 | grep "ardana-update.yml"
+}
+
+node_needs_reboot()
+{
+    node_update_status "${1}" 2>&1 | grep "ardana-reboot.yml"
+}
+
+if (( ${#nodes[@]} ))
+then
+    echo "Updating in the following node order:"
+    printf "  %s\n" "${nodes[@]}"
+    for n in "${nodes[@]}"
+    do
+        node_run_playbook "${n}" update-pkgs "${pkgs_extra_opts[@]}"
+
+        # Check if we need to run associated action playbook for
+        # the specified node and if so then run it.
+        for action in update reboot
+        do
+            node_update_needs_playbook "${n}" "${action}"
+        done
+    done 2>&1 | tee ${HOME}/update-non-deployer-nodes.log
+fi
+
+# vim:shiftwidth=4:tabstop=4:expandtab

@@ -35,7 +35,16 @@ if [ -n "$ANSIBLE_FORKS" ]; then
     ANSIBLE_FORKS="-f $ANSIBLE_FORKS"
 fi
 
-ansible-playbook ${ANSIBLE_FORKS} -i hosts/verb_hosts site.yml |
+# Hack workaround for not installing monasca or freezer agents (SOC-10253)
+if ! grep "^[[:space:]]*-[[:space:]]*\(monasca\|freezer\)-agent[[:space:]]*$" \
+     ${HOME}/openstack/my_cloud/definition/data/control_plane*.yml >/dev/null 2>&1; then
+    (
+        [[ ! -e ardana-ssh-keyscan.yml ]] || ansible-playbook ardana-ssh-keyscan.yml;
+        ansible resources -b -m zypper -a "name=python-oslo.log state=present" 2>&1 || true
+    ) | tee ${HOME}/python-oslo.log_install.log
+fi
+
+ansible-playbook ${ANSIBLE_FORKS} -i hosts/verb_hosts site.yml 2>&1 |
   tee ${HOME}/site.log
 
 # Customer optional
@@ -48,3 +57,5 @@ fi
 ansible-playbook ${ANSIBLE_FORKS} -i hosts/verb_hosts \
     ardana-cloud-configure.yml $EXTRAARGS_CC 2>&1 |
   tee ${HOME}/ardana-cloud-configure.log
+
+# vim:shiftwidth=4:tabstop=4:expandtab
