@@ -1,3 +1,4 @@
+#!/bin/bash -eu
 #
 # (c) Copyright 2018 SUSE LLC
 #
@@ -13,10 +14,23 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the cloud-setup role
----
+# Run vagrant used cached environment settings
+# Must be in an ardana-vagrant-models/<cloud>-vagrant directory
+#
 
-- name: cloud-setup | main | Setup deployer repos on other nodes
-  include_tasks: setup-remote-repos.yml
-  when:
-    - inventory_hostname_short != deployer.name
+set -eu
+set -o pipefail
+
+_tools_bin_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+eval "$(${_tools_bin_dir}/ardana-env)"
+source ${_tools_bin_dir}/libci.sh
+
+ensure_in_vagrant_dir "$(basename ${0})"
+
+ensure_astack_env_exists
+
+source ${ARDANA_ASTACK_ENV}
+
+"${@}"
+
+# vim:shiftwidth=4:tabstop=4:expandtab

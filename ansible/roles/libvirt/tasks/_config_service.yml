@@ -40,7 +40,7 @@
   service:
     name: "{{ libvirt_service }}"
     state: restarted
-  when: _libvirtd_conf_result | changed
+  when: _libvirtd_conf_result is changed
 
 - name: libvirt | _config_service | ensure libvirtd service started
   become: yes

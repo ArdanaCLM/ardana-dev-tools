@@ -13,36 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks to perform Ardana install/upgrade on a SOC/CLM deployer
+# Push candidate input model up to deployer node.
 ---
 
-- name: cloud-setup | ardana-init | Install ardana using SOC/CLM Media
-  become: yes
-  zypper:
-    name: "{{ item }}"
-    force: yes
-  with_items: "{{ clmsetup.deployer.init_pkgs }}"
-
-- name: cloud-setup | ardana-init | Execute the ardana-init script
-  shell: /usr/bin/ardana-init
-  args:
-   executable: /bin/bash
-   chdir: "{{ image_build_user_home }}"
-  environment:
-     ARDANA_INIT_AUTO: 1
-  register: _ardana_init_result
-
-- name: cloud-setup | ardana-init | Print the ardana-init script output
-  debug:
-    msg: "{{ _ardana_init_result.stdout_lines }}"
-
-- name: cloud-setup | ardana-init | Create directory to hold CI model
+- name: cloud-deployer-init | candidate-input-model | Create directory to hold CI model
   file:
     path: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"
     state: directory
     mode: 0700
 
-- name: cloud-setup | ardana-init | Synchronize CI model to deployer
+- name: cloud-deployer-init | candidate-input-model | Synchronize CI model to deployer
   synchronize:
     src: "{{ dev_env_input_model }}/"
     dest: "{{ image_build_user_home }}/ardana-ci/{{ dev_env_cloud_name }}/"

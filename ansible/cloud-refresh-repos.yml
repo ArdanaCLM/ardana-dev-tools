@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,26 +12,10 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-#
-# Tasks to perform a refresh of the configured package repos
 ---
 
-- name: cloud-setup | _refresh-repos | Refresh repo caches (SLES)
-  become: yes
-  command: |
-    zypper --non-interactive --gpg-auto-import-keys refresh
-  args:
-    warn: no
-  when:
-    - ardana_family == "suse"
-
-- name: cloud-setup | _refresh-repos | Refresh repo caches (RHEL)
-  become: yes
-  command: |
-    yum makecache
-  args:
-    warn: no
-  when:
-    - ardana_family == "redhat"
-  tags:
-    - rhel
+- hosts: cloud
+  tasks:
+    - name: Refresh all package repos on all cloud nodes
+      import_role:
+        name: cloud-refresh-repos

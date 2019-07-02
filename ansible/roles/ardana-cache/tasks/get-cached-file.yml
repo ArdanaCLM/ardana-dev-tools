@@ -143,7 +143,7 @@
     sha256sum: "{{ _server_sha256_result.stdout }}"
     force: yes
     timeout: 20
-  when: _sha256sum_result | failed
+  when: _sha256sum_result is failed
   retries: 3
   delay: 15
 
@@ -151,7 +151,7 @@
   become: yes
   command:
     mv {{ _file_tmpfile }} {{ _file.dir }}/{{ _file_name }}
-  when: _sha256sum_result | failed
+  when: _sha256sum_result is failed
 
 - name: ardana-cache | get-cached-file | Check if desired link already exists as a file
   stat:

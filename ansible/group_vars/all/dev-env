@@ -113,14 +113,16 @@ dev_env_product_images: "{{ product_cache_directory }}/images"
 
 # Variables tracking any provide OBS or IBS repos, if specified
 _dev_env_ibs_repos: "{{ lookup('env', 'ARDANA_IBS_REPOS') | default('', true) }}"
-dev_env_bs_distro: "SLE_{{ sles_major }}_SP{{ sles_sp }}"
-dev_env_ibs:
-  base_url: "http://{{ dev_env_site_config.ibs.main }}/{{ dev_env_site_config.ibs.path }}"
-  repos: "{{ (_dev_env_ibs_repos | length) | ternary(_dev_env_ibs_repos.split(','), []) }}"
 _dev_env_obs_repos: "{{ lookup('env', 'ARDANA_OBS_REPOS') | default('', true) }}"
-dev_env_obs:
-  base_url: "http://{{ dev_env_site_config.obs.main }}/{{ dev_env_site_config.obs.path }}"
-  repos: "{{ (_dev_env_obs_repos | length) | ternary(_dev_env_obs_repos.split(','), []) }}"
+dev_env_bs:
+  distro: "SLE_{{ sles_major }}_SP{{ sles_sp }}"
+  orgs:
+    # ibs
+    - base_url: "http://{{ dev_env_site_config.ibs.main }}/{{ dev_env_site_config.ibs.path }}"
+      repos: "{{ (_dev_env_ibs_repos | length) | ternary(_dev_env_ibs_repos.split(','), []) }}"
+    # obs
+    - base_url: "http://{{ dev_env_site_config.obs.main }}/{{ dev_env_site_config.obs.path }}"
+      repos: "{{ (_dev_env_obs_repos | length) | ternary(_dev_env_obs_repos.split(','), []) }}"
 
 # Settings used by the cobbler PXE boot testing process
 dev_env_vm_pxe_setting: true

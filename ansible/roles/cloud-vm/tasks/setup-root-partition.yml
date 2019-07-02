@@ -236,7 +236,7 @@
             awk -v DEV={{ root_fs_dev_path }} \
             '$1 == DEV && $NF ~ /Linux|LVM|filesystem/ { print $({{ provisioning_vm_fdisk_start_field | int }}+1)-$({{ provisioning_vm_fdisk_start_field | int }}); }')
   when:
-    - not vagrant_vm_resize_partition | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | check root vol size
   become: yes
@@ -270,30 +270,30 @@
   command: resize2fs "{{ root_mount.device }}"
   register: vagrant_vm_resize_filesystem
   when:
-    - not vagrant_vm_resize_partition | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | Retrieve finishing partition size
   become: yes
   command: parted {{ root_fs_base_dev }} print
   register: vagrant_vm_partitions
   when:
-    - not vagrant_vm_resize_partition | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | Print finishing partition size
   debug: var=vagrant_vm_partitions
   when:
-    - not vagrant_vm_resize_partition | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | Retrieve finishing filesystem size
   command: df -h /
   register: vagrant_vm_filesystems
   when:
-    - not vagrant_vm_resize_filesystem | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | Print finishing filesystem size
   debug: var=vagrant_vm_filesystems
   when:
-    - not vagrant_vm_resize_partition | skipped
+    - vagrant_vm_resize_partition is not skipped
 
 - name: cloud-vm | setup-root-partition | Set appropriate completion flag
   include_role:

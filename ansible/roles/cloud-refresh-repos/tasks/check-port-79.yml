@@ -13,10 +13,20 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the cloud-setup role
+# Verify that deployer is serving on port 79
 ---
 
-- name: cloud-setup | main | Setup deployer repos on other nodes
-  include_tasks: setup-remote-repos.yml
-  when:
-    - inventory_hostname_short != deployer.name
+- debug: var=deployer
+
+- name: cloud-refresh-repos | check-port-79 | Check deployer port 79 http access
+  delegate_to: "{{ deployer.name }}"
+  wait_for:
+    port: 79
+    state: "started"
+    timeout: 6
+    connect_timeout: 2
+    msg: >-
+      The deployer is not serving data on port 79. Has ardana-init been
+      run yet?
+  changed_when: false  # we don't consider this to ever "change"
+  run_once: true

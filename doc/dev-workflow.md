@@ -105,7 +105,7 @@ Usage: ./astack.sh --ci standard
 There are two reasons to use the "--ci" option:
 1) Want to more closely emulate what the real CI system does, e.g. creates
 cluster with "ardanauser" account rather than "stack" account
-2) Want to trigger CI mode specific testing changes, e.g. create standard 
+2) Want to trigger CI mode specific testing changes, e.g. create standard
 with 3rd compute as RHEL
 
 Example 1: create COMPUTE-0003 to be RHEL
@@ -116,5 +116,5 @@ export ARDANA_RHEL_COMPUTE_NODES=COMPUTE-0003
 
 Example 2: run tempest tests with CI mode
 1) cd ardana-dev-tools/ardana-vagrant-models/standard-vagrant
-2) bash -x ../../bin/run-in-deployer.sh --ci ../../bin/deployer/run-tests.sh 
+2) bash -x ../../bin/run-in-deployer.sh --ci ../../bin/deployer/run-tests.sh
 --ci standard

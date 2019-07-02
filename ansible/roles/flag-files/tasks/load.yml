@@ -46,7 +46,7 @@
       {%- set _fg = dict([(flag_file_group, dict(_fs))]) -%}
       {%- set _ff = (flag_files | default({})) | update(_fg) -%}
       {{- _ff -}}
-    
+
 - name: flag-files | load | Show found setup flags
   debug:
     var: flag_files

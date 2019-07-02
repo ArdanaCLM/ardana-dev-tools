@@ -51,7 +51,7 @@
   ignore_errors: true
   register: _kvm_intel_modprobe_unload_result
   when:
-    - ((_kvm_intel_modprobe_setup_result | changed) or
+    - ((_kvm_intel_modprobe_setup_result is changed) or
        (_kvm_intel_nested_param != kvm.intel.params.nested.enabled))
 
 - name: dev-env-kvm | setup-nested-intel | Fail if unload was unsuccessful
@@ -60,7 +60,7 @@
       Failed to unload kvm_intel kernel module; please stop any running VMs
       and manually remove it or reboot your system before trying again.
   when:
-    - _kvm_intel_modprobe_unload_result | failed
+    - _kvm_intel_modprobe_unload_result is failed
 
 - name: dev-env-kvm | setup-nested-intel | Reload kvm_intel module if needed
   become: yes
@@ -69,7 +69,7 @@
     state: present
   register: _kvm_intel_modprobe_reload_result
   when:
-    - _kvm_intel_modprobe_unload_result | success
+    - _kvm_intel_modprobe_unload_result is success
 
 - name: dev-env-kvm | setup-nested-intel | Validate KVM setup correctly
   include_tasks: validate-nested-intel.yml

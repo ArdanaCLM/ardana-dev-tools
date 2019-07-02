@@ -1,0 +1,59 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to setup locally available zypper repos on the deployer
+---
+
+- name: cloud-deployer | setup-local-repos | Check for local repos
+  stat:
+    path: "{{ clmsetup.server[item.distro].base }}/{{ clmsetup.distros[item.distro].dir }}/{{ item.path }}"
+  with_items: "{{ clmsetup.isos + clmsetup.repos }}"
+  register: local_repos_result
+  when:
+    - item.distro == ardana_distro
+    - item.enabled | bool
+
+- name: cloud-deployer | setup-local-repos | Setup found local repos
+  become: yes
+  zypper_repository:
+    name: "{{ item.item.name }}"
+    description: "{{ item.item.alias }}"
+    repo: "dir://{{ clmsetup.server[item.item.distro].base }}/{{
+                    clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
+    auto_import_keys: yes
+    autorefresh: no
+    runrefresh: no
+    disable_gpg_check: "{{ item.item.no_gpg_check | default('no') }}"
+    priority: "{{ item.item.priority | default(99) }}"
+    enabled: "{{ zypper_repo_enabled | default('yes') }}"
+    state: "{{ zypper_repo_state | default('present') }}"
+  register: local_repos_add_result
+  with_items: "{{ local_repos_result.results }}"
+  when:
+    - item is not skipped
+    - item.stat.exists
+  failed_when:
+    # needed because zypper_repository is not idempotent for .repo files
+    - local_repos_add_result is failed
+    - ("Repository named \'" + item.item.name +
+       "\' already exists. Please use another alias." not in local_repos_add_result.stderr)
+
+- name: cloud-deployer | setup-local-repos | Refresh repos if needed
+  become: yes
+  zypper_repository:
+    repo: "*"
+    runrefresh: yes
+  when:
+    - local_repos_add_result is changed

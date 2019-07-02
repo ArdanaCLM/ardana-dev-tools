@@ -13,10 +13,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the cloud-setup role
+# Tasks to perform a refresh of the configured package repos
 ---
 
-- name: cloud-setup | main | Setup deployer repos on other nodes
-  include_tasks: setup-remote-repos.yml
+- name: cloud-refresh-repos | refresh-repos | Refresh repo caches (SLES)
+  become: yes
+  zypper_repository:
+    repo: '*'
+    runrefresh: yes
+    auto_import_keys: yes
   when:
-    - inventory_hostname_short != deployer.name
+    - ardana_family == "suse"
+
+- name: cloud-refresh-repos | refresh-repos | Refresh repo caches (RHEL)
+  become: yes
+  command: |
+    yum makecache
+  args:
+    warn: no
+  when:
+    - ardana_family == "redhat"
+  changed_when: false  # we don't consider this to be changed

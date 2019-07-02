@@ -68,7 +68,7 @@ Ansible Style Commandments
   Expressions Ansible will evaluate are exempt from this:
 
       with_items: ([ "id_rsa", "id_rsa.pub" ] | flatten(["a", "b"]))
-      when: my_result | success
+      when: my_result is success
 
 * Ansible arrays must contain the dash "-" on the same line as the
   array content:

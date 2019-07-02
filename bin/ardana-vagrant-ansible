@@ -43,8 +43,9 @@ playbook if running in SOC/CLM deployment mode.
 _EOF_
 }
 
-skip_tags_arg=
+skip_init=
 inventory_file=
+verbose=
 args=()
 while (( $# > 0 ))
 do
@@ -53,8 +54,12 @@ do
         usage
         exit 0
         ;;
+    (-v|-vv|-vvv|-vvvv|-vvvvv)
+        verbose="${1}"
+        shift
+        ;;
     (--skip-ardana-init)
-        skip_tags_arg="${skip_tags_arg:+${skip_tags_arg},}${1:2}"
+        skip_init=1
         shift
         ;;
     (-i|--inventory-file)
@@ -97,12 +102,13 @@ fi
 # specify inventory file var setting as initial arguments when
 # calling ansible-playbook
 ap_args=(
+    ${verbose}
     -i ${inventory_file}
 )
 
-# optionally include the --skip-tags opts if needed
-if [[ -n "${skip_tags_arg:-}" ]]; then
-    ap_args+=( --skip-tags "${skip_tags_arg}" )
+# optionally include skip_ardana_init setting if requested
+if [[ -n "${skip_init:-}" ]]; then
+    ap_args+=( --extra-vars "skip_ardana_init=true" )
 fi
 
 # run ansible-playbook with configured arguments and any additional

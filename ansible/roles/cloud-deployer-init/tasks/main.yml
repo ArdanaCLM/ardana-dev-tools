@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,10 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the cloud-setup role
+# Install SOC/CLM Ardana packages, run the ardana-init script and push up
+# the candidate input model.
 ---
 
-- name: cloud-setup | main | Setup deployer repos on other nodes
-  include_tasks: setup-remote-repos.yml
+- name: cloud-deployer-init | main | Install and init SOC/CLM
+  include_tasks: ardana-init.yml
   when:
-    - inventory_hostname_short != deployer.name
+    - skip_ardana_init is not defined
+
+- name: cloud-deployer-init | main | Push up candidate input model
+  include_tasks: candidate-input-model.yml
+  when:
+    - skip_model_init is not defined

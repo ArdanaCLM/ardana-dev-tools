@@ -16,7 +16,7 @@
 # Tasks to sync override repos to the SOC/CLM deployer
 ---
 
-- name: cloud-setup | sync-override-repos | Checked override repos exist
+- name: cloud-deployer | sync-override-repos | Checked override repos exist
   delegate_to: localhost  # run on vagrant host
   stat:
     path: "{{ item.override }}"
@@ -26,7 +26,7 @@
     - item.override is defined
     - item.enabled | bool
 
-- name: cloud-setup | sync-override-repos | Create override repo targets
+- name: cloud-deployer | sync-override-repos | Create override repo targets
   become: yes
   file:
     path: "{{ clmsetup.server[item.item.distro].base }}/{{ clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
@@ -34,9 +34,9 @@
     follow: yes
   with_items: "{{ _override_repos_stat_result.results }}"
   when:
-    - not (item | skipped)
+    - item is not skipped
 
-- name: cloud-setup | sync-override-repos | Push override repos up to deployer
+- name: cloud-deployer | sync-override-repos | Push override repos up to deployer
   become: true
   synchronize:
     src: "{{ item.item.override }}/"
@@ -46,4 +46,4 @@
     delete: yes
   with_items: "{{ _override_repos_stat_result.results }}"
   when:
-    - not (item | skipped)
+    - item is not skipped

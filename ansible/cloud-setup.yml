@@ -13,12 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Main playbook for setting up a SOC/CLM deployment
+# Main playbook for setting up a SOC/CLM deployment within a target cloud
 ---
 
 - import_playbook: cloud-vm-setup.yml
 
-- hosts: cloud
-  max_fail_percentage: 0
-  roles:
-    - cloud-setup
+- import_playbook: cloud-buildservice-repos.yml
+
+- import_playbook: cloud-deployer-repos.yml
+
+- import_playbook: cloud-deployer-init.yml
+
+- import_playbook: cloud-remote-repos.yml
+
+- import_playbook: cloud-refresh-repos.yml
+
+- import_playbook: sync-ansible-sources.yml

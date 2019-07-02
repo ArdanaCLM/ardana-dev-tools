@@ -1,0 +1,47 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Tasks to setup any buildservice (OBS or IBS) repos specified by user
+---
+
+- name: suse-buildservice-repos | main | Setup IBS & OBS repos
+  become: yes
+  zypper_repository:
+    repo: "{{ item.0.base_url }}/{{ item.1 | replace(':', ':/') }}/{{
+              dev_env_bs.distro }}/{{ item.1 }}.repo"
+    description: "{{ item.1 | replace(':', '_') }}"
+    auto_import_keys: yes
+    autorefresh: no
+    runrefresh: no
+    enabled: "{{ zypper_repo_enabled | default('yes') }}"
+    priority: 98
+    state: "{{ zypper_repo_state | default('present') }}"
+  with_subelements:
+    - "{{ dev_env_bs.orgs }}"
+    - repos
+  failed_when:
+    # needed because zypper_repository is not idempotent for .repo files
+    - bs_repos_result is failed
+    - ("Repository named \'" + (item.1 | replace(':', '_')) +
+       "\' already exists. Please use another alias." not in bs_repos_result.stderr)
+  register: bs_repos_result
+
+- name: suse-buildservice-repos | main | Refresh repos if needed
+  become: yes
+  zypper_repository:
+    repo: "*"
+    runrefresh: yes
+  when:
+    - bs_repos_result is changed

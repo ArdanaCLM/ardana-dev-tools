@@ -16,13 +16,17 @@
 # Detect and persistently mount attached ISOs on a SOC/CLM deployer
 ---
 
-- debug:
+- name: cloud-deployer | setup-isos | Show cloud flavour
+  debug:
     var: _clm_flavour
+    verbosity: 1
 
-- debug:
+- name: cloud-deployer | setup-isos | Show cloud version
+  debug:
     var: _clm_version
+    verbosity: 1
 
-- name: cloud-setup | setup-isos | Test for ISO attachments
+- name: cloud-deployer | setup-isos | Test for ISO attachments
   stat:
     path: "{{ item.dev }}"
   when:
@@ -31,19 +35,19 @@
   with_items: "{{ clmsetup.isos }}"
   register: _isos_attached_result
 
-- name: cloud-setup | setup-isos | Create ISO mount points
+- name: cloud-deployer | setup-isos | Create ISO mount points
   become: yes
   file:
     path: "{{ clmsetup.server[item.item.distro].base }}/{{ clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
     state: directory
     follow: yes
   when:
-    - not (item | skipped)
+    - item is not skipped
     - item.stat.exists
     - item.item.enabled | bool
   with_items: "{{ _isos_attached_result.results }}"
 
-- name: cloud-setup | setup-isos | Setup persistent mounts
+- name: cloud-deployer | setup-isos | Setup persistent mounts
   become: yes
   mount:
     name: "{{ clmsetup.server[item.item.distro].base }}/{{ clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
@@ -51,19 +55,19 @@
     fstype: iso9660
     state: mounted
   when:
-    - not (item | skipped)
+    - item is not skipped
     - item.stat.exists
     - item.item.enabled | bool
   with_items: "{{ _isos_attached_result.results }}"
 
-- name: cloud-setup | setup-isos | Setup ISO symlinks
+- name: cloud-deployer | setup-isos | Setup ISO symlinks
   become: yes
   file:
     name: "{{ image_build_user_home }}/{{ item.item.iso_link }}"
     src: "{{ item.item.dev }}"
     state: link
   when:
-    - not (item | skipped)
+    - item is not skipped
     - item.stat.exists
     # create the symlinks if the repo is enabled or the ISO attached
     - (item.item.enabled | bool) or (dev_env_attach_isos | bool)

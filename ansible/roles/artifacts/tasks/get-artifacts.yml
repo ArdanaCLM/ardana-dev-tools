@@ -69,14 +69,14 @@
     use_proxy: "{{ artifact_url_use_proxy }}"
     force: yes
     timeout: 20
-  when: _artifact_sha256sum_check_result | failed
+  when: _artifact_sha256sum_check_result is failed
 
 - name: artifacts | get-artifacts | Move tmp file to get around ISO permissions
   become: yes
   shell: |
     set -eu
     mv {{ artifact_cache_dir }}/{{ artifact_key }}.tmp {{ artifact_cache_dir }}/{{ artifact_key }}
-  when: _artifact_sha256sum_check_result | failed
+  when: _artifact_sha256sum_check_result is failed
 
 - name: artifacts | get-artifacts | Create sha256sum
   shell: |

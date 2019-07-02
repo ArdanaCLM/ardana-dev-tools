@@ -77,12 +77,12 @@
         "{{ dev_env_working_dir }}/{{ image_build_box }}" \
             > "{{ dev_env_scratch_dir }}/boxes/{{ image_build_box }}.md5sum"
   register: _create_tarball_result
-  when: image_build_box_inputs_check_result | changed or _image_build_vagrantfile | changed
+  when: image_build_box_inputs_check_result is changed or _image_build_vagrantfile is changed
 
 - include_tasks: vagrant-box-version.yml
   vars:
     image_build_box_path: "{{ dev_env_working_dir }}/{{ image_build_box }}"
-  when: _create_tarball_result | changed
+  when: _create_tarball_result is changed
 
 - name: image-build | convert-qcow2-to-box | Save box artifact
   include_tasks: "{{ playbook_dir }}/roles/artifact-publisher/tasks/save-artifact.yml"
@@ -91,4 +91,4 @@
     branch: "{{ dev_env_artifact_branch }}"
     version: "{{ image_version }}"
     filename: "{{ dev_env_working_dir }}/{{ image_build_box }}"
-  when: _create_tarball_result | changed
+  when: _create_tarball_result is changed
