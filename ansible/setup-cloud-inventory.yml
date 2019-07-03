@@ -18,8 +18,22 @@
 - hosts: localhost
   connection: local
   tasks:
-    - name: Setup initial cloud inventory using Vagrant ssh keys
+    - name: Check if cloud-vm ssh key exists?
+      stat:
+        path: "{{ playbook_dir }}/roles/cloud-vm/files/id_rsa"
+      register: cloud_vm_key_stat_result
+
+    - name: Fail if cloud-vm ssh key doesn't exist
+      fail:
+        msg: >-
+          Please ensure that the 'cloud-vm-setup.yml' playbook has been
+          run for your cloud.
+      when:
+        - not cloud_vm_key_stat_result.stat.exists
+
+    - name: Setup inventory to use cloud-vm ssh key
       import_role:
         name: input-model-inventory
-      vars:
-        use_vagrant_ssh_keys: true
+
+    - name: Trigger a reload of the inventory in case it was updated
+      meta: refresh_inventory

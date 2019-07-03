@@ -19,7 +19,7 @@
 # copy the relevant model from the specified cloud in any local clone
 # of the ardana-input-model repo.
 #
-# Usage: setup-vagrant-inventory <cloud>
+# Usage: setup-cloud-inventory <cloud>
 #
 
 set -eu
@@ -204,6 +204,6 @@ ansible-playbook \
     $(_verbose_on && echo "-v") \
     $(_debug_on && echo "-vvv") \
     -i hosts/localhost \
-    setup-vagrant-inventory.yml
+    setup-cloud-inventory.yml
 
 # vim:shiftwidth=4:tabstop=4:expandtab

@@ -20,3 +20,5 @@
 - hosts: cloud
   roles:
     - role: cloud-vm
+
+- import_playbook: setup-cloud-inventory.yml

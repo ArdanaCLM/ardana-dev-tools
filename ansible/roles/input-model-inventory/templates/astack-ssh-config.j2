@@ -12,7 +12,11 @@ Host {{ _hosts | join(' ') }}
   UserKnownHostsFile /dev/null
   StrictHostKeyChecking no
   PasswordAuthentication no
+{%   if use_vagrant_ssh_keys is defined %}
   IdentityFile {{ dev_env_vagrant_dir }}/.vagrant/machines/{{ server.id }}/libvirt/private_key
+{%   else %}
+  IdentityFile {{ playbook_dir }}/roles/cloud-vm/files/id_rsa
+{%   endif %}
   IdentitiesOnly yes
   LogLevel FATAL
 {%   if not loop.last %}
