@@ -18,7 +18,7 @@ export DEVTOOLS=$(cd $(dirname ${BASH_SOURCE[0]})/.. ; pwd)
 export DEVROOT=$(readlink -e ${DEVTOOLS}/..)
 export LOGSROOT="${WORKSPACE:-${DEVROOT}}/logs"
 export ARDANA_OSC_CACHE="${HOME}/.cache/ardana-osc"
-export ARDANA_OVERRIDE_RPMS="${WORKSPACE:-${DEVROOT}}/NEW_RPMS"
+export ARDANA_OVERRIDE_RPMS="${WORKSPACE:-${DEVROOT}}/C${ARDANA_CLOUD_VERSION:-9}_NEW_RPMS"
 PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
 
 export ANSIBLE_CONFIG="${ANSIBLE_CONFIG:-${DEVTOOLS}/ansible/ansible.cfg}"

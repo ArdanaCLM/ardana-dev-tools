@@ -296,16 +296,18 @@ Some useful additional parameters to use:
                            (Download RPMs from specified IBS project (or specific
                             package if provided) for distro version appropriate
 			    repo, or specified repo name if provided, and include
-			    them into the NEW_RPMS area that will be created beside
-			    the ardana-dev-tools clone. Repeat as many times as
-			    needed to add all projects and/or packages desired.)
+			    them into the C<X>_NEW_RPMS (where <X> is the Cloud
+			    version number) area that will be created beside the
+			    ardana-dev-tools clone. Repeat as many times as needed
+			    to add all projects and/or packages desired.)
     --obs-prj PRJ[/PKG][@DIST]
                            (Download RPMs from specified OBS project (or specific
                             package if provided) for distro version appropriate
 			    repo, or specified repo name if provided, and include
-			    them into the NEW_RPMS area that will be created beside
-			    the ardana-dev-tools clone. Repeat as many times as
-			    needed to add all projects and/or packages desired.)
+			    them into the C<X>_NEW_RPMS (where <X> is the Cloud
+			    version number) area that will be created beside the
+			    ardana-dev-tools clone. Repeat as many times as needed
+			    to add all projects and/or packages desired.)
     --ibs-repo PRJ         (Add specified IBS project's repo to the SLES nodes in
                             the cloud deployed by the astack.sh run.)
     --obs-repo PRJ         (Add specified OBS project's repo to the SLES nodes in
@@ -407,10 +409,10 @@ you have a number of options:
 The first two mechanisms (cloning additional repos beside ardana-dev-tools
 and using the --ibs-prj & --obs-prj options) rely on the fact that we will
 create a special "Cloud Overrides" zypper repo on the deployer node that
-will contain all of the RPMs published in the `NEW_RPMS` directory found
-beside the ardana-dev-tools clone. Additionally this special repo will be
-configured with priority 98, meaning it will be preferred as the source
-for packages being installed.
+will contain all of the RPMs published in the `C<X>_NEW_RPMS` (where `<X>`
+is the Cloud version) directory found beside the ardana-dev-tools clone.
+Additionally this special repo will be configured with priority 98, meaning
+it will be preferred as the source for packages being installed.
 
 ### Cloning additional Ardana git repos beside ardana-dev-tools
 If you clone additional repos beside ardana-dev-tools, e.g. ardana-input-model
@@ -419,7 +421,8 @@ things that will happen is that the `bin/update_rpms.sh` script will be run
 which will attempt to build an updated version of the associated IBS RPM for
 that Ardana git repo's commited branch, if it is one that we have packaged as
 an RPM. If it succeeds the RPM that has been built will be published in the
-`NEW_RPMS` directory beside the ardana-dev-tools clone.
+`C<X>_NEW_RPMS` (where `<X>` is the Cloud version) directory beside the
+ardana-dev-tools clone.
 
 NOTES:
 * You must commit any pending changes to the branch for these changes to
@@ -435,7 +438,7 @@ when running the astack.sh command.
 ### Pulling in RPMs from IBS & OBS projects
 If you use the --ibs-prj or --obs-prj options you can specify the project,
 or even a package with a project, whose RPMs will be downloaded and added
-to the `NEW_RPMS` area.
+to the `C<X>_NEW_RPMS` (where `<X>` is the Cloud version) area.
 
 For example, if you have built a modified version of an Ardana Rocky Venv
 package, venv-openstack-keystone, under a branch in your OBS home project,
@@ -947,19 +950,19 @@ the sources.
 NOTE: If you want to rebuild the RPM package form the ardana-ansible.git
 repo, you need to also clone the ardana.git repo as well.
 
-The built RPMs are saved to a `NEW_RPMS` yum repo, located beside your
-`ardana-dev-tools`.
+The built RPMs are saved to a `C<X>_NEW_RPMS` (where `<X>` is the Cloud
+version) yum repo, located beside your `ardana-dev-tools`.
 
 NOTE: The `NEW_RPMs` area will be wiped and recreated each time the
 `update_rpms.sh` script is run, so if you already have run `astack.sh`
 and are happy with the built RPMs, use the `--no-update-rpms` option
 to skip rebuilding the RPMs and re-use the existing ones.
 
-The contents of the NEW_RPMS area are automatically synchronised to
-the deployer node when the Vagrant cloud is created, to form the
-"Local Overrides" zypper repo, which is configured with a slightly
-higher priority than the normal repos so that it is preferred as a
-source for packages.
+The contents of the `C<X>_NEW_RPMS` (where `<X>` is the Cloud version)
+area are automatically synchronised to the deployer node when the
+Vagrant cloud is created, to form the "Local Overrides" zypper repo,
+which is configured with a slightly higher priority than the normal
+repos so that it is preferred as a source for packages.
 
 ## Troubleshooting
 Sometimes things go wrong.  Known issues are listed in [troubleshooting](doc/troubleshooting.md)

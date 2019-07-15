@@ -135,7 +135,7 @@ export ARDANA_OBS_REPOS=${ARDANA_OBS_REPOS:-}
 export ARDANA_IBS_REPOS=${ARDANA_IBS_REPOS:-}
 
 # Allow specification of IBS & OBS projects whose RPMs will be
-# be downloaded and added to the NEW_RPMS area
+# be downloaded and added to the override RPMs area
 OBS_PRJS=()
 IBS_PRJS=()
 

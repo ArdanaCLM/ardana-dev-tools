@@ -214,7 +214,7 @@ then
     done
 fi
 
-# Need createrepo to initialise the NEW_RPMS overrides repo
+# Need createrepo to initialise the override RPMs repo
 [[ -x /usr/bin/createrepo ]] || req_pkgs+=( createrepo )
 
 # Install required packages if needed

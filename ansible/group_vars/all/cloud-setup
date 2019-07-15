@@ -220,7 +220,7 @@ _clm_repos:
   # any versions available in standard SOC/CLM sources, except for the
   # PTF repo.
   #
-  - override: "{{ dev_env_working_dir | dirname }}/NEW_RPMS"
+  - override: "{{ dev_env_working_dir | dirname }}/C{{ cloud_version }}_NEW_RPMS"
     path: "C{{ cloud_version }}-Overrides"
     name: "Locally built overrides packages"
     alias: "C{{ cloud_version }}-Overrides"
