@@ -138,3 +138,6 @@ dev_env_base_flag_files_dir: "/etc/ardana-dev-tools"
 
 # DevEnv Cloud VM Setup flag-files settings
 dev_env_cloud_vm_clear_flags: "{{ lookup('env', 'ARDANA_CLOUD_VM_CLEAR_FLAGS') | default(False, true) | bool }}"
+
+# DevEnv Cloud Setup - whether to sync ansible sources to deployer or not
+dev_env_sync_ansible_sources: "{{ lookup('env', 'ARDANA_SYNC_ANSIBLE_SOURCES') | default(False, true) | bool }}"

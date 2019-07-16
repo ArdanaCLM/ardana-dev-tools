@@ -74,6 +74,7 @@ long_opts=(
     ipv6
     ipv6-all
     legacy
+    no-ansible-sync
     no-artifacts
     no-build
     no-config
@@ -154,6 +155,7 @@ ipv6_ula_file=$DEVTOOLS/bin/default_ipv6_ula
 DEFAULT_IPV6_ULA=`cat ${ipv6_ula_file}`
 
 export ARDANA_DEBUG=${ARDANA_DEBUG:-}
+export ARDANA_SYNC_ANSIBLE_SOURCES=${ARDANA_SYNC_ANSIBLE_SOURCES:-1}
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
 export ARDANA_DISABLE_SPECTREV2=${ARDANA_DISABLE_SPECTREV2:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
@@ -229,6 +231,7 @@ while true ; do
             # system CPU resources by at most 50%
             export ARDANA_BUILD_CPU=$(( $(nproc) / 2 ))
             shift ;;
+        --no-ansible-sync) export ARDANA_SYNC_ANSIBLE_SOURCES= ; shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;

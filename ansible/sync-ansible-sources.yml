@@ -22,3 +22,5 @@
     - name: Sync local ansible sources
       import_role:
         name: sync-ansible-sources
+      when:
+        - dev_env_sync_ansible_sources | bool
