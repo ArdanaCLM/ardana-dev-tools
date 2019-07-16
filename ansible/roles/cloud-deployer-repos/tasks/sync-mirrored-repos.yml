@@ -47,3 +47,44 @@
   with_items: "{{ _mirrored_repos_stat_result.results }}"
   when:
     - item is not skipped
+
+# The update support playbooks check for the Cloud Pool tag being set
+# on the Cloud repos and will fail if it isn't found so we need to cheat
+# and add it to the Staging or Devel repos.
+- name: cloud-deployer | setup-mirrored-repos | Set cloud pool tag if needed
+  become: yes
+  lineinfile:
+    path: "{{ clmsetup.server[item.item.distro].base }}/{{
+              clmsetup.distros[item.item.distro].dir }}/{{
+              item.item.path }}/suse/repodata/repomd.xml"
+    insertafter: "<tags>"
+    line: "    <repo>obsproduct://build.suse.de/SUSE:SLE-{{
+                 sles_major }}-SP{{ sles_sp }}:Update:Products:Cloud{{
+                 cloud_version }}/{{ item.item.name.split('-')[0:3] |
+                 join('-') | lower }}/{{ cloud_version
+                 }}/POOL/x86_64</repo>"
+  with_items: "{{ _mirrored_repos_stat_result.results }}"
+  when:
+    - item is not skipped
+    - item.item.add_cloud_pool_tag is defined
+    - item.item.add_cloud_pool_tag | bool
+
+
+# The update support playbooks check for the Cloud Updates tag being set
+# on the Cloud repos and will fail if it isn't found so we need to cheat
+# and add it to the Staging or Devel repos.
+- name: cloud-deployer | setup-mirrored-repos | Set cloud updates tag if needed
+  become: yes
+  lineinfile:
+    path: "{{ clmsetup.server[item.item.distro].base }}/{{
+              clmsetup.distros[item.item.distro].dir }}/{{
+              item.item.path }}/suse/repodata/repomd.xml"
+    insertafter: "<tags>"
+    line: "    <repo>obsrepository://build.suse.de/SUSE:Updates:{{
+                 item.item.name.split('-')[1:3] | join('-') }}:{{
+                 cloud_version }}:x86_64/update</repo>"
+  with_items: "{{ _mirrored_repos_stat_result.results }}"
+  when:
+    - item is not skipped
+    - item.item.add_cloud_updates_tag is defined
+    - item.item.add_cloud_updates_tag | bool
