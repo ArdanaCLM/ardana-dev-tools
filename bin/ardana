@@ -14,22 +14,66 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Run vagrant used cached environment settings
-# Must be in an ardana-vagrant-models/<cloud>-vagrant directory
+# Run commands using cached astack environment settings
+#
+# Must either be in an ardana-vagrant-models/<cloud>-vagrant directory
+# or specify the relevant cloud via the --cloud option
 #
 
 set -eu
 set -o pipefail
 
-_tools_bin_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
-eval "$(${_tools_bin_dir}/ardana-env)"
-source ${_tools_bin_dir}/libci.sh
+cmd_name="$(basename "${BASH_SOURCE[0]}")"
+cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+
+usage()
+{
+    echo "Usage: ${cmd_name} [-h|--help|--cloud <name>] cmd..."
+}
+
+# check for cloud_name argument
+cloud_name=
+case "${1}" in
+(-h|--help)
+    usage
+    exit 0
+    ;;
+(--cloud)
+    cloud_name="${2}"
+    shift 2
+    ;;
+esac
+
+if (( $# < 1 ))
+then
+    echo "ERROR: no command line specified"
+    usage
+    exit 1
+fi
+
+eval "$(${cmd_dir}/ardana-env)"
+source ${cmd_dir}/libci.sh
+
+# If a specific cloud was specified then we must be running in a
+# directory other than the associated vagrant model directory, so
+# temporaryily switch to the vagrant model dir to load the cached
+# env settings
+if [[ -n "${cloud_name}" ]]
+then
+    pushd "${cmd_dir}/../ardana-vagrant-models/${cloud_name}-vagrant"
+fi
 
 ensure_in_vagrant_dir "$(basename ${0})"
 
 ensure_astack_env_exists
 
 source ${ARDANA_ASTACK_ENV}
+
+# Switch back to the original directory
+if [[ -n "${cloud_name}" ]]
+then
+    popd
+fi
 
 "${@}"
 
