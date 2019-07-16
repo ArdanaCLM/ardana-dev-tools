@@ -181,7 +181,10 @@ generate_astack_env()
     ensure_in_vagrant_dir generate_astack_env
 
     if [ \( ! -e ${ARDANA_ASTACK_ENV} \) -o \( -n "${1:-}" \) ]; then
-        export -p > ${ARDANA_ASTACK_ENV}
+        export -p | \
+            grep -e "^declare -x \(ANSIBLE\|ARDANA\|ARTIFACTS_FILE\|CI\|DEVROOT\|DEVTOOLS\|VAGRANT\)" | \
+            sed  -e 's,-x \([^=]*\)="\(.*\)"$,-x \1="${\1:-\2}",g' \
+            > ${ARDANA_ASTACK_ENV}
     fi
 }
 
