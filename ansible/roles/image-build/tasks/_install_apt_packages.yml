@@ -19,6 +19,7 @@
 
 # Package prerequisites
 - name: image-build | _install_apt_packages | Install required OS packages
-  apt: state=latest name={{ item }}
   become: yes
-  with_items: "{{ image_build_apt_packages.keys() }}"
+  apt:
+    name: "{{ image_build_apt_packages.keys() }}"
+    state: latest

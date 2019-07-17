@@ -26,10 +26,8 @@
 
 - name: dev-env-vagrant | install-package-suse | Install required vagrant package
   become: yes
-  command: >-
-    zypper
-      --non-interactive
-      --no-gpg-checks
-      install
-      "{{ vagrant_download.cache_dir }}/vagrant_{{
-          vagrant_required_version }}_x86_64.rpm"
+  zypper:
+    name: "{{ vagrant_download.cache_dir }}/vagrant_{{
+              vagrant_required_version }}_x86_64.rpm"
+    extra_args_precommand: "--no-gpg-checks"
+    force: yes

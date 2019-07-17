@@ -19,6 +19,5 @@
 - name: dev-env-kvm | install-requirements-suse | Install dependencies
   become: yes
   zypper:
+    name: "{{ kvm.pkgs[kvm_distro] }}"
     state: present
-    name: "{{ item }}"
-  with_items: "{{ kvm.pkgs[kvm_distro] }}"

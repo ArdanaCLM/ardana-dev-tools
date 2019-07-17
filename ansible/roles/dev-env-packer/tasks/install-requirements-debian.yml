@@ -19,6 +19,5 @@
 - name: dev-env-packer | install-requirements-debian | Install dependencies
   become: yes
   apt:
+    name: "{{ packer_settings.pkgs }}"
     state: present
-    name: "{{ item }}"
-  with_items: "{{ packer_settings.pkgs }}"

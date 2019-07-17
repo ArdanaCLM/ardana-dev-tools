@@ -19,10 +19,9 @@
 - name: cloud-deployer-init | ardana-init | Install ardana using SOC/CLM Media
   become: yes
   zypper:
-    name: "{{ item }}"
+    name: "{{ clmsetup.deployer.init_pkgs }}"
     force: yes
     state: latest
-  with_items: "{{ clmsetup.deployer.init_pkgs }}"
 
 - name: cloud-deployer-init | ardana-init | Execute the ardana-init script
   shell: /usr/bin/ardana-init

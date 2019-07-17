@@ -19,20 +19,23 @@
 
 # Package prerequisites
 - name: dev-env | _install_zypp_packages | Install required OS packages
-  zypper: state=present name={{ item }}
   become: yes
-  with_items: "{{ dev_env_zypp_packages.keys() }}"
+  zypper:
+    name: "{{ dev_env_zypp_packages.keys() }}"
+    state: present
 
 - name: dev-env | _install_zypp_packages | Install required OS packages (Leap 42)
-  zypper: state=present name={{ item }}
   become: yes
-  with_items: "{{ dev_env_zypp_packages_leap42.keys() }}"
+  zypper:
+    name: "{{ dev_env_zypp_packages_leap42.keys() }}"
+    state: present
   when:
     - ansible_distribution_version.split('.')[0] == '42'
 
 - name: dev-env | _install_zypp_packages | Install required OS packages (Leap 15)
-  zypper: state=present name={{ item }}
   become: yes
-  with_items: "{{ dev_env_zypp_packages_leap15.keys() }}"
+  zypper:
+    name: "{{ dev_env_zypp_packages_leap15.keys() }}"
+    state: present
   when:
     - ansible_distribution_version.split('.')[0] == '15'

@@ -19,6 +19,5 @@
 - name: dev-env-vagrant | install-requirements-debian | Install dependencies
   become: yes
   apt:
+    name: "{{ vagrant_requirements.pkgs.debian }}"
     state: present
-    name: "{{ item }}"
-  with_items: "{{ vagrant_requirements.pkgs.debian }}"

@@ -19,6 +19,6 @@
 - name: dev-env-kvm | install-requirements-debian | Install dependencies
   become: yes
   apt:
-    state: present
     name: "{{ item }}"
+    state: present
   with_items: "{{ kvm.pkgs[kvm_distro] }}"

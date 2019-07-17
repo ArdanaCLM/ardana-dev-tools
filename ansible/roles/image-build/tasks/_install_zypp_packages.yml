@@ -19,6 +19,7 @@
 
 # Package prerequisites
 - name: image-build | _install_zypp_packages | Install required OS packages
-  zypper: state=present name={{ item }}
   become: yes
-  with_items: "{{ image_build_zypp_packages.keys() }}"
+  zypper:
+    name: "{{ image_build_zypp_packages.keys() }}"
+    state: present

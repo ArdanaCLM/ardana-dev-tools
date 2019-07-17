@@ -26,19 +26,19 @@
 - name: myservice-client | install | Install myservice-client third-party debian package
   become: yes
   apt:
+    name: myservice-client
     state: latest
     force: yes
-    name: myservice-client
   when: ansible_os_family == "Debian"
 
 - name: myservice-client | install | Install myservice-client third-party rpm package
   become: yes
   zypper:
-    state: latest
     name: myservice-client
+    state: latest
   when: ansible_os_family | lower == "suse"
 
 - name: myservice-client | install | Log install
+  become: yes
   shell: |
     echo "myservice-client install" >> /var/log/feature-third-party.log
-  become: yes

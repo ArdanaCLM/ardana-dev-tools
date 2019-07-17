@@ -17,14 +17,6 @@
 
 - name: dev-env-radvd | install | Install radvd
   become: yes
-  apt:
-    state: present
+  package:
     name: radvd
-  when: ansible_os_family | lower == 'debian'
-
-- name: dev-env-radvd | install | Install radvd
-  become: yes
-  zypper:
     state: present
-    name: radvd
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'

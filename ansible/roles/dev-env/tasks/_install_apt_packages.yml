@@ -19,6 +19,8 @@
 
 # Package prerequisites
 - name: dev-env | _install_apt_packages | Install required OS packages
-  apt: state=latest name={{ item }} force=yes
   become: yes
-  with_items: "{{ dev_env_apt_packages.keys() }}"
+  apt:
+    name: "{{ dev_env_apt_packages.keys() }}"
+    state: latest
+    force: yes

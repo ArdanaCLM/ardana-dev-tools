@@ -18,8 +18,10 @@
 ---
 
 - name: libvirt | _validate_kvm | install kvm-ok
-  apt: name=cpu-checker state=present
   become: yes
+  apt:
+    name: cpu-checker
+    state: present
   when: ansible_os_family | lower == "debian"
 
 - name: libvirt | _validate_kvm | Gather kvm-ok details
