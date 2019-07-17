@@ -20,4 +20,4 @@
 - name: image-build | vagrant-box-version | Configure vagrant box catalog with versions
   template:
     src: "roles/image-build/templates/catalog.json.j2"
-    dest: "{{ dest | default('../' + images_build_images[image_build_name].vagrant_box_name + '.json') }}"
+    dest: "{{ dest | default('../' ~ images_build_images[image_build_name].vagrant_box_name ~ '.json') }}"

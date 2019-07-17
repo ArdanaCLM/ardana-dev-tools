@@ -34,8 +34,8 @@
   failed_when:
     # needed because zypper_repository is not idempotent for .repo files
     - bs_repos_result is failed
-    - ("Repository named \'" + (item.1 | replace(':', '_')) +
-       "\' already exists. Please use another alias." not in bs_repos_result.stderr)
+    - bs_repos_result.stderr is not search("Repository named \'" ~ (item.1
+      | replace(':', '_')) ~ "\' already exists. Please use another alias.")
   register: bs_repos_result
 
 - name: suse-buildservice-repos | main | Refresh repos if needed

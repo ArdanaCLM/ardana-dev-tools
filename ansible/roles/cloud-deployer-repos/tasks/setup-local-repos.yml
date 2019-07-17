@@ -47,8 +47,8 @@
   failed_when:
     # needed because zypper_repository is not idempotent for .repo files
     - local_repos_add_result is failed
-    - ("Repository named \'" + item.item.name +
-       "\' already exists. Please use another alias." not in local_repos_add_result.stderr)
+    - local_repos_add_result.stderr is not search ("Repository named \'" ~
+      item.item.name ~ "\' already exists. Please use another alias.")
 
 - name: cloud-deployer | setup-local-repos | Refresh repos if needed
   become: yes

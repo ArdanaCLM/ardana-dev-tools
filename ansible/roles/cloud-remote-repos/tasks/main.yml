@@ -53,8 +53,8 @@
   failed_when:
     # needed because zypper_repository is not idempotent for .repo files
     - deployer_repos_add_result is failed
-    - ("Repository named \'" + item.item.name +
-       "\' already exists. Please use another alias." not in deployer_repos_add_result.stderr)
+    - deployer_repos_add_result.stderr is not search("Repository named \'" ~
+      item.item.name ~ "\' already exists. Please use another alias."
 
 - name: cloud-remote-repos | main | Setup found deployer repos (RHEL)
   become: yes

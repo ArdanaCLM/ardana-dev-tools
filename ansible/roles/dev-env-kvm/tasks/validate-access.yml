@@ -32,5 +32,5 @@
   fail:
     msg: "User is not in the kvm group, you may need to logout and in again"
   when:
-    - _kvm_facls.stdout.find('user:' ~ ansible_user_id ~ ':rw-') < 0
-    - not ( _kvm_user_groups.stdout | search("kvm") )
+    - _kvm_facls.stdout is not search('user:' ~ ansible_user_id ~ ':rw-')
+    - _kvm_user_groups.stdout is not search("kvm")

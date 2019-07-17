@@ -37,7 +37,7 @@
       set_fact:
         unified: >-
           {% set newline = joiner("\n") %}{% for host in groups['cloud'] -%}
-          {{ newline()+hostvars[host]['pkgs_result'].stdout }}
+          {{ newline() ~ hostvars[host]['pkgs_result'].stdout }}
           {%- endfor %}
 
     - name: pkg-manifest | Create output directory

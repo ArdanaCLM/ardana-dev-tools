@@ -37,7 +37,7 @@
   set_fact:
     bridge_if: >-
       {%- for _if_name in ansible_interfaces if not _if_name.endswith('-nic') %}
-      {%- set _if_fact = 'ansible_' + _if_name %}
+      {%- set _if_fact = 'ansible_' ~ _if_name %}
       {%- set _if = hostvars[inventory_hostname][_if_fact] %}
       {%-   if _if.ipv4 is defined %}
       {%-     if _if.ipv4.address is defined %}

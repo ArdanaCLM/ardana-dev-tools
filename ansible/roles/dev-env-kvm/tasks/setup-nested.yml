@@ -19,7 +19,7 @@
 
 - name: dev-env-kvm | setup-nested | Check if CPU is Intel
   set_fact:
-    _intel_cpu: "{{ ansible_processor | join(' ') | search('Intel') | bool }}"
+    _intel_cpu: "{{ ansible_processor | join(' ') is search('Intel') }}"
 
 - name: dev-env-kvm | setup-nested | Setup KVM nested settings for Intel
   include_tasks: setup-nested-intel.yml

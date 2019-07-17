@@ -25,4 +25,4 @@
 - name: libvirt | _validate_BIOS | Validate VTx is enabled
   fail:
       msg: "VTx needs to be enabled in your BIOS for libvirt to work"
-  when: not ( cpuinfo.stdout | search("vmx|svm") )
+  when: cpuinfo.stdout is not search("vmx|svm")

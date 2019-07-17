@@ -26,4 +26,4 @@
 - name: libvirt | _validate_group | Validate user is in libvirt group
   fail:
     msg: "User is not in the {{ libvirt_group }} group, you may need to logout and in again"
-  when: not ( user_groups.stdout | search(libvirt_group) )
+  when: user_groups.stdout is not search(libvirt_group)

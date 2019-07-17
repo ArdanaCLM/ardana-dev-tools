@@ -229,6 +229,12 @@ fi
 #
 ardana_cache="${HOME}/.cache-ardana"
 bootstrap_venvs="${ardana_cache}/venvs"
+cmd_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
+adt_root="$(dirname "${cmd_dir}")"
+logs_root="${adt_root}/logs"
+
+# ${adt_root}/logs is a symlink to ../logs, so create that
+[[ -d "${logs_root}" ]] || (cd "${adt_root}/.."; mkdir -p logs)
 
 #
 # Vagrant plugin location settings
@@ -269,8 +275,9 @@ echo "export VAGRANT_HOME;"
 #
 
 # Ansible settings
-ansible_version=${ARDANA_ANSIBLE_VERSION:-2.4.6}
+ansible_version=${ARDANA_ANSIBLE_VERSION:-2.5.15}
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
+ansible_log="${ANSIBLE_LOG_PATH:-${logs_root}/vm_host_ansible.log}"
 
 # Have we been told to create a "clean" environment?
 # If so then delete the existing ansible venv here
@@ -285,7 +292,7 @@ if [[ ! -d "${bootstrap_ansible}" ]]
 then
     echo 1>&2 "Creating Ansible ${ansible_version} venv..."
     ${venv_cmd} --python python2.7 "${bootstrap_ansible}" 1>&2
-    ${bootstrap_ansible}/bin/pip install --upgrade pip wheel 1>&2
+    ${bootstrap_ansible}/bin/pip install --upgrade pip wheel setuptools 1>&2
 fi
 
 # Install specified ansible version in the bootstrap venv if necessary
@@ -317,6 +324,9 @@ case :${PATH}: in
     path_prefix="${bootstrap_ansible}/bin${path_prefix:+:${path_prefix}}"
     ;;
 esac
+
+echo "ANSIBLE_LOG_PATH=${ansible_log};"
+echo "export ANSIBLE_LOG_PATH;"
 
 # If we needed to update the path settings
 if [[ -n "${path_prefix}" ]]

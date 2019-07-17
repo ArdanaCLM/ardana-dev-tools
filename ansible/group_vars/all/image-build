@@ -29,7 +29,7 @@ image_build_output_dir: "{{ product_cache_directory }}/images"
 # Version the artifact
 _image_timestamp: "{{ '%Y%m%dT%H%M%SZ' | time_format() }}"
 _image_suffix: "{{ image_version_suffix | default() }}"
-image_version: "1.0.{{ image_version_update | default(_image_timestamp + _image_suffix) }}"
+image_version: "1.0.{{ image_version_update | default(_image_timestamp ~ _image_suffix) }}"
 
 image_build_log_dir: "{{ lookup('env', 'WORKSPACE') | default(dev_env_working_dir, true) }}/logs/image-build/"
 

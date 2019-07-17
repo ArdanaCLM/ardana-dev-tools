@@ -18,4 +18,4 @@
 ---
 - name: artifacts | get-local-cached-source | Return the URL from which the artifact was downloaded
   set_fact:
-    artifact_source: "{{ lookup('file', artifact_cache_dir + '/' + artifact_key + '.source') }}"
+    artifact_source: "{{ lookup('file', artifact_cache_dir ~ '/' + artifact_key ~ '.source') }}"

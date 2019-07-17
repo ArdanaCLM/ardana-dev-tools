@@ -46,7 +46,7 @@
       --exclude=roles/deployer-setup/files/ardana-init.bash
   with_dict: "{{ ardana_git_repositories | default({}) }}"
   when:
-    - not (item.value | find_local_repo | search(product_cache_base_directory))
+    - item.value | find_local_repo is not search(product_cache_base_directory)
     - sync_ansible_repos is not defined or item.value in sync_ansible_repos
   register: _sync_ansible_sources_result
 
@@ -57,7 +57,7 @@
 # one argument, which must be formatted acceptably for use in
 # an exec() call, i.e. no extraneous characters such as quotes
 # that may be needed for shell invocations.
-- name: sync-ansible-sources | main | Ansible 2.4 synchronize exclude issues workaround
+- name: sync-ansible-sources | main | Ansible 2.4/5 synchronize exclude issues workaround
   shell: |
     set -vxe
     cd ${HOME}/openstack/ardana/ansible/
@@ -67,7 +67,7 @@
   changed_when: false
   when:
     - ansible_version.major == 2
-    - ansible_version.minor == 4
+    - ansible_version.minor in (4, 5)
 
 - name: sync-ansible-sources | main | Save local ansible source changes if any
   shell: |
