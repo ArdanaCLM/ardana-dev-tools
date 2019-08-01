@@ -36,6 +36,8 @@ avm_dir="${top_dir}/ardana-vagrant-models"
 
 opts_array=(
     branch:
+    c8
+    c9
     debug
     force
     verbose
@@ -152,6 +154,7 @@ eval set -- "$TEMP"
 debug_mode=${DEBUG:-}
 verbose_mode=${VERBOSE:-}
 cloud_name=
+cloud_sfx=
 force_mode=
 
 # Determine approprate default branch based upon environment
@@ -161,9 +164,11 @@ force_mode=
 case "${ARDANA_CLOUD_VERSION:-}" in
 (9)
     git_branch="master"
+    cloud_sfx="-c9"
     ;;
 (8)
     git_branch="stable/pike"
+    cloud_sfx="-c8"
     ;;
 (*)
     git_branch="$(cd "${top_dir}"; git config \
@@ -175,6 +180,16 @@ esac
 while true
 do
     case "${1}" in
+    (--c8)
+        git_branch="stable/pike"
+        cloud_sfx="-c8"
+        shift
+        ;;
+    (--c9)
+        git_branch="master"
+        cloud_sfx="-c9"
+        shift
+        ;;
     (--branch)
         git_branch="${2}"
         shift 2
@@ -242,7 +257,31 @@ fi
 
 avm_im_dir="${avm_cloud_dir}/input-model"
 
-if [[ -d "${avm_im_dir}" ]]
+if [[ -d "${avm_im_dir}-base" ]]
+then
+    if [[ -d "${avm_im_dir}" ]]
+    then
+        if [[ -z "${force_mode}" ]]
+        then
+            stdout "Input model for '${cloud_name}' already exists locally, re-using."
+            exit 0
+        fi
+        verbose "Removing previously assembled input model for '${cloud_name}'"
+        rm -rf "${avm_im_dir}"
+    fi
+
+    verbose "Assembling input model for '${cloud_name}'"
+    cp -an "${avm_im_dir}-base" "${avm_im_dir}"
+
+    if [[ -d "${avm_im_dir}${cloud_sfx}" ]]
+    then
+        cp -an "${avm_im_dir}${cloud_sfx}/"* "${avm_im_dir}/"
+    else
+        stdout "No input-model${cloud_sfx} found for cloud '${cloud_name}'."
+    fi
+
+    exit 0
+elif [[ -d "${avm_im_dir}" ]]
 then
     if git_exists_locally "${avm_im_dir}"
     then

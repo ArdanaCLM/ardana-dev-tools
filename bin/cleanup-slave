@@ -209,6 +209,9 @@ find $TOOLS_DIR -type f -name vagrant-ssh-config | xargs rm -vf
 # Remove stale .astack_env files
 find $TOOLS_DIR -type f -name .astack_env | xargs rm -vf
 
+# Remove stale locally staged input models
+find $TOOLS_DIR/ardana-vagrant-models -name input-model -type d | xargs rm -vfr
+
 # Remove stale cached ISO images
 # Look for any files under the ~/.cache-ardana/isos tree older than
 # one week, and delete them if they don't have an associated symlink

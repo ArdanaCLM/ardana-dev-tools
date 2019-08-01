@@ -327,14 +327,56 @@ Ardana CI input model you want `astack.sh` to use when creating a set of
 nodes on which to deploy an Ardana cloud.
 
 This model must be located in one of:
+* `ardana/ardana-dev-tools.git` repo itself, under the
+`ardana-vagrant-models/<cloud>-vagrant` directory, either pre-staged as
+the `input-model` directory, or ready to be dynamically assembed from the
+various `input-model-*` directories.
+* * Currently the `adt`, `minimal` and `demo` models are defined here.
 * `ardana/ardana-input-model.git` repo, under `2.0/ardana-ci`
-* `ardana/ardana-dev-tools.git` repo itself under the
-`ardana-vagrant-models/<cloud>-vagrant/input-model` directory.
 
-For any models not located within the ardana-dev-tools repo the astack.sh
-command will stage the version from the ardana-input-model repo under the
-`ardana-vagrant-models/<cloud>-vagrant/input-model` directory using the
-`bin/setup-vagrant-input-model` script.
+### setup-vagrant-input-model
+The `bin/setup-vagrant-input-model` tool is used to setup the relevant
+input model under `ardana-vagrant-models/<cloud>-vagrant`.
+
+`setup-vagrant-input-model` stages the specified cloud's input model
+under the `ardana-vagrant-models/<cloud>-vagrant/input-model` directory.
+By default it will stage the Cloud 9 version of the cloud there; the
+`--c8` option can be used to stage the Cloud 8 version instead.
+
+Normally this command is run automatically by `astack.sh` so there is no
+need to run it manually. However `astack.sh` will use an existing staged
+model if it is found; this allows a model to be manually setup using the
+`setup-vagrant-input-model` command and then customised, if so desired,
+before running `astack.sh`.
+
+The `--force` option can be used to forcibly recreate the staged input
+model from the relevant source, undoing any local customisation that
+may have been made.
+
+### Models fully defined under ardana-vagrant-models
+If a model is fully defined under `ardana-vagrant-models/<cloud>-vagrant`
+then it must include the following:
+* `input-model-base` - common set of files shared by all versions.
+* `input-model-c8` - optional set of Cloud 8 specific files.
+* `input-model-c9` - optional set of Cloud 9 specific files.
+
+If the `setup-vagrant-input-model` finds a `input-model-base` directory
+under `ardana-vagrant-models/<cloud>-vagrant`, it will copy that directory
+to `input-model`, and then will overlay any files found in the relevant
+version specific `input-model-c*` directory over that staged `input-model`
+directory.
+
+### Models defined in ardana-input-model
+If a model is not defined under `ardana-vagrant-models/<cloud>-vagrant`
+then the `setup-vagrant-input-model` command will retrieve a copy of the
+relevant cloud model either from a locally cloned `ardana-input-model`
+that exists beside the `ardana-dev-tools` clone, or, if no such clone exists,
+then from the appropriate branch in the `ardana/ardana-input-model.git` repo.
+
+Note that when using the input model from a local clone of `ardana-input-model`
+the model will be used as is, ignoring any Cloud version/branch settings that
+may have been specified; as such the user must ensure that the appropriate
+cloud version specific branch of `ardana-input-model` is cloned.
 
 ### Input model specified hardware config
 
@@ -344,14 +386,14 @@ file specified in the input model to a set of hash lookup tables at the
 top of the `lib/ardana_vagrant_helper.rb` file.
 
 For example if you wanted to increase the memory or cpus of the
-controller node in the `demo` input model, which is associated with
-the `LITE-CONTROLLER-ROLE` role, you would need to modify the entry
+controller node in the `std-min` input model, which is associated with
+the `STD-CONTROLLER-ROLE` role, you would need to modify the entry
 in the `lib/ardana_vagrant_helper.rb` `VM_MEMORY` or `VM_CPU` tables
-for the LITECONTROL_NODE to the desired values.
+for the STD_CTRL_NODE to the desired values.
 
 However since the same role names may be used by multiple models, e.g.
-`deployerincloude-lite` uses the same node role names as `demo`, such
-changes, if made permanently, may have side effects.
+the `dac-*` and many of the `std-*` models use the same node role names
+as `std-min`, such changes, if made permanently, may have side effects.
 
 However it is now possible to specify role specific hardware config
 settings in the input model `servers.yml` file, in a `ci_settings`
@@ -375,18 +417,6 @@ model in the `ci_settings` section of the servers.yml file:
 
 See the adt model's [servers.yml](ardana-vagrant-models/adt-vagrant/input-model/data/servers.yml)
 for an example.
-
-### Customising locally staged input models
-When you run astack.sh for the first time for a given cloud model, it will
-use the `bin/setup-vagrant-input-model` script to stage the input model for
-the specified cloud under `ardana-vagrant-models/<cloud>-vagrant/input-model`
-for you, and then re-use that staged model until you either delete it, or
-forcibly updating it using `--force` with the `setup-vagrant-input-model`
-script.
-
-This means that you can customise the input model, after it has been staged
-locally within your ardana-dev-tools clone, and use it to (re-)deploy your
-cloud.
 
 ## Pulling updated RPMs into your deployment
 
