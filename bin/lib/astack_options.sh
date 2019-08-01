@@ -456,11 +456,6 @@ if [ -z "${ARDANA_CLOUD_SOURCE:-}" ]; then
     export ARDANA_CLOUD_SOURCE="devel-staging"
 fi
 
-# default to Staging as set of Cloud repos to use
-if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
-    export ARDANA_CLOUD_REPOS='["staging"]'
-fi
-
 # default to SOC mode if neither or both modes selected
 if [ \( -z "${ARDANA_CLOUD_HOS:-}" -a \
         -z "${ARDANA_CLOUD_SOC:-}" \) -o \
@@ -468,6 +463,15 @@ if [ \( -z "${ARDANA_CLOUD_HOS:-}" -a \
         -n "${ARDANA_CLOUD_SOC:-}" \) ]; then
     export ARDANA_CLOUD_SOC=1
     export ARDANA_CLOUD_HOS=
+fi
+
+# default to Staging as set of Cloud repos to use
+if [ -z "${ARDANA_CLOUD_REPOS:-}" ]; then
+    if [ -n "${ARDANA_CLOUD_HOS:-}" ]; then
+        export ARDANA_CLOUD_REPOS='["devel"]'
+    else
+        export ARDANA_CLOUD_REPOS='["staging"]'
+    fi
 fi
 
 # Mixing SOC_CLM_8 & SOC_CLM_9 options is not supported.

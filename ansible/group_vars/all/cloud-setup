@@ -55,7 +55,7 @@ _clm_repos:
 
   # SLES12 SP4 Repos
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
-    path: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
     name: "{{ sles.artifacts.repos.sles12sp4['updates-test'].name }}"
     alias: "{{ sles.artifacts.repos.sles12sp4['updates-test'].alias }}"
     distro: sles
@@ -63,7 +63,7 @@ _clm_repos:
                  ('updates-test' in sles.config.enabled_repos) and
                  (sles_version == 'sles12sp4') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.updates.name }}"
-    path: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp4.updates.name }}"
     name: "{{ sles.artifacts.repos.sles12sp4.updates.name }}"
     alias: "{{ sles.artifacts.repos.sles12sp4.updates.alias }}"
     distro: sles
@@ -71,7 +71,7 @@ _clm_repos:
                  ('updates' in sles.config.enabled_repos) and
                  (sles_version == 'sles12sp4') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp4.pool.name }}"
-    path: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp4.pool.name }}"
     name: "{{ sles.artifacts.repos.sles12sp4.pool.name }}"
     alias: "{{ sles.artifacts.repos.sles12sp4.pool.alias }}"
     distro: sles
@@ -81,7 +81,7 @@ _clm_repos:
 
   # SLES12 SP3 Repos
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
-    path: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
     name: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
     alias: "{{ sles.artifacts.repos.sles12sp3['updates-test'].alias }}"
     distro: sles
@@ -89,7 +89,7 @@ _clm_repos:
                  ('updates-test' in sles.config.enabled_repos) and
                  (sles_version == 'sles12sp3') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
-    path: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp3.updates.name }}"
     name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}"
     alias: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
     distro: sles
@@ -97,7 +97,7 @@ _clm_repos:
                  ('updates' in sles.config.enabled_repos) and
                  (sles_version == 'sles12sp3') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.pool.name }}"
-    path: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
+    path: "{{ sles.artifacts.repos.sles12sp3.pool.name }}"
     name: "{{ sles.artifacts.repos.sles12sp3.pool.name }}"
     alias: "{{ sles.artifacts.repos.sles12sp3.pool.alias }}"
     distro: sles
@@ -107,27 +107,29 @@ _clm_repos:
 
   # SUSE OpenStack Cloud 9 Repos
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.staging.name }}"
-    path: "{{ cloud.artifacts.repos.soc9.staging.alias }}"
-    name: "{{ cloud.artifacts.repos.soc9.staging.name }}"
-    alias: "{{ cloud.artifacts.repos.soc9.staging.alias }}"
+    cloud_pool_tag: "{{ cloud.artifacts.repos.soc9.staging.name.split('-')[0:3] | join('-') | lower }}"
+    cloud_updates_tag: "{{ cloud.artifacts.repos.soc9.staging.name.split('-')[1:3] | join('-') }}"
+    # Use same settings as for Pool
+    path: "{{ cloud.artifacts.repos.soc9.pool.name }}"
+    name: "{{ cloud.artifacts.repos.soc9.pool.name }}"
+    alias: "{{ cloud.artifacts.repos.soc9.pool.alias }}"
     distro: sles
-    add_cloud_pool_tag: true
-    add_cloud_updates_tag: true
     enabled: "{{ (cloud.artifacts.repos.soc9.staging.enabled | bool) and
                  ('staging' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc9') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.devel.name }}"
-    path: "{{ cloud.artifacts.repos.soc9.devel.alias }}"
-    name: "{{ cloud.artifacts.repos.soc9.devel.name }}"
-    alias: "{{ cloud.artifacts.repos.soc9.devel.alias }}"
+    cloud_pool_tag: "{{ cloud.artifacts.repos.soc9.devel.name.split('-')[0:3] | join('-') | lower }}"
+    cloud_updates_tag: "{{ cloud.artifacts.repos.soc9.devel.name.split('-')[1:3] | join('-') }}"
+    # Use same settings as for Pool
+    path: "{{ cloud.artifacts.repos.soc9.pool.name }}"
+    name: "{{ cloud.artifacts.repos.soc9.pool.name }}"
+    alias: "{{ cloud.artifacts.repos.soc9.pool.alias }}"
     distro: sles
-    add_cloud_pool_tag: true
-    add_cloud_updates_tag: true
     enabled: "{{ (cloud.artifacts.repos.soc9.devel.enabled | bool) and
                  ('devel' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc9') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
-    path: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
+    path: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
     name: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
     alias: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
     distro: sles
@@ -135,7 +137,7 @@ _clm_repos:
                  ('updates-test' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc9') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.updates.name }}"
-    path: "{{ cloud.artifacts.repos.soc9.updates.alias }}"
+    path: "{{ cloud.artifacts.repos.soc9.updates.name }}"
     name: "{{ cloud.artifacts.repos.soc9.updates.name }}"
     alias: "{{ cloud.artifacts.repos.soc9.updates.alias }}"
     distro: sles
@@ -143,7 +145,7 @@ _clm_repos:
                  ('updates' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc9') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9.pool.name }}"
-    path: "{{ cloud.artifacts.repos.soc9.pool.alias }}"
+    path: "{{ cloud.artifacts.repos.soc9.pool.name }}"
     name: "{{ cloud.artifacts.repos.soc9.pool.name }}"
     alias: "{{ cloud.artifacts.repos.soc9.pool.alias }}"
     distro: sles
@@ -153,27 +155,29 @@ _clm_repos:
 
   # SUSE OpenStack Cloud 8 Repos
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.staging.name }}"
-    path: "{{ cloud.artifacts.repos.soc8.staging.alias }}"
-    name: "{{ cloud.artifacts.repos.soc8.staging.name }}"
-    alias: "{{ cloud.artifacts.repos.soc8.staging.alias }}"
+    cloud_pool_tag: "{{ cloud.artifacts.repos.soc8.staging.name.split('-')[0:3] | join('-') | lower }}"
+    cloud_updates_tag: "{{ cloud.artifacts.repos.soc8.staging.name.split('-')[1:3] | join('-') }}"
+    # Use same settings as for Pool
+    path: "{{ cloud.artifacts.repos.soc8.pool.name }}"
+    name: "{{ cloud.artifacts.repos.soc8.pool.name }}"
+    alias: "{{ cloud.artifacts.repos.soc8.pool.alias }}"
     distro: sles
-    add_cloud_pool_tag: true
-    add_cloud_updates_tag: true
     enabled: "{{ (cloud.artifacts.repos.soc8.staging.enabled | bool) and
                  ('staging' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc8') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.devel.name }}"
-    path: "{{ cloud.artifacts.repos.soc8.devel.alias }}"
-    name: "{{ cloud.artifacts.repos.soc8.devel.name }}"
-    alias: "{{ cloud.artifacts.repos.soc8.devel.alias }}"
+    cloud_pool_tag: "{{ cloud.artifacts.repos.soc8.devel.name.split('-')[0:3] | join('-') | lower }}"
+    cloud_updates_tag: "{{ cloud.artifacts.repos.soc8.devel.name.split('-')[1:3] | join('-') }}"
+    # Use same settings as for Pool
+    path: "{{ cloud.artifacts.repos.soc8.pool.name }}"
+    name: "{{ cloud.artifacts.repos.soc8.pool.name }}"
+    alias: "{{ cloud.artifacts.repos.soc8.pool.alias }}"
     distro: sles
-    add_cloud_pool_tag: true
-    add_cloud_updates_tag: true
     enabled: "{{ (cloud.artifacts.repos.soc8.devel.enabled | bool) and
                  ('devel' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc8') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
-    path: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
+    path: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
     name: "{{ cloud.artifacts.repos.soc9['updates-test'].name }}"
     alias: "{{ cloud.artifacts.repos.soc9['updates-test'].alias }}"
     distro: sles
@@ -181,7 +185,7 @@ _clm_repos:
                  ('updates-test' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc9') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.updates.name }}"
-    path: "{{ cloud.artifacts.repos.soc8.updates.alias }}"
+    path: "{{ cloud.artifacts.repos.soc8.updates.name }}"
     name: "{{ cloud.artifacts.repos.soc8.updates.name }}"
     alias: "{{ cloud.artifacts.repos.soc8.updates.alias }}"
     distro: sles
@@ -189,7 +193,7 @@ _clm_repos:
                  ('updates' in cloud.config.enabled_repos) and
                  (_clm_version == 'soc8') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.soc8.pool.name }}"
-    path: "{{ cloud.artifacts.repos.soc8.pool.alias }}"
+    path: "{{ cloud.artifacts.repos.soc8.pool.name }}"
     name: "{{ cloud.artifacts.repos.soc8.pool.name }}"
     alias: "{{ cloud.artifacts.repos.soc8.pool.alias }}"
     distro: sles
@@ -199,17 +203,18 @@ _clm_repos:
 
   # HPE Helion OpenStack Cloud 8 Repos
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.hos8.devel.name }}"
-    path: "{{ cloud.artifacts.repos.hos8.devel.alias }}"
-    name: "{{ cloud.artifacts.repos.hos8.devel.name }}"
-    alias: "{{ cloud.artifacts.repos.hos8.devel.alias }}"
+    cloud_pool_tag: "{{ cloud.artifacts.repos.hos8.devel.name.split('-')[0:3] | join('-') | lower }}"
+    cloud_updates_tag: "{{ cloud.artifacts.repos.hos8.devel.name.split('-')[0:3] | join('-') }}"
+    # Use same settings as for Pool
+    path: "{{ cloud.artifacts.repos.hos8.pool.name }}"
+    name: "{{ cloud.artifacts.repos.hos8.pool.name }}"
+    alias: "{{ cloud.artifacts.repos.hos8.pool.alias }}"
     distro: sles
-    add_cloud_pool: true
-    add_cloud_updates_tag: true
     enabled: "{{ (cloud.artifacts.repos.hos8.devel.enabled | bool) and
                  ('devel' in cloud.config.enabled_repos) and
                  (_clm_version == 'hos8') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.hos8.updates.name }}"
-    path: "{{ cloud.artifacts.repos.hos8.updates.alias }}"
+    path: "{{ cloud.artifacts.repos.hos8.updates.name }}"
     name: "{{ cloud.artifacts.repos.hos8.updates.name }}"
     alias: "{{ cloud.artifacts.repos.hos8.updates.alias }}"
     distro: sles
@@ -217,7 +222,7 @@ _clm_repos:
                  ('updates' in cloud.config.enabled_repos) and
                  (_clm_version == 'hos8') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ cloud.artifacts.repos.hos8.pool.name }}"
-    path: "{{ cloud.artifacts.repos.hos8.pool.alias }}"
+    path: "{{ cloud.artifacts.repos.hos8.pool.name }}"
     name: "{{ cloud.artifacts.repos.hos8.pool.name }}"
     alias: "{{ cloud.artifacts.repos.hos8.pool.alias }}"
     distro: sles
