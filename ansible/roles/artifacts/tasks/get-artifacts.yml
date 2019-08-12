@@ -25,7 +25,7 @@
     state: directory
   ignore_errors: true
   register: _create_cache_result
-  until: _create_cache_result|success
+  until: _create_cache_result is success
   retries: 5
   delay: 1
 

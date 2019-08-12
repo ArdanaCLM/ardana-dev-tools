@@ -90,7 +90,7 @@
     - name: Fail if we cannot checkout the repo
       fail:
         msg: "We failed to fetch the repo {{ repo_info.url }}"
-      when: _git_module_part_result|failed
+      when: _git_module_part_result is failed
 
 # Run the following tasks without serial set.
 - hosts: repo_parallel
