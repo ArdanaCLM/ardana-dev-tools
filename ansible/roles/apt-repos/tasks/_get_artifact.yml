@@ -33,6 +33,10 @@
     use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
     force: yes
     timeout: 20
+  register: _get_sha256sums_result
+  until: _get_sha256sums_result is success
+  retries: 5
+  delay: 1
 
 - name: artifacts | _get_artifacts | Get artifact SHA256
   shell: |
@@ -64,6 +68,10 @@
     use_proxy: "{{ artifact_url_use_proxy | default('no', true) }}"
     timeout: 20
   when: _manifest_check_result is failed
+  register: _get_manifest_result
+  until: _get_manifest_result is success
+  retries: 5
+  delay: 1
 
 - name: artifacts | _get_artifacts | Move tmp file to get around filename permissions
   become: yes

@@ -47,8 +47,10 @@
     use_proxy: "{{ _file.use_proxy }}"
     force: yes
     timeout: 20
-  retries: 3
-  delay: 2
+  register: _get_sha256sums_result
+  until: _get_sha256sums_result is success
+  retries: 5
+  delay: 5
 
 - name: ardana-cache | get-cached-file | Determine file name if pattern used
   shell: >-
@@ -144,8 +146,10 @@
     force: yes
     timeout: 20
   when: _sha256sum_result is failed
-  retries: 3
-  delay: 15
+  register: _get_tmpfile_result
+  until: _get_tmpfile_result is success
+  retries: 5
+  delay: 10  # delay to allow for swapping updated ISO file into place
 
 - name: ardana-cache | get-cached-file | Move tmpfile to file as root to avoid permissions issues
   become: yes

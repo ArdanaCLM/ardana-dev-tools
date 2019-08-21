@@ -36,6 +36,10 @@
     use_proxy: "{{ artifact_url_use_proxy }}"
     force: yes
     timeout: 20
+  register: _get_sha256sums_result
+  until: _get_sha256sums_result is success
+  retries: 5
+  delay: 1
 
 - name: artifacts | get-artifacts | Get artifact name
   shell: |
@@ -70,6 +74,10 @@
     force: yes
     timeout: 20
   when: _artifact_sha256sum_check_result is failed
+  register: _get_artifact_result
+  until: _get_artifact_result is success
+  retries: 5
+  delay: 1
 
 - name: artifacts | get-artifacts | Move tmp file to get around ISO permissions
   become: yes
