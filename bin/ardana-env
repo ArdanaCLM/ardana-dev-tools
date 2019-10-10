@@ -275,7 +275,7 @@ echo "export VAGRANT_HOME;"
 #
 
 # Ansible settings
-ansible_version=${ARDANA_ANSIBLE_VERSION:-2.7.12}
+ansible_version=${ARDANA_ANSIBLE_VERSION:-2.7.13}
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
 ansible_log="${ANSIBLE_LOG_PATH:-${logs_root}/vm_host_ansible.log}"
 
