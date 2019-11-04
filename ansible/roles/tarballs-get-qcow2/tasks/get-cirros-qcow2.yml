@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,25 +13,24 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks for retrieving an Ardana pre-built SLES qcow2 image via the
-# Ardana qcow2 cache.
+# Tasks for retrieving a Cirros qcow2 image via the Ardana qcow2 cache.
 ---
 
-- name: tarballs-get-qcow2 | get-sles-qcow2 | Determine SLES qcow2 to download
+- name: tarballs-get-qcow2 | get-cirros-qcow2 | Determine Cirros qcow2 to download
   set_fact:
-    _sles_qcow2: "{{ sles.artifacts.images[sles.config.image_type] }}"
+    _cirros_qcow2: "{{ cirros.artifacts.images[cirros_version] }}"
 
-- name: tarballs-get-qcow2 | get-sles-qcow2 | Get the SLES qcow2
+- name: tarballs-get-qcow2 | get-cirros-qcow2 | Get the Cirros qcow2
   include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
-      name: "{{ _sles_qcow2.name }}.qcow2"
-      sha256: "{{ _sles_qcow2.sha256 | default('') }}"
-      url_path: "{{ tarballs_qcow2.base_url}}/{{ _sles_qcow2.path }}"
-      sha256url: "{{ tarballs_qcow2.base_url}}/{{ _sles_qcow2.path
-                  }}/{{ _sles_qcow2.name }}.qcow2.sha256"
+      name: "{{ _cirros_qcow2.name }}.img"
+      sha256: "{{ _cirros_qcow2.sha256 | default('') }}"
+      url_path: "{{ tarballs_qcow2.base_url}}/{{ _cirros_qcow2.path }}"
+      sha256url: "{{ tarballs_qcow2.base_url}}/{{ _cirros_qcow2.path
+                  }}/{{ _cirros_qcow2.name }}.img.sha256"
       dir: "{{ tarballs_qcow2.qcow2_dir }}"
       link:
-        name: "{{ _sles_qcow2.link | default('') }}"
+        name: "{{ _cirros_qcow2.link | default('') }}"
         dir: "{{ tarballs_qcow2.images_dir }}"
       use_proxy: "{{ tarballs_qcow2.use_proxy }}"

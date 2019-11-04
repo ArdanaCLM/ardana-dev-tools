@@ -17,11 +17,11 @@
 # Ardana qcow2 cache.
 ---
 
-- name: artifacts-get-qcow2 | get-rhel-qcow2 | Determine RHEL qcow2 to download
+- name: tarballs-get-qcow2 | get-rhel-qcow2 | Determine RHEL qcow2 to download
   set_fact:
     _rhel_qcow2: "{{ rhel.artifacts.images[rhel.config.image_type] }}"
 
-- name: artifacts-get-qcow2 | get-rhel-qcow2 | Get the RHEL qcow2
+- name: tarballs-get-qcow2 | get-rhel-qcow2 | Get the RHEL qcow2
   include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:

@@ -28,7 +28,7 @@ rhel:
       packer:
         name: "{{ rhel_version }}-{{ dev_env_cloud_user }}"
         link: "{{ rhel_version }}-{{ dev_env_cloud_user }}.qcow2"
-        path: "rhel"
+        path: "ardana/images/cloud{{ cloud_version }}/rhel"
     iso:
       os:
         name: "CentOS-7-x86_64-DVD-1804"

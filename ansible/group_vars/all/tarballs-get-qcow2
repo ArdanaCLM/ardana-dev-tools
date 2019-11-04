@@ -20,8 +20,7 @@ tarballs_qcow2:
   base_url: "http://{{ dev_env_site_config.artefact.host }}{{
                        (dev_env_site_config.artefact.port | default('')) |
                        ternary(':', '')
-                    }}{{ dev_env_site_config.artefact.port | default('')
-                    }}/ardana/images/cloud{{ cloud_version }}"
+                    }}{{ dev_env_site_config.artefact.port | default('') }}"
   use_proxy: "{{ dev_env_site_config.artefact.use_proxy | default('no') }}"
   qcow2_dir: "{{ ardana_cache_qcow2_dir }}/tarballs"
   images_dir: "{{ product_cache_directory }}/images"

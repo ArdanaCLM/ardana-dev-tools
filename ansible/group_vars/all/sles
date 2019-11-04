@@ -37,7 +37,7 @@ sles:
       packer:
         name: "{{ sles_version }}-{{ dev_env_cloud_user }}"
         link: "{{ sles_version }}-{{ dev_env_cloud_user }}.qcow2"
-        path: "sles"
+        path: "ardana/images/cloud{{ cloud_version }}/sles"
     repos:
       sles12sp4:
         updates-test:
