@@ -38,10 +38,30 @@
       {%- endif  %}
   with_items: vagrant_missing_plugins
 
+- name: dev-env-vagrant | install-plugins | Which gems_dir to use?
+  shell: |
+    set -e
+    gems_dir=""
+    for g in {{ vagrant_settings.gems_dirs | default(['gems']) | join(' ') }}
+    do
+      d="{{ vagrant_home }}/${g}"
+      if [ -d "${d}" ]; then
+        gems_dir="${d}"
+        break
+      fi
+    done
+    [ -z "${gems_dir}" ] && exit 1
+    echo "${gems_dir}"
+  register: gems_dir_path_result
+
+- name: dev-env-vagrant | install-plugins | Set gems_dir to found dir
+  set_fact:
+    gems_dir: "{{ gems_dir_path_result.stdout_lines[0] }}"
+
 # TODO(fergal): Add support for list of patches per plugin
 - name: dev-env-vagrant | install-plugins | Apply plugin patches if any
   patch:
-    basedir: "{{ vagrant_home }}/{{ vagrant_settings.gems_dir | default('gems') }}"
+    basedir: "{{ gems_dir }}"
     src: "{{ role_path }}/files/vagrant-patch-plugins/{{ item.patch.file }}"
     strip: "{{ item.patch.strip | default(0) }}"
   with_items: vagrant_missing_plugins

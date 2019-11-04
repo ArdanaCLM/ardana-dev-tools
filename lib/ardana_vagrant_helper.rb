@@ -231,7 +231,7 @@ module Ardana
 
     def get_product_branch()
       # Remove trailing newline also
-      value = %x( git -C #{@dev_tool_path} config --file $(git rev-parse --show-toplevel)/.gitreview --get gerrit.defaultbranch ).strip
+      value = %x( git -C #{@dev_tool_path} config --file $(git -C #{@dev_tool_path} rev-parse --show-toplevel)/.gitreview --get gerrit.defaultbranch ).strip
       raise "Unknown defaultbranch" if value.empty?
       return value
     end

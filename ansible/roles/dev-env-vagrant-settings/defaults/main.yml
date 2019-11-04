@@ -56,9 +56,9 @@ vagrant_common_plugins:
   - name: "vagrant-proxyconf"
     version: "1.5.2"
   - name: "vagrant-libvirt"
-    version: "0.0.43"
+    version: "0.0.45"
     patch:
-      file: "vagrant-libvirt-plugin-0.0.43/ardana_enhancements.patch"
+      file: "vagrant-libvirt-plugin-0.0.45/ardana_enhancements.patch"
 
 vagrant_series_settings:
   series:
@@ -69,27 +69,16 @@ vagrant_series_settings:
       versions:
         plugins: "1.7.4"
         runtime: "{{ vagrant_version }}"
-      gems_dir: "gems"
-      plugins:
-        - name: "vagrant-proxyconf"
-          version: "1.5.0"
-        - name: "fog"
-          version: "1.29.0"
-        - name: "rack"
-          version: "1.6.4"
-        - name: "vagrant-libvirt"
-          version: "0.0.35.hp.2"
-          gem: "vagrant-libvirt-0.0.35.hp.2.gem"
-        - name: "vagrant-openstack-plugin"
-          version: "0.11.1"
-          patch:
-            file: "vagrant-openstack-plugin-0.11.1/create_server.rb.patch"
+      gems_dirs:
+        - "gems"
+      plugins: "{{ vagrant_common_plugins }}"
 
     "1.8":
       versions:
         plugins: "{{ vagrant_version }}"
         runtime: "{{ vagrant_version }}"
-      gems_dir: "gems"
+      gems_dirs:
+        - "gems"
       plugins: "{{ vagrant_common_plugins }}"
 
     "1.9":
@@ -100,7 +89,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "42.3": 6
-      gems_dir: "gems/2.3.4"
+      gems_dirs:
+        - "gems/2.3.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.0":
@@ -111,7 +101,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.1":
@@ -122,7 +113,8 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
 
     "2.2":
@@ -133,7 +125,10 @@ vagrant_series_settings:
         suse:
           libreadline:
             "15.0": 7
-      gems_dir: "gems/2.4.4"
+      gems_dirs:
+        - "gems/2.4.4"
+        - "gems/2.4.6"
+        - "gems/2.4.9"
       plugins: "{{ vagrant_common_plugins }}"
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"

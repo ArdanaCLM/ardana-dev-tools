@@ -1,0 +1,12 @@
+--- gems/vagrant-libvirt-0.0.45/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:26:17.066973036 -0400
++++ gems/vagrant-libvirt-0.0.45/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:30:07.079758144 -0400
+@@ -112,6 +112,9 @@
+       <readonly/>
+     </disk>
+ <% end %>
++    <% if (@domain_volume_path and @disk_bus == "scsi") or @disks.any?{|d| d[:bus] == "scsi"} or @cdroms.any?{|c| c[:bus] == "scsi"} %>
++    <controller type='scsi' model='virtio-scsi' index='0'/>
++    <% end %>
+ 
+     <serial type='pty'>
+       <target port='0'/>
