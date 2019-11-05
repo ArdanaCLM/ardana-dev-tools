@@ -13,32 +13,14 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+# Tasks for setting up environment to retrieve pre-built qcow2 images via
+# the Ardana qcow2 cache.
 ---
 
-- hosts: localhost
-  connection: local
-  roles:
-    - artifacts-get-iso
-
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env
-    - apt-repos
-  tasks:
-    - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
-      when: dev_env_use_rhel7_artifacts|bool
-
-- hosts: localhost
-  connection: local
-  roles:
-    - role: dev-env-cloud8
-
-    # mirror the clouddata repo
-    - role: clouddata-mirror-repo
-
-    # retrieve the cloud8 iso
-    - role: ibs-get-iso
-
-    # retrieve pre-built images
-    - role: tarballs-get-qcow2
+- name: tarballs-get-qcow2 | setup | Ensure relevant directories exist
+  file:
+    path: "{{ item.dir }}"
+    state: directory
+  with_items:
+    - dir: "{{ tarballs_qcow2.qcow2_dir }}"
+    - dir: "{{ tarballs_qcow2.images_dir }}"

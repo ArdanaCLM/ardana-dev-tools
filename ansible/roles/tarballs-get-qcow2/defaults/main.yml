@@ -13,32 +13,15 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+# Default settings for Ardana artifacts server cached ISO retrieval.
 ---
 
-- hosts: localhost
-  connection: local
-  roles:
-    - artifacts-get-iso
-
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env
-    - apt-repos
-  tasks:
-    - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
-      when: dev_env_use_rhel7_artifacts|bool
-
-- hosts: localhost
-  connection: local
-  roles:
-    - role: dev-env-cloud8
-
-    # mirror the clouddata repo
-    - role: clouddata-mirror-repo
-
-    # retrieve the cloud8 iso
-    - role: ibs-get-iso
-
-    # retrieve pre-built images
-    - role: tarballs-get-qcow2
+tarballs_qcow2:
+  base_url: "http://{{ dev_env_site_config.artefact.host }}{{
+                       (dev_env_site_config.artefact.port | default('')) |
+                       ternary(':', '')
+                    }}{{ dev_env_site_config.artefact.port | default('')
+                    }}/ardana/images/cloud{{ cloud_version }}"
+  use_proxy: "{{ dev_env_site_config.artefact.use_proxy | default('no') }}"
+  qcow2_dir: "{{ ardana_cache_qcow2_dir }}/tarballs"
+  images_dir: "{{ product_cache_directory }}/images"

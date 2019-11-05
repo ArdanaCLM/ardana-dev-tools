@@ -18,11 +18,20 @@
 ---
 
 # SLES deployment settings
+sles_major: 12
+sles_sp: 3
+sles_version: "sles{{ sles_major }}sp{{ sles_sp }}"
 sles:
   config:
     enabled_repos: "{{ lookup('env', 'ARDANA_SLES_REPOS') | default(['pool', 'updates'], true) }}"
     mirror_repos: "{{ lookup('env', 'ARDANA_SLES_MIRROR') | default(True, true) }}"
+    image_type: "{{ lookup('env', 'ARDANA_SLES_IMAGE_TYPE') | default('packer', true) }}"
   artifacts:
+    images:
+      packer:
+        name: "{{ sles_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
+        link: "sles-{{ sles_major }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
+        path: "sles"
     repos:
       sles12sp3:
         updates:
@@ -46,8 +55,16 @@ sles:
         link: "sles12sp3sdk.iso"
 
 # RHEL deployment settings
+rhel_version: "rhel-7"
 rhel:
+  config:
+    image_type: "{{ lookup('env', 'ARDANA_RHEL_IMAGE_TYPE') | default('packer', true) }}"
   artifacts:
+    images:
+      packer:
+        name: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
+        link: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
+        path: "rhel"
     iso:
       os:
         name: "CentOS-7-x86_64-DVD-1804"
@@ -56,6 +73,7 @@ rhel:
         link: "rhel7.iso"
 
 # cloud8 deloyment settings
+cloud_version: 8
 cloud8:
   config:
     arch: "x86_64"

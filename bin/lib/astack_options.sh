@@ -23,6 +23,7 @@
 # Manage list of long options as a sorted array of option names which
 # we then join with commas to form the argument to getopt.
 long_opts=(
+    build-images
     c8
     c8-artifacts
     c8-caching
@@ -60,6 +61,7 @@ long_opts=(
     no-setup
     no-site
     no-update-rpms
+    prebuilt-images
     pre-destroy
     project-stack:
     restrict-by-project:
@@ -103,6 +105,7 @@ NO_SETUP=
 NO_ARTIFACTS=
 NO_BUILD=
 NO_UPDATE_RPMS=
+export ARDANA_PREBUILT_IMAGES=true
 export ARDANA_LEGACY_DEPLOYER=${ARDANA_LEGACY_DEPLOYER:-}
 export ARDANA_CLOUD8_ARTIFACTS=${ARDANA_CLOUD8_ARTIFACTS:-}
 export ARDANA_CLOUD8_DEPLOYER=${ARDANA_CLOUD8_DEPLOYER:-}
@@ -180,6 +183,8 @@ while true ; do
         --no-build) NO_BUILD=1 ; shift ;;
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
+        --prebuilt-images) export ARDANA_PREBUILT_IMAGES=true ; shift ;;
+        --build-images) export ARDANA_PREBUILT_IMAGES=false ; shift ;;
         --pre-destroy)
             PRE_DESTROY=1
             shift ;;

@@ -14,31 +14,7 @@
 # under the License.
 #
 ---
-
-- hosts: localhost
-  connection: local
-  roles:
-    - artifacts-get-iso
-
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env
-    - apt-repos
-  tasks:
-    - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
-      when: dev_env_use_rhel7_artifacts|bool
-
-- hosts: localhost
-  connection: local
-  roles:
-    - role: dev-env-cloud8
-
-    # mirror the clouddata repo
-    - role: clouddata-mirror-repo
-
-    # retrieve the cloud8 iso
-    - role: ibs-get-iso
-
-    # retrieve pre-built images
-    - role: tarballs-get-qcow2
+dependencies:
+  - role: dev-env
+  - role: dev-env-cloud8
+  - role: ardana-cache

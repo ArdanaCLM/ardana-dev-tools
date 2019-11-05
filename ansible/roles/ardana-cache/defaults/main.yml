@@ -18,5 +18,6 @@
 
 ardana_cache_base_dir: "{{ product_cache_base_directory }}"
 ardana_cache_isos_dir: "{{ ardana_cache_base_dir }}/isos"
+ardana_cache_qcow2_dir: "{{ ardana_cache_base_dir }}/qcow2"
 ardana_cache_mirrors_dir: "{{ ardana_cache_base_dir }}/mirrors"
 ardana_cache_vagrant_dir: "{{ ardana_cache_base_dir }}/vagrant/downloads"

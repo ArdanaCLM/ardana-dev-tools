@@ -62,11 +62,11 @@
 
     disk_file_name="{{ _image_build_qcow2_name }}"
 
-    tar cvf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
+    tar cvhf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
         --transform "s:.*/::" \
         -C "roles/image-build/files/vagrant-box" metadata.json \
           "{{ _image_build_scratch_dir }}/Vagrantfile"
-    tar rvf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
+    tar rvhf "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" \
         --transform "s/${disk_file_name}\.qcow2/box.img/" \
         -C "{{ image_build_output_dir }}" "${disk_file_name}.qcow2"
     mv "{{ dev_env_working_dir }}/{{ image_build_box }}.tmp" "{{ dev_env_working_dir }}/{{ image_build_box }}"

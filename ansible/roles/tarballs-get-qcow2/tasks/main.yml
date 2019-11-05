@@ -13,32 +13,25 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+# Tasks performed by the tarballs-get-qcow2 role
 ---
 
-- hosts: localhost
-  connection: local
-  roles:
-    - artifacts-get-iso
+- include: setup.yml
+  tags:
+    - skip-qcow2
 
-- hosts: localhost
-  connection: local
-  roles:
-    - dev-env
-    - apt-repos
-  tasks:
-    - include: roles/apt-repos/tasks/get-yum-extras-artifact.yml
-      when: dev_env_use_rhel7_artifacts|bool
+- include: get-sles-qcow2.yml
+  when:
+    - dev_env_use_sles12_artifacts | bool
+    - dev_env_use_prebuilt_images | bool
+  tags:
+    - skip-sles-qcow2
+    - skip-qcow2
 
-- hosts: localhost
-  connection: local
-  roles:
-    - role: dev-env-cloud8
-
-    # mirror the clouddata repo
-    - role: clouddata-mirror-repo
-
-    # retrieve the cloud8 iso
-    - role: ibs-get-iso
-
-    # retrieve pre-built images
-    - role: tarballs-get-qcow2
+- include: get-rhel-qcow2.yml
+  when:
+    - dev_env_use_rhel7_artifacts | bool
+    - dev_env_use_prebuilt_images | bool
+  tags:
+    - skip-rhel-qcow2
+    - skip-qcow2
