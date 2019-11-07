@@ -158,6 +158,7 @@
             - magnum-api
             - magnum-conductor
             - manila-api
+            - manila-share
 
         - name: mml
           cluster-prefix: mml
@@ -201,7 +202,6 @@
             - neutron-metadata-agent
             - neutron-openvswitch-agent
             - neutron-lbaasv2-agent
-            - manila-share
 
         - name: rhel-compute
           resource-prefix: rhcomp
