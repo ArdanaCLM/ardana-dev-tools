@@ -1,0 +1,32 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Setup local_image_mirror_url in roles/glance-cloud-configure/vars/main.yml
+---
+
+- name: vagrant-cloud8-setup | config-cirros-image-url | Set local_image_mirror_url
+  lineinfile:
+    dest: "~ardana/openstack/ardana/ansible/roles/glance-cloud-configure/vars/main.yml"
+    line: "local_image_mirror_url: 'http://{{ deployer_address }}:79/'"
+    regexp: "^local_image_mirror_url: .*$"
+  register: add_local_image_url_result
+
+- name: vagrant-cloud8-setup | config-cirros-image-url | Commit changes if needed
+  shell: >-
+    cd ~ardana/openstack/ardana/ansible &&
+    git add roles/glance-cloud-configure/vars/main.yml &&
+    git commit --allow-empty -m "Use local cirros image server"
+  when:
+    - add_local_image_url_result | changed

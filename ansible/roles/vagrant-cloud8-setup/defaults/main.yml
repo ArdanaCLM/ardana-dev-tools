@@ -227,3 +227,6 @@ c8setup:
   deployer:
     init_pkgs:
       - patterns-cloud-ardana
+
+
+cirros_images_dir: "{{ product_cache_directory }}/images"

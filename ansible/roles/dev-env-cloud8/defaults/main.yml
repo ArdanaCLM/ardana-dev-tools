@@ -31,7 +31,7 @@ sles:
       packer:
         name: "{{ sles_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
         link: "sles-{{ sles_major }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
-        path: "sles"
+        path: "ardana/images/cloud{{ cloud_version }}/sles"
     repos:
       sles12sp3:
         updates:
@@ -64,13 +64,33 @@ rhel:
       packer:
         name: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}"
         link: "{{ rhel_version }}-{{ lookup('env','ARDANAUSER') | default('ardana', true) }}.qcow2"
-        path: "rhel"
+        path: "ardana/images/cloud{{ cloud_version }}/rhel"
     iso:
       os:
         name: "CentOS-7-x86_64-DVD-1804"
         alias: "RHEL-OS"
         path: "RHEL"
         link: "rhel7.iso"
+
+# Cirros deployment settings
+cirros_version: "0.4.0"
+cirros_images_path: "images/openstack/{{ ansible_architecture }}"
+
+cirros:
+  artifacts:
+    images:
+      0.3.4:
+        name: "cirros-0.3.4-{{ ansible_architecture }}-disk"
+        link: "cirros-0.3.4-{{ ansible_architecture }}-disk.img"
+        path: "{{ cirros_images_path }}"
+      0.3.6:
+        name: "cirros-0.3.6-{{ ansible_architecture }}-disk"
+        link: "cirros-0.3.6-{{ ansible_architecture }}-disk.img"
+        path: "{{ cirros_images_path }}"
+      0.4.0:
+        name: "cirros-0.4.0-{{ ansible_architecture }}-disk"
+        link: "cirros-0.4.0-{{ ansible_architecture }}-disk.img"
+        path: "{{ cirros_images_path }}"
 
 # cloud8 deloyment settings
 cloud_version: 8
