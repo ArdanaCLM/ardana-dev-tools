@@ -35,3 +35,8 @@
   tags:
     - skip-rhel-qcow2
     - skip-qcow2
+
+- include: get-cirros-qcow2.yml
+  tags:
+    - skip-cirros-qcow2
+    - skip-qcow2

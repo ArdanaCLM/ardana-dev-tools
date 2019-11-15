@@ -44,3 +44,5 @@
     - skip-ardana-init
 
 - include: sync-ansible-sources.yml
+
+- include: cirros-local-images.yml

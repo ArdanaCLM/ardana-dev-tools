@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,14 +13,16 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Default settings for Ardana artifacts server cached ISO retrieval.
+# Upload Cirros image to deployer repo server root and configured the
+# glance-cloud-configure role to use that local image source.
 ---
 
-tarballs_qcow2:
-  base_url: "http://{{ dev_env_site_config.artefact.host }}{{
-                       (dev_env_site_config.artefact.port | default('')) |
-                       ternary(':', '')
-                    }}{{ dev_env_site_config.artefact.port | default('') }}"
-  use_proxy: "{{ dev_env_site_config.artefact.use_proxy | default('no') }}"
-  qcow2_dir: "{{ ardana_cache_qcow2_dir }}/tarballs"
-  images_dir: "{{ product_cache_directory }}/images"
+- name: vagrant-cloud8-setup | cirros-local-images | Upload Cirros image to deployer
+  include: upload-cirros-image.yml
+  when:
+    - skip_cirros_upload is not defined
+
+- name: vagrant-cloud8-setup | cirros-local-images | Configure local cirros server URL
+  include: config-cirros-image-url.yml
+  when:
+    - skip_config_cirros_image_url is not defined
