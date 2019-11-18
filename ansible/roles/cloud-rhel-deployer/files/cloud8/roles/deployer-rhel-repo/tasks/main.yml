@@ -13,23 +13,19 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the ibs-get-iso role
+# Limited to the deployer
 ---
 
-- include_tasks: setup.yml
-  tags:
-    - skip-isos
+- include: deployer_setup_mode.yml
 
-- include_tasks: get-sles-iso.yml
+- include: check_centos_nova_tarball.yml
   when:
-    - (dev_env_use_sles12_artifacts | bool) or
-      (dev_env_download_isos | bool)
-  tags:
-    - skip-isos
+    - rhel_optional_repo_enabled | bool
+    - cloudsetup_legacy_mode | bool
 
-- include_tasks: get-cloud-iso.yml
+- include: _rhel_repo_support.yml
   when:
-    - (dev_env_use_cloud_artifacts | bool) or
-      (dev_env_download_isos | bool)
-  tags:
-    - skip-isos
+    - not (cloudsetup_legacy_mode | bool)
+
+- include: install_target_repo_tarball.yml
+
