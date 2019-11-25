@@ -21,20 +21,30 @@
 #     name: <name of file to retrieve>
 #     pattern: <pattern for name of file to retrieve>
 #     url: <url to use to retrieve the file>
-#     sha256url: <url to use to retrieve the sha256 file>
+#     sha256: <optional sha256 value to use>
+#     sha256url: <optional url to use to retrieve the sha256 file>
 #     dir: <local dir in which to store the downloaded file>
 #     link:
 #       name: <optional link to be created, can be blank>
 #       dir: <directory under which to create link if needed>
 ---
 
-- name: ardana-cache | get-cached-file | Sanity check inputs
+- name: ardana-cache | get-cached-file | Sanity check name or pattern
   debug:
     msg: >
       Using pattern '{{ _file.pattern }}' rather than a specific
       file name to determine which file to download
   when:
     - (_file.pattern | default("")) != ""
+
+- name: ardana-cache | get-cached-file | Sanity check sha256 and name
+  fail:
+    msg: >
+      Specifying an explicit SHA256 value without specifying a name is not
+      supported.
+  when:
+    - (_file.sha256 | default("")) != ""
+    - (_file.name | default("")) == ""
 
 - name: ardana-cache | get-cached-file | Setup local config settings
   set_fact:
@@ -47,10 +57,19 @@
     use_proxy: "{{ _file.use_proxy }}"
     force: yes
     timeout: 20
-  register: _get_sha256sums_result
-  until: _get_sha256sums_result is success
+  register: retrieve_server_sha256_result
+  until: retrieve_server_sha256_result is success
   retries: 5
   delay: 5
+  when:
+    - (_file.sha256url | default("")) != ""
+
+- name: ardana-cache | get-cached-file | Fake Server SHA256 file
+  copy:
+    content: "{{ _file.sha256 }}  {{ _file.name }}"
+    dest: "{{ _server_sha256_tmp }}"
+  when:
+    - (_file.sha256 | default("")) != ""
 
 - name: ardana-cache | get-cached-file | Determine file name if pattern used
   shell: >-

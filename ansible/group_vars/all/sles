@@ -70,7 +70,7 @@ sles:
         os:
           name: "SLE-12-SP4-Server-DVD-x86_64-GM-DVD1.iso"
           alias: "SLES-OS"
-          sha256: ""
+          sha256: "1f08a451442881b979bf8c3136e0a38132922b93cce5d3e68cf26bdd71df0f0e"
           path: "install/SLE-12-SP4-Server"
           link: "sles12sp4.iso"
           enabled: true
@@ -78,14 +78,14 @@ sles:
         os:
           name: "SLE-12-SP3-Server-DVD-x86_64-GM-DVD1.iso"
           alias: "SLES-OS"
-          sha256: ""
+          sha256: "48408157ef667100671b22f92c3e20771ccf2100108b96e3ae83d8df30abddd5"
           path: "install/SLE-12-SP3-Server"
           link: "sles12sp3.iso"
           enabled: true
         sdk:
           name: "SLE-12-SP3-SDK-DVD-x86_64-GM-DVD1.iso"
           alias: "SLES-SDK"
-          sha256: ""
+          sha256: "3583cd25fcf87e979e3efa131da1f0654a139aaed9290cae4e288f4be637bbac"
           path: "install/SLE-12-SP3-SDK"
           link: "sles12sp3sdk.iso"
           enabled: true

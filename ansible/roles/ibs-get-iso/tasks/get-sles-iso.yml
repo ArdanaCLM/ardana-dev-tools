@@ -43,9 +43,7 @@
       sha256: "{{ _ibs_sles_media.sha256 | default('') }}"
       url_path: "{{ ibs_iso.base_url}}/{{ _ibs_sles_media.path }}{{
                     sles.config.iso_milestone[sles_version] }}"
-      sha256url: "{{ ibs_iso.base_url}}/{{ _ibs_sles_media.path }}{{
-                     sles.config.iso_milestone[sles_version] }}/{{
-                     ibs_iso.sha256_shared }}"
+      sha256url: ""
       dir: "{{ ibs_iso.isos_dir }}"
       link:
         name: "{{ _ibs_sles_media.link | default('') }}"
@@ -61,9 +59,7 @@
       sha256: "{{ _ibs_slesdk_media.sha256 | default('') }}"
       url_path: "{{ ibs_iso.base_url}}/{{ _ibs_slesdk_media.path }}{{
                     sles.config.iso_milestone[sles_version] }}"
-      sha256url: "{{ ibs_iso.base_url}}/{{ _ibs_slesdk_media.path }}{{
-                     sles.config.iso_milestone[sles_version] }}/{{
-                     ibs_iso.sha256_shared }}"
+      sha256url: ""
       dir: "{{ ibs_iso.isos_dir }}"
       link:
         name: "{{ _ibs_slesdk_media.link | default('') }}"
