@@ -23,6 +23,16 @@ sles_version: "sles{{ sles_major }}{{
                       ((sles_sp | int) > 0) |
                       ternary('sp' ~ sles_sp, '') }}"
 
+# SLES kernel mitigations param management
+sles_mitigations_params:
+  "sles12sp3": "spectre_v2"
+  "sles12sp4": "mitigations"
+sles_mitigations_param: "{{ sles_mitigations_params[sles_version] }}"
+
+# SLES pre-built qcow2 version timestamp
+sles_prebuilt_qcow2_version: "{{ ((dev_env_prebuilt_qcow2_version | default('')) != '') |
+                                 ternary('-' ~ dev_env_prebuilt_qcow2_version, '') }}"
+
 # SLES deployment settings
 sles:
   config:
@@ -37,7 +47,7 @@ sles:
       packer:
         name: "{{ sles_version }}-{{ dev_env_cloud_user }}"
         link: "{{ sles_version }}-{{ dev_env_cloud_user }}.qcow2"
-        path: "ardana/images/cloud{{ cloud_version }}/sles"
+        path: "ardana/images/cloud{{ cloud_version }}/sles{{ sles_prebuilt_qcow2_version }}"
     repos:
       sles12sp4:
         updates-test:
