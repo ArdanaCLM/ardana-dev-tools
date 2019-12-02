@@ -18,9 +18,11 @@
 - name: Copy ansible changes for supporting centos rpm via optional repo on
         RHEL computes
   synchronize:
-    src: "{{ role_path }}/files/ansible/"
-    dest: openstack/ardana/ansible
+    src: "{{ role_path }}/files/cloud{{ cloud_version }}/"
+    dest: openstack/ardana/ansible/
     recursive: yes
+  register: _sync_rhel_setup_files_result
+
 - name: Execute play to setup optional rhel repo support changes
   shell: |
     export ARDANA_RHEL_OPTIONAL_REPO_ENABLED=1
@@ -28,5 +30,10 @@
   args:
     chdir: openstack/ardana/ansible
   register: _set_deployer_rhel_repo_result
+  when:
+    - _sync_rhel_setup_files_result is success
 
-- debug: var=_set_deployer_rhel_repo_result.stdout_lines
+- debug:
+    var: _set_deployer_rhel_repo_result.stdout_lines
+  when:
+    - _set_deployer_rhel_repo_result is not skipped

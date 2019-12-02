@@ -13,23 +13,6 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks performed by the ibs-get-iso role
 ---
-
-- include_tasks: setup.yml
-  tags:
-    - skip-isos
-
-- include_tasks: get-sles-iso.yml
-  when:
-    - (dev_env_use_sles12_artifacts | bool) or
-      (dev_env_download_isos | bool)
-  tags:
-    - skip-isos
-
-- include_tasks: get-cloud-iso.yml
-  when:
-    - (dev_env_use_cloud_artifacts | bool) or
-      (dev_env_download_isos | bool)
-  tags:
-    - skip-isos
+dependencies:
+  - role: deployer-setup

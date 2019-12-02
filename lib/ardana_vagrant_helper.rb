@@ -246,13 +246,29 @@ module Ardana
           :version => "rhel7"
         }
       }
+      @version_map = {
+        "8" => {
+          :branch => "stable/pike"
+        },
+        "9" => {
+          :branch => "master"
+        }
+      }
     end
 
-    def get_product_branch()
+    def gerrit_default_branch()
       # Remove trailing newline also
       value = %x( git -C #{@dev_tool_path} config --file $(git -C #{@dev_tool_path} rev-parse --show-toplevel)/.gitreview --get gerrit.defaultbranch ).strip
       raise "Unknown defaultbranch" if value.empty?
       return value
+    end
+
+    def get_product_branch()
+      # Determine branch associated with specified Ardana cloud version
+      if !@version_map.key?(@ardana[:cloud][:version])
+        raise "Unrecognised Ardana cloud version '#{@ardana[:cloud][:version]}'"
+      end
+      return @version_map[@ardana[:cloud][:version]][:branch]
     end
 
     def get_product_branch_cache()
@@ -513,6 +529,7 @@ module Ardana
       return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        STDERR.puts "Specified SLE Server ISO #{iso_files[-1]} not found"
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
     end
@@ -521,6 +538,7 @@ module Ardana
       return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["sles"][:version]}sdk.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        STDERR.puts "Specified SLE SDK ISO #{iso_files[-1]} not found"
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the SLES ISOs"
       end
     end
@@ -529,6 +547,7 @@ module Ardana
       return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/cloud#{@ardana[:cloud][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        STDERR.puts "Specified Cloud ISO #{iso_files[-1]} not found"
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the Cloud ISO"
       end
     end
@@ -537,6 +556,7 @@ module Ardana
       return if not @ardana[:attach_isos]
       iso_files.push( get_image_output_dir() + "/#{@distro_map["rhel"][:version]}.iso" )
       if !File.exists?(iso_files[-1]) and !ENV["ARDANA_CLEANUP_CI"]
+        STDERR.puts "Specified RHEL ISO #{iso_files[-1]} not found"
         raise "Run 'ansible-playbook -i hosts/localhost get-ardana-artifacts.yml' to get the RHEL ISO"
       end
     end
