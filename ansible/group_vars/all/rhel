@@ -19,6 +19,10 @@
 
 rhel_version: "rhel-7"
 
+# RHEL pre-built qcow2 version timestamp
+rhel_prebuilt_qcow2_version: "{{ ((dev_env_prebuilt_qcow2_version | default('')) != '') |
+                                 ternary('-' ~ dev_env_prebuilt_qcow2_version, '') }}"
+
 # RHEL deployment settings
 rhel:
   config:
@@ -28,7 +32,7 @@ rhel:
       packer:
         name: "{{ rhel_version }}-{{ dev_env_cloud_user }}"
         link: "{{ rhel_version }}-{{ dev_env_cloud_user }}.qcow2"
-        path: "ardana/images/cloud{{ cloud_version }}/rhel"
+        path: "ardana/images/cloud{{ cloud_version }}/rhel{{ rhel_prebuilt_qcow2_version }}"
     iso:
       os:
         name: "CentOS-7-x86_64-DVD-1804"

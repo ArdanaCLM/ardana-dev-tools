@@ -40,8 +40,8 @@
     envfile="{{ image_build_output_dir }}/{{ image_build_name }}-{{ image_build_user }}.env"
     echo "{{ image_build_user }}" > $envfile
     echo "{{ image_build_user_home }}" >> $envfile
-    {% if dev_env_disable_spectrev2_in_images | bool %}
-    echo "spectre_v2=off" >> $envfile
+    {% if dev_env_disable_mitigations_in_images | bool %}
+    echo "{{ sles_mitigations_param }}=off" >> $envfile
     {% endif %}
 
 - name: image-build | build-packer-qcow2 | Symlink SLES repos under files/{{ image_build_name }}

@@ -63,6 +63,7 @@ long_opts=(
     debug
     disable-no-log
     disable-services:
+    enable-mitigations
     enable-spectrev2
     extra-vars:
     feature-dir:
@@ -87,6 +88,7 @@ long_opts=(
     obs-prj:
     obs-repo:
     prebuilt-images
+    prebuilt-version:
     pre-destroy
     project-stack:
     restrict-by-project:
@@ -157,7 +159,8 @@ DEFAULT_IPV6_ULA=`cat ${ipv6_ula_file}`
 export ARDANA_DEBUG=${ARDANA_DEBUG:-}
 export ARDANA_SYNC_ANSIBLE_SOURCES=${ARDANA_SYNC_ANSIBLE_SOURCES:-1}
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
-export ARDANA_DISABLE_SPECTREV2=${ARDANA_DISABLE_SPECTREV2:-1}
+export ARDANA_QCOW2_TIMESTAMP=${ARDANA_QCOW2_TIMESTAMP:-}
+export ARDANA_DISABLE_MITIGATIONS=${ARDANA_DISABLE_MITIGATIONS:-1}
 export ARDANA_ATTACH_ISOS=${ARDANA_ATTACH_ISOS:-}
 export ARDANA_CLOUD_VERSION=${ARDANA_CLOUD_VERSION:-}
 export ARDANA_CLOUD_ARTIFACTS=${ARDANA_CLOUD_ARTIFACTS:-}
@@ -237,10 +240,13 @@ while true ; do
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
+        --prebuilt-version)
+            export ARDANA_QCOW2_TIMESTAMP=${2}
+            shift 2 ;;
         --build-images) export ARDANA_PREBUILT_IMAGES=0 ; shift ;;
-        --enable-spectrev2)
+        --enable-mitigations|--enable-spectrev2)
             export ARDANA_PREBUILT_IMAGES=0
-            export ARDANA_DISABLE_SPECTREV2=
+            export ARDANA_DISABLE_MITIGATIONS=
             shift ;;
         --ibs-prj) IBS_PRJS+=( "${2}" ); shift 2;;
         --ibs-repo) IBS_REPOS+=( "${2}" ); shift 2;;

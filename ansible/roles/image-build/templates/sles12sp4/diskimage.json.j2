@@ -48,8 +48,8 @@
         "linux netdevice=eth0 ",
         "netsetup=dhcp ",
 {% endraw %}
-{% if dev_env_disable_spectrev2_in_images | bool %}
-        "spectre_v2=off ",
+{% if dev_env_disable_mitigations_in_images | bool %}
+        "{{ sles_mitigations_param }}=off ",
 {% endif %}
 {% for item in _sles_repo_links_result.results %}
 {% if item is not skipped %}

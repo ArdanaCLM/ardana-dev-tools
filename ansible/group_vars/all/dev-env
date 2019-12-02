@@ -77,8 +77,11 @@ dev_env_attach_isos: "{{ lookup('env', 'ARDANA_ATTACH_ISOS') | default(False, tr
 # Should we download pre-built qcow2 images, or build them locally
 dev_env_use_prebuilt_images: "{{ lookup('env', 'ARDANA_PREBUILT_IMAGES') | default(False, true) }}"
 
-# Should we disable Spectre V2 mitigations or not when building qcow2 images locally
-dev_env_disable_spectrev2_in_images: "{{ lookup('env', 'ARDANA_DISABLE_SPECTREV2') | default(False, true) }}"
+# Version timestamp for pre-built qcow2 images
+dev_env_prebuilt_qcow2_version: "{{ lookup('env', 'ARDANA_QCOW2_TIMESTAMP') | default('', true) }}"
+
+# Should we disable kernel mitigations (e.g. Spectre V2) or not when building qcow2 images locally
+dev_env_disable_mitigations_in_images: "{{ lookup('env', 'ARDANA_DISABLE_MITIGATIONS') | default(False, true) }}"
 
 # Should we download ISOs
 dev_env_download_isos: "{{ (dev_env_attach_isos | bool) or not (dev_env_use_prebuilt_images | bool) }}"

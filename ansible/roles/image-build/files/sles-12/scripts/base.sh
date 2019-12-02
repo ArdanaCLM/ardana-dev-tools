@@ -74,6 +74,14 @@ do
 	grub_updated=1
 done
 
+# Elminate extraneous mitigations=off entries in /proc/cmdline
+while [ "$(grep -o mitigations=off /etc/default/grub | wc -l | tr -d '[[:space:]]')" -gt 1 ]
+do
+	echo "[Removing duplicate 'mitigations=off' from grub kernel command line]"
+	sed -i -e 's,mitigations=off ,,' /etc/default/grub
+	grub_updated=1
+done
+
 # Refresh grub.cfg if we modified the grub settings
 if [ -n "${grub_updated}" ]; then
 	echo "[Refreshing grub.cfg]"

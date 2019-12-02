@@ -25,8 +25,8 @@
   <bootloader>
     <global>
       <timeout config:type="integer">2</timeout>
-{% if dev_env_disable_spectrev2_in_images | bool %}
-      <append>spectre_v2=off</append>
+{% if dev_env_disable_mitigations_in_images | bool %}
+      <append>{{ sles_mitigations_param }}=off</append>
 {% endif %}
     </global>
   </bootloader>
