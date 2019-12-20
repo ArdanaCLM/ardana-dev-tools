@@ -80,6 +80,7 @@ long_opts=(
     pre-destroy
     rhel-compute
     sles-compute
+    staging
 )
 
 # join long_opts members with ","

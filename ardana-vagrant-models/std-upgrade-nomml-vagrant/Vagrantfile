@@ -1,0 +1,22 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby ts=2 :
+
+require File.expand_path(File.dirname(__FILE__)) + "/../../lib/ardana_vagrant_helper.rb"
+
+cloud_name = File.basename(File.dirname(__FILE__)).chomp("-vagrant")
+deployer_node = "clm-0001"
+
+Vagrant.configure("2") do |config|
+
+  ardana = Ardana::Config.new config
+  ardana.set_ssh_config
+
+  # Provider-specific settings
+  ardana.set_provider_config
+
+  ardana.set_vm_config
+
+  # Server Definitions
+  # Control & Compute nodes
+  ardana.add_server_group(modifier: 1, cloud_name: cloud_name, deployer_node: deployer_node)
+end

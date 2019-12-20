@@ -20,8 +20,8 @@
 
   disk-models:
   - name: OSC-DISKS
-    # 6 disk node - first disk for operating system, 2 disks for cinder,
-    # remaining disks for swift.
+    # 3 disk node - first disk for operating system, remaining disks for
+    # cinder.
     device-groups:
       - name: cinder-volume
         devices:
@@ -29,20 +29,6 @@
           - name: /dev/sdc
         consumer:
           name: cinder
-
-      - name: swiftobj
-        devices:
-          - name: /dev/sdd
-          - name: /dev/sde
-          - name: /dev/sdf
-        consumer:
-          name: swift
-          attrs:
-            rings:
-              - account
-              - container
-              - object-0
-              - object-1
 
     volume-groups:
     # The policy is not to consume 100% of the space of each volume group.

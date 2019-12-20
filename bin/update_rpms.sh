@@ -225,6 +225,14 @@ function update_ardana_rpms {
         # rpm name does not follow the general rule as for the
         # other repos.
         case "${REPO}" in
+        (*-c8|*-c9)
+            BASE_REPO_NAME="${REPO%-c?}"
+            ;;
+        (*)
+            BASE_REPO_NAME="${REPO}"
+            ;;
+        esac
+        case "${BASE_REPO_NAME}" in
         (ardana-configuration-processor)
             RPM_NAME=python-ardana-configurationprocessor
             ;;
@@ -232,7 +240,7 @@ function update_ardana_rpms {
             BUILD_RPM=python-ardana-opsconsole-server
             ;;
         (swiftlm|cinderlm)
-            RPM_NAME=python-${REPO}
+            RPM_NAME=python-${BASE_REPO_NAME}
             ;;
         (ardana-ansible|ardana-input-model)
             RPM_NAME=${REPO}
@@ -242,7 +250,7 @@ function update_ardana_rpms {
             continue
             ;;
         (*-ansible)
-            RPM_NAME=ardana-${REPO%-ansible}
+            RPM_NAME=ardana-${BASE_REPO_NAME%-ansible}
             ;;
         (*)
             # if we didn't identify a REPO ==> RPM_NAME mapping, skip to next repo

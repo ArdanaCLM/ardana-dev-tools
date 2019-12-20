@@ -116,9 +116,9 @@
       ilo-user: admin
       nic-mapping: VAGRANT
 
-    - id: mml-0001
+    - id: sles-comp-0001
       ip-addr: 192.168.110.11
-      role: MML-CONTROLLER-ROLE
+      role: SLES-COMPUTE-ROLE
       server-group: RACK1
       mac-addr: 52:54:00:aa:05:01
       ilo-ip: 192.168.109.11
@@ -126,9 +126,9 @@
       ilo-user: admin
       nic-mapping: VAGRANT
 
-    - id: mml-0002
+    - id: sles-comp-0002
       ip-addr: 192.168.110.12
-      role: MML-CONTROLLER-ROLE
+      role: SLES-COMPUTE-ROLE
       server-group: RACK2
       mac-addr: 52:54:00:aa:05:02
       ilo-ip: 192.168.109.12
@@ -136,42 +136,12 @@
       ilo-user: admin
       nic-mapping: VAGRANT
 
-    - id: mml-0003
-      ip-addr: 192.168.110.13
-      role: MML-CONTROLLER-ROLE
-      server-group: RACK3
-      mac-addr: 52:54:00:aa:05:03
-      ilo-ip: 192.168.109.13
-      ilo-password: password
-      ilo-user: admin
-      nic-mapping: VAGRANT
-
-    - id: sles-comp-0001
-      ip-addr: 192.168.110.14
-      role: SLES-COMPUTE-ROLE
-      server-group: RACK1
-      mac-addr: 52:54:00:aa:06:01
-      ilo-ip: 192.168.109.14
-      ilo-password: password
-      ilo-user: admin
-      nic-mapping: VAGRANT
-
-    - id: sles-comp-0002
-      ip-addr: 192.168.110.15
-      role: SLES-COMPUTE-ROLE
-      server-group: RACK2
-      mac-addr: 52:54:00:aa:06:02
-      ilo-ip: 192.168.109.16
-      ilo-password: password
-      ilo-user: admin
-      nic-mapping: VAGRANT
-
     - id: rhel-comp-0001
-      ip-addr: 192.168.110.16
+      ip-addr: 192.168.110.13
       role: RHEL-COMPUTE-ROLE
       server-group: RACK3
-      mac-addr: 52:54:00:aa:07:01
-      ilo-ip: 192.168.109.16
+      mac-addr: 52:54:00:aa:06:01
+      ilo-ip: 192.168.109.13
       ilo-password: password
       ilo-user: admin
       nic-mapping: VAGRANT
@@ -218,17 +188,6 @@
           count: 2
           size_gib: 20
       flavor: 'cloud-ardana-job-lvm-osc'
-
-    MML-CONTROLLER-ROLE:
-      memory: 12288
-      cpus: 4
-      disks:
-        boot:
-          size_gib: 50
-        extras:  # used for mml x2
-          count: 2
-          size_gib: 20
-      flavor: 'cloud-ardana-job-lvm-mml'
 
     SLES-COMPUTE-ROLE:
       memory: 6144

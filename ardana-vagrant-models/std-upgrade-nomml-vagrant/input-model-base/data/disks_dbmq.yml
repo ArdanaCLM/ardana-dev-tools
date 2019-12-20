@@ -19,16 +19,9 @@
     version: 2
 
   disk-models:
-  - name: OSC-DISKS
-    # 3 disk node - first disk for operating system, remaining disks for
-    # cinder.
-    device-groups:
-      - name: cinder-volume
-        devices:
-          - name: /dev/sdb
-          - name: /dev/sdc
-        consumer:
-          name: cinder
+  - name: DBMQ-DISKS
+    # 3 disk node; first disk for operating system, 1 disk for DB, 1 disk
+    # for MQ.
 
     volume-groups:
     # The policy is not to consume 100% of the space of each volume group.
@@ -40,6 +33,7 @@
       - name: ardana-vg
         physical-volumes:
           - /dev/sda_root
+
         logical-volumes:
           - name: root
             size: 45%
@@ -61,34 +55,29 @@
         consumer:
           name: os
 
-    # Cinder: cinder volume needs temporary local filesystem space to convert
-    # images to raw when creating bootable volumes. Using a separate volume
-    # will both ringfence this space and avoid filling /
-    # The size should represent the raw size of the largest image times
-    # the number of concurrent bootable volume creations.
-    # The logical volume can be part of an existing volume group or a
-    # dedicated volume group.
-    #  - name: cinder-vg
-    #    physical-volumes:
-    #      - /dev/sdx
-    #    logical-volumes:
-    #     - name: cinder_image
-    #       size: 5%
-    #       mount: /var/lib/cinder
-    #       fstype: ext4
+      - name: ardana-db
+        physical-volumes:
+          - /dev/sdb
 
-    # Glance cache: if a logical volume with consumer usage 'glance-cache'
-    # is defined Glance caching will be enabled. The logical volume can be
-    # part of an existing volume group or a dedicated volume group.
-    # - name: glance-vg
-    #   physical-volumes:
-    #     - /dev/sdx
-    #   logical-volumes:
-    #     - name: glance-cache
-    #       size: 95%
-    #       mount: /var/lib/glance/cache
-    #       fstype: ext4
-    #       mkfs-opts: -O large_file
-    #       consumer:
-    #         name: glance-api
-    #         usage: glance-cache
+        logical-volumes:
+          - name: mysql
+            size: 90%
+            mount: /var/lib/mysql
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: mysql
+
+      - name: ardana-mq
+        physical-volumes:
+          - /dev/sdc
+
+        logical-volumes:
+          - name: rabbitmq
+            size: 90%
+            mount: /var/lib/rabbitmq
+            fstype: ext4
+            mkfs-opts: -O large_file
+            consumer:
+              name: rabbitmq
+              rabbitmq_env: home

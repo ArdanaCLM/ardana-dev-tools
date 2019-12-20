@@ -19,16 +19,22 @@
     version: 2
 
   disk-models:
-  - name: OSC-DISKS
-    # 3 disk node - first disk for operating system, remaining disks for
-    # cinder.
+  - name: SWIFT-DISKS
+    # 4 disk node; first disk for operating system, remaining disks for swift.
     device-groups:
-      - name: cinder-volume
+      - name: swiftobj
         devices:
           - name: /dev/sdb
           - name: /dev/sdc
+          - name: /dev/sdd
         consumer:
-          name: cinder
+          name: swift
+          attrs:
+            rings:
+              - account
+              - container
+              - object-0
+              - object-1
 
     volume-groups:
     # The policy is not to consume 100% of the space of each volume group.
@@ -40,6 +46,7 @@
       - name: ardana-vg
         physical-volumes:
           - /dev/sda_root
+
         logical-volumes:
           - name: root
             size: 45%
@@ -60,35 +67,3 @@
 
         consumer:
           name: os
-
-    # Cinder: cinder volume needs temporary local filesystem space to convert
-    # images to raw when creating bootable volumes. Using a separate volume
-    # will both ringfence this space and avoid filling /
-    # The size should represent the raw size of the largest image times
-    # the number of concurrent bootable volume creations.
-    # The logical volume can be part of an existing volume group or a
-    # dedicated volume group.
-    #  - name: cinder-vg
-    #    physical-volumes:
-    #      - /dev/sdx
-    #    logical-volumes:
-    #     - name: cinder_image
-    #       size: 5%
-    #       mount: /var/lib/cinder
-    #       fstype: ext4
-
-    # Glance cache: if a logical volume with consumer usage 'glance-cache'
-    # is defined Glance caching will be enabled. The logical volume can be
-    # part of an existing volume group or a dedicated volume group.
-    # - name: glance-vg
-    #   physical-volumes:
-    #     - /dev/sdx
-    #   logical-volumes:
-    #     - name: glance-cache
-    #       size: 95%
-    #       mount: /var/lib/glance/cache
-    #       fstype: ext4
-    #       mkfs-opts: -O large_file
-    #       consumer:
-    #         name: glance-api
-    #         usage: glance-cache
