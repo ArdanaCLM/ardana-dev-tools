@@ -73,8 +73,6 @@ export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
 # checked out on the appropriate branch
 function get_cloned_ardana_repos {
     local req_br="${1:-master}"
-    local found_ardana=""
-    local found_ardana_ansible""
     local gr_files gr clone gr_prj gr_br
 
     gr_files=( $( sudo find ${WORKSPACE} -follow -maxdepth 2 -name .gitreview) )
@@ -92,12 +90,9 @@ function get_cloned_ardana_repos {
             continue
             ;;
         (ardana/ardana)
-            case "${ARDANA_CLOUD_VERSION}" in
-            (9)
-                echo "Skipping ardana - no associated RPM in Cloud${ARDANA_CLOUD_VERSION}" 1>&2
-                continue
-                ;;
-            esac
+            # Cloud 8 & 9 ardana-ansible RPMs no longer need ardana respo cloned
+            echo "Skipping ardana - no associated RPM" 1>&2
+            continue
             ;;
         (ardana/*)
             ;;
@@ -113,29 +108,8 @@ function get_cloned_ardana_repos {
             continue
         fi
 
-        # check for any special clone specific considerations
-        case "${clone}" in
-        (ardana)
-            found_ardana=1
-            ;;
-        (ardana-ansible)
-            found_ardana_ansible=1
-            ;;
-        esac
-
         echo "${clone}"
     done
-
-    case "${ARDANA_CLOUD_VERSION}" in
-    (8)
-        # If only one of the ardana or ardana-ansible repos is cloned
-        # on the correct branch we can't build the RPM for that package
-        if [[ "${found_ardana}${found_ardana_ansible}" == "1" ]]; then
-            echo "Error: Onlu one of 'ardana' and 'ardana-ansible' is cloned on branch '${req_br}'" 1>&2
-            exit 1
-        fi
-        ;;
-    esac
 }
 
 # function fix_ardana_rpms
