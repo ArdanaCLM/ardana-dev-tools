@@ -74,6 +74,16 @@ is_trusty()
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "trusty" ) ]]
 }
 
+is_xenial()
+{
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "xenial" ) ]]
+}
+
+is_eoan()
+{
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "eoan" ) ]]
+}
+
 version_at_least()
 {
     local cur="${1}" tgt="${2}"
@@ -159,7 +169,7 @@ fi
 # without triggering package cache refreshes, so we check if the
 # the associated directory under ${pkg_docs_dir} exists.
 _needed_modules=( setuptools )
-if is_trusty
+if is_trusty || is_eoan
 then
     # python-sh is not available as a package for Ubuntu Trusty
     req_pips+=( sh )
@@ -170,6 +180,14 @@ _pyver=
 if is_opensuse_leap15 || is_opensuse_tumbleweed
 then
     _pyver=2
+fi
+# For xenial we need to pin to an earlier version of setuptools to avoid
+# Python version dependency issues.
+if is_xenial
+then
+    _setuptools_ver="<45"
+else
+    _setuptools_ver=""
 fi
 
 for m in "${_needed_modules[@]}"
@@ -275,7 +293,7 @@ echo "export VAGRANT_HOME;"
 #
 
 # Ansible settings
-ansible_version=${ARDANA_ANSIBLE_VERSION:-2.7.13}
+ansible_version=${ARDANA_ANSIBLE_VERSION:-2.7.15}
 bootstrap_ansible="${bootstrap_venvs}/ansible-${ansible_version}"
 ansible_log="${ANSIBLE_LOG_PATH:-${logs_root}/vm_host_ansible.log}"
 
@@ -292,7 +310,7 @@ if [[ ! -d "${bootstrap_ansible}" ]]
 then
     echo 1>&2 "Creating Ansible ${ansible_version} venv..."
     ${venv_cmd} --python python2.7 "${bootstrap_ansible}" 1>&2
-    ${bootstrap_ansible}/bin/pip install --upgrade pip wheel setuptools 1>&2
+    ${bootstrap_ansible}/bin/pip install --upgrade pip wheel "setuptools${_setuptools_ver}" 1>&2
 fi
 
 # Install specified ansible version in the bootstrap venv if necessary

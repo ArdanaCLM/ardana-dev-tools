@@ -16,7 +16,7 @@
 # Settings used to install & manage the packer runtime environment
 ---
 
-packer_version: "{{ lookup('env', 'ARDANA_PACKER_VERSION') | default('1.3.4', true) }}"
+packer_version: "{{ lookup('env', 'ARDANA_PACKER_VERSION') | default('1.4.5', true) }}"
 
 # Settings related to downloading Vagrant packages
 packer_download:

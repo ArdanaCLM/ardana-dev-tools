@@ -14,30 +14,37 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Variables for the vagrant environment
+# Variables for the setup of libvirt
 ---
-libvirt_apt_packages_default:
-    qemu-kvm:
-    libvirt-bin:
-    libvirt-dev:
-    libxml2-dev:
-    libxslt-dev:
+libvirt_apt_pkgs_common:
+  - qemu-kvm
+  - libvirt-dev
+  - libxml2-dev
+  - libxslt-dev
 
-libvirt_zypp_packages_default:
-    qemu-kvm:
-    libvirt:
-    libvirt-devel:
-    libvirt-python:
-    libxml2-devel:
-    libxslt-devel:
+libvirt_apt_pkgs_dist_versions:
+  14:
+    - libvirt-bin
+  16:
+    - libvirt-bin
+  default:
+    - libvirt-daemon-system
+    - libvirt-clients
 
-libvirt_apt_packages: "{{ libvirt_apt_packages_default |
-                          update(libvirt_apt_packages_update |
-                                 default({})) }}"
+libvirt_apt_pkgs_dist: "{{ ((ansible_distribution_major_version | int)
+                            in libvirt_apt_pkgs_dist_versions) |
+                           ternary(libvirt_apt_pkgs_dist_versions[ansible_distribution_major_version | int],
+                                   libvirt_apt_pkgs_dist_versions['default']) }}"
 
-libvirt_zypp_packages: "{{ libvirt_zypp_packages_default |
-                          update(libvirt_zypp_packages_update |
-                                 default({})) }}"
+libvirt_apt_packages: "{{ libvirt_apt_pkgs_common + libvirt_apt_pkgs_dist }}"
+
+libvirt_zypp_packages:
+  - qemu-kvm
+  - libvirt
+  - libvirt-devel
+  - libvirt-python
+  - libxml2-devel
+  - libxslt-devel
 
 # determine appropriate libvirt group and service names
 libvirt_group: >-

@@ -28,7 +28,8 @@
   register: _vconfig_rem_result
   failed_when:
     - _vconfig_rem_result is failed
-    - not ('No such device' in _vconfig_rem_result.stderr)
+    - not (('No such device' in _vconfig_rem_result.stderr) or
+           ('Cannot find device' in _vconfig_rem_result.stderr))
 
 - name: dev-env | connect_deployer_to_extnet | Set the vlan naming convention
   command: vconfig set_name_type VLAN_PLUS_VID_NO_PAD

@@ -20,7 +20,7 @@
 SCRIPT_NAME=$(basename $0)
 SCRIPT_HOME=$(dirname $(readlink -f $0))
 
-PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}(${FUNCNAME[0]}):'
+PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:'
 
 usage() {
     set +x

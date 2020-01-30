@@ -183,7 +183,7 @@ included in the image to save space.
 ### Ansible version
 
 The Ardana DevEnv (ardana/ardana-dev-tools.git repo) tools have been
-updated to be compatible with Ansible 2.7.13, though the Ardana OpenStack
+updated to be compatible with Ansible 2.7.15, though the Ardana OpenStack
 ansible playbooks themselves, have not been updated to work with Ansible
 2.x, and currently are only verified to work correctly with Ansible 1.9.
 
@@ -664,7 +664,7 @@ as most modern distros will install a newer version of ansible that we
 have optimised Ardana for, which may see issues.
 
 For best results we recommend running the ansible-dev-tools playbooks
-using Ansible version 2.7.13. This can be done using a Python virtualenv
+using Ansible version 2.7.15. This can be done using a Python virtualenv
 and we provide the ardana-dev-tools/bin/ardana-env script to set this
 up automatically for you; just eval the output it generates, e.g.
 
