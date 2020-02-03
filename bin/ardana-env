@@ -153,6 +153,9 @@ esac
 # Need wget to restrieve files via URLs
 [[ -x /usr/bin/wget ]] || req_pkgs+=( wget )
 
+# Need gawk command
+[[ -x /usr/bin/gawk ]] || req_pkgs+=( gawk )
+
 # Need virtualenv command
 if [[ ! -x ${venv_cmd} ]]
 then

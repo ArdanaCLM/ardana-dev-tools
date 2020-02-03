@@ -29,6 +29,7 @@ dev_env_zypp_packages_default:
     libopenssl-devel:
     acl:
     sysfsutils:
+    gawk:
 
 dev_env_zypp_packages: "{{ dev_env_zypp_packages_default |
                           update( dev_env_zypp_packages_update |

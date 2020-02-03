@@ -33,6 +33,7 @@ dev_env_apt_packages_default:
     fakeroot:
     sysfsutils:
     acl:
+    gawk:
 
 dev_env_apt_packages: "{{ dev_env_apt_packages_default |
                           update( dev_env_apt_packages_update |

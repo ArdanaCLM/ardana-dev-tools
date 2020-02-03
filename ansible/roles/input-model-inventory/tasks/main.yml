@@ -27,7 +27,7 @@
 
 - name: input-model-inventory | main | Lookup deployer_node setting
   command: >-
-    awk
+    gawk
       -v dquote='"'
       '$1 == "deployer_node" {print gensub(dquote, "", "g", $3)}'
       {{ dev_env_vagrant_file }}
