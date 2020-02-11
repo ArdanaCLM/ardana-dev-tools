@@ -46,3 +46,4 @@ AUTHORS
 ChangeLog
 doc/build/*
 ansible/packer_cache/*
+cloud-vagrant

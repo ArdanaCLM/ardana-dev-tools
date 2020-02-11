@@ -19,6 +19,7 @@ export DEVROOT=$(readlink -e ${DEVTOOLS}/..)
 export LOGSROOT="${WORKSPACE:-${DEVROOT}}/logs"
 export ARDANA_OSC_CACHE="${HOME}/.cache/ardana-osc"
 export ARDANA_OVERRIDE_RPMS="${WORKSPACE:-${DEVROOT}}/C${ARDANA_CLOUD_VERSION:-9}_NEW_RPMS"
+export CLOUD_VAGRANT_LINK="${DEVTOOLS}/cloud-vagrant"
 PS4='+${BASH_SOURCE/$HOME/\~}@${LINENO}${FUNCNAME:+(${FUNCNAME[0]})}:'
 
 export ANSIBLE_CONFIG="${ANSIBLE_CONFIG:-${DEVTOOLS}/ansible/ansible.cfg}"
@@ -139,23 +140,45 @@ logtimeoutfail() {
     logfail $1 $STATUS
 }
 
+create_cloud_vagrant_link()
+{
+    local acn="${1:-${ARDANA_CLOUD_NAME:-}}"
+
+    if [ -z "${acn:-}" ]; then
+        echo "A cloud name must be specified" >&2
+        exit 1
+    fi
+
+    ln -fs -T "ardana-vagrant-models/${acn}-vagrant" ${DEVTOOLS}/cloud-vagrant
+}
+
 ensure_in_vagrant_dir() {
     local caller="${1:-$(basename $0)}"
 
     if [ ! -f Vagrantfile ]; then
-        echo "$caller must be run in directory containing Vagrantfile" >&2
-        exit 1
+        if [ ! -L ${CLOUD_VAGRANT_LINK} ]; then
+        cat 1>&2 << _EOF_
+$caller must be run in directory containing Vagrantfile, e.g. one of the
+ardana-dev-tools/ardana-vagrant-models/<cloud>-vagrant directories or the
+ardana-dev-tools/cloud-vagrant symlink must exist and point to a valid
+vagrant model directory.
+_EOF_
+            exit 1
+        fi
+        pushd ${CLOUD_VAGRANT_LINK}
     fi
 
     case "${PWD}" in
-    (*/ardana-vagrant-models/*-vagrant|*/build-vagrant)
+    (*/ardana-vagrant-models/*-vagrant|*/build-vagrant|*/cloud-vagrant)
         # all good
         ;;
     (*)
         cat 1>&2 << _EOF_
 ${caller} must be run either from within a <cloud>-vagrant subdirectory
 under the ardana-dev-tools/ardana-vagrant-models, or from within the
-ardana-dev-tools/build-vagrant directory.
+ardana-dev-tools/build-vagrant directory. If the cloud has been prepared
+then the ardana-dev-tools/cloud-vagrant link should exist and point to
+the active cloud's vagrant dir under ardana-dev-tools/ardana-vagrant-models.
 _EOF_
         exit 1
         ;;
@@ -193,7 +216,9 @@ generate_astack_env()
 generate_ssh_config() {
     ensure_in_vagrant_dir generate_ssh_config
 
-    if [ ! -e ${ARDANA_VAGRANT_SSH_CONFIG} -o -n "${1:-}" ]; then
+    if [ -e "${ARDANA_CLOUD_SSH_CONFIG}" -a ! -e "${ARDANA_VAGRANT_SSH_CONFIG}" ]; then
+        cp -p "${ARDANA_CLOUD_SSH_CONFIG}" "${ARDANA_VAGRANT_SSH_CONFIG}"
+    elif [ ! -e ${ARDANA_VAGRANT_SSH_CONFIG} -o -n "${1:-}" ]; then
         local log="${VAGRANT_LOG_DIR}/${ARDANA_VAGRANT_SSH_CONFIG}.log"
         vagrant --debug ssh-config 2>>"$log" >${ARDANA_VAGRANT_SSH_CONFIG}.new
         local status=$?

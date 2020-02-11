@@ -34,19 +34,22 @@ usage() {
   echo
   echo "--ci              -- Sets the same options as used by the CI"
   echo "                     environment."
+  echo "--no-setup        -- Skip the Vagrant env setup step."
 }
 
-OPTIONS=help,ci
+OPTIONS=help,ci,no-setup
 TEMP=$(getopt -o -h -l $OPTIONS -n $SCRIPT_NAME -- "$@")
 if [ $? != 0 ] ; then echo "Terminating..." >&2 ; exit 1 ; fi
 eval set -- "$TEMP"
 
 CI=
+NO_SETUP=
 
 while true ; do
     case "$1" in
         -h | --help) usage ; exit 0 ;;
         --ci) CI=1 ; shift ;;
+        --no-setup) NO_SETUP=1 ; shift ;;
         --) shift ; break ;;
         *) break ;;
     esac
@@ -62,9 +65,18 @@ sudo sysctl -w \
 # them with vagrant. If that didn't work, don't worry about it. We'll sweep
 # up any stragglers later using virsh directly.
 if which vagrant ; then
-    eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/dev-env-setup --vagrant-only)"
+    if [ -z "${NO_SETUP}" ]; then
+        eval "$($(dirname "$(readlink -e "${BASH_SOURCE[0]}")")/dev-env-setup --vagrant-only)"
+    fi
 
     vagrant --version
+
+    if [ -L "${TOOLS_DIR}/cloud-vagrant" ]; then
+        if ! ${SCRIPT_DIR}/ardana-vagrant destroy -f; then
+            echo "Failed to cleanup configured cloud; falling back on global cleanup."
+        fi
+    fi
+
     # prune stale state
     vagrant global-status --prune || true
     # vagrant allows you to destroy instances from any path provided you
@@ -211,6 +223,9 @@ find $TOOLS_DIR -type f -name .astack_env | xargs rm -vf
 
 # Remove stale locally staged input models
 find $TOOLS_DIR/ardana-vagrant-models -name input-model -type d | xargs rm -vfr
+
+# Remove cloud-vagrant symlink
+rm -f "${TOOLS_DIR}/cloud-vagrant"
 
 # Remove stale cached ISO images
 # Look for any files under the ~/.cache-ardana/isos tree older than

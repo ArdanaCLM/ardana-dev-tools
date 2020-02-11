@@ -308,6 +308,9 @@ if [ ! -d "${ARDANA_VAGRANT_DIR}" ]; then
     echo "${ARDANA_VAGRANT_DIR} not found" >&2; exit 1
 fi
 
+# Setup the cloud-vagrant symlink
+create_cloud_vagrant_link "${ARDANA_CLOUD_NAME}"
+
 # Deploy and configure your cloud
 pushd ${ARDANA_VAGRANT_DIR}
 
@@ -378,14 +381,14 @@ if [ -n "$FEATURE_PREPARE" ]; then
 fi
 
 if [ -n "${NO_CLOUD:-}" ]; then
+    set +vx
     cat << _EOF_
 The environment has been prepared to create a cloud, but the --no-cloud
-option was specified. If you would like to deploy your cloud you should
-cd into the '${ARDANA_VAGRANT_DIR#${DEVTOOLS}/}' directory and run the
-following commands:
+option was specified. If you would like to deploy your cloud you can
+run the following commands:
 
-    % ./ardana-vagrant up
-    % ./ardana-vagrant-ansible
+    % bin/ardana-vagrant up
+    % bin/ardana-vagrant-ansible
 
 Once those commands have completed successfully you will have a cloud
 environment that is ready for you to log into and manually configure an
@@ -594,5 +597,42 @@ if [ -n "$RUN_TESTS" -a -z "$USE_PROJECT_STACK" ]; then
             ${ARDANA_CLOUD_NAME}
     popd
 fi
+
+if [ -z "${NO_SITE}${NO_CONFIG}" ]; then
+    cloud_state=deployed
+elif [ -n "${NO_SITE}" ]; then
+    cloud_state=configured
+else
+    cloud_state=provisioned
+fi
+
+set +vx
+
+cat << _EOF_
+
+The '${ARDANA_CLOUD_NAME}' cloud has been ${cloud_state}.
+
+To see which nodes make up the cloud you can run the following command:
+
+    % bin/ardana-nodes
+
+Use the ardana-ssh helper scrupt to login to a node, e.g. to login to
+the deployer you can run the following command:
+
+    % bin/ardana-ssh deployer
+
+NOTE: 'deployer' will be configured as an alias for the deployer node if
+it is not called 'deployer'.
+
+Similarly the ardana-scp and ardana-rsync helper scripts exist and can be
+used to send or retrieve files from the cloud nodes.
+
+To run a given filter's set of tempest tests against your cloud, once it
+has been deployed, you can use the ardana-run-tests helper script, e.g.
+to run the 'ci' filter against the current cloud:
+
+    % bin/ardana-run-tests ci
+
+_EOF_
 
 # vim:shiftwidth=4:tabstop=4:expandtab

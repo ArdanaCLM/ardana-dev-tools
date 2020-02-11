@@ -15,7 +15,10 @@
 # under the License.
 #
 # Run ansible-playbook against vagrant cloud using cached environment settings
-# Must be in an ardana-vagrant-models/<cloud>-vagrant directory
+#
+# Must be in an ardana-vagrant-models/<cloud>-vagrant directory or
+# the cloud-vagrant symlink must exist and point to a valid model's
+# vagrant directory.
 #
 
 set -eu
@@ -92,6 +95,9 @@ ensure_in_vagrant_dir "${_cmd_name}"
 ensure_astack_env_exists
 
 source ${ARDANA_ASTACK_ENV}
+
+# Return to original directory
+popd
 
 # if not even a playbook is specified, and this is a SOC/CLM cloud,
 # default to running cloud-setup.yml

@@ -15,6 +15,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
+# Must be in an ardana-vagrant-models/<cloud>-vagrant directory or
+# the cloud-vagrant symlink must exist and point to a valid model's
+# vagrant directory.
+#
 
 set -eu
 set -o pipefail
@@ -51,11 +55,7 @@ ensure_in_vagrant_dir $SCRIPT_NAME
 deployscript="$1"
 shift
 
-DEPLOYERNODE="$(get_deployer_node)"
-
-generate_ssh_config
-
 script="/home/$ARDANAUSER/$(basename $deployscript)"
-scp -F $ARDANA_CLOUD_SSH_CONFIG $deployscript $DEPLOYERNODE:$script
+${SCRIPT_HOME}/ardana-scp $deployscript deployer:$script
 
-vagrant_data_on_error "ssh -t -F $ARDANA_CLOUD_SSH_CONFIG $ARDANAUSER@$DEPLOYERNODE $script $@"
+vagrant_data_on_error "${SCRIPT_HOME}/ardana-ssh -t deployer $script $@"

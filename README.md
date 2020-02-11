@@ -49,16 +49,16 @@ getting started.
 The following are fully supportted and expected to work without significant
 effort:
 
-* Ubuntu 18.04 (Bionic), 16.04 (Xenial), 14.04 (Trusty)
-* openSUSE Leap 15, 42.3 and 42.2
+* Ubuntu 19.10 (Eoan), Ubuntu 18.04 (Bionic), 16.04 (Xenial), 14.04 (Trusty)
+* openSUSE Leap 15.1, 15, 42.3 and 42.2
 
 You should be able to get things working on these but will need to manually
 add appropriate zypper repos to your system to be sure.
-* SLE 12 SP3
+* SLE 12 SP3/4/5
   * Need to ensure your SLE Server is SCC registered to have access to
     Pool & Update repos
   * Need to add the SLE SDK Product/Addon
-  * Need [devel:languages:python](https://download.opensuse.org/repositories/devel:/languages:/python/SLE_12_SP3/devel:languages:python.repo) for SLE 12 SP3
+  * Probably need [devel:languages:python](https://download.opensuse.org/repositories/devel:/languages:/python) for your release, e.g. naviagte down to SLE_12_SPx/devel:languages:python.repo
   * Need a version of *jq*, version 1.5 or later, installed.
 
 ### Paswordless sudo must be setup
@@ -105,33 +105,27 @@ Which version of SOC/CLM gets deployed depends on whether you use
 
 ### Vagrant version
 
-The Ardana Legacy style CI infrastructure uses Vagrant 1.7.2; however
-in early 2017 HashiCorp shutdown gems.hashicorp.com, used by Vagrant
-1.7.2, and as a result Vagrant 1.7.2 is no longer able to build plugins.
-However we can use Vagrant 1.7.4 to build compatible plugins and then
-downgrade to Vagrant 1.7.2 again. This is handled automatically by the
-dev-env-install.yml playbook.
+The Ardana Legacy style CI infrastructure uses Vagrant version 1.8.7.
+This is handled automatically by the *dev-env-install.yml* playbook,
+which can be run using the helper script *ardana-dev-tools/bin/dev-env-setup*.
 
-The use of such an old version of vagrant is due to the need to share
-some of the CI testing resources with a legacy testing environment that
-expects this version of Vagrant.
+The use of such an old version of vagrant as our default version is
+due to the need to share some of the CI testing resources with a
+legacy testing environment that expects this version of Vagrant.
 
-#### Development environments and Vagrant version
-NOTE: If you want to avoid this upgrade/downgrade of vagrant, you can set
-the ARDANA_VAGRANT_VERSION environment variable to the value of a newer
-supported version of Vagrant, e.g. 1.8.7.  For example
+However you should be able to successfully use newer versions of
+Vagrant (the latest being Vagrant 2.2.7 at the time of writing)
+with ardana-dev-tools; just set the ARDANA_VAGRANT_VERSION env var
+to the desired version and run *dev-env-setup*.
 
-    export ARDANA_VAGRANT_VERSION=1.8.7
+#### Vagrant in the DevEnv
 
-Additionally the *astack.sh* driven DevEnv uses Vagrant version specific
+Note that the *astack.sh* driven DevEnv uses Vagrant version specific
 plugin environments, located in *~/.cache-ardana/vagrant/<version>/home*.
 This means you can easily switch between Vagrant versions without having
-to remember to delete the *~/.vagrant.d* directory anymore. This is done by
-the *bin/ardana-env* script which sets up the VAGRANT_HOME env var to point
-to the appropriate home area for the selected ARDANA_VAGRANT_VERSION, which
-defaults to 1.7.2 if not specified, and subsequent *astack.sh* runs will
-use the ansible/dev-env-install.yml playbook that will detect that Vagrant
-plugins are missing/out-of-date, and re-install them.
+to remember to delete the *~/.vagrant.d* directory. This is handled by
+the *bin/ardana-env* script which sets up the VAGRANT_HOME env var to
+point to the appropriate home area for the ARDANA_VAGRANT_VERSION.
 
 If you have upgraded you system, or copied your account from one system to
 another you may want/need to delete any vagrant home areas to ensure that
@@ -139,24 +133,31 @@ they get rebuilt the next time you run astack.sh, e.g.
 
     rm -rf ~/.cache-ardana/vagrant/*/home
 
+Or just run *dev-env-setup --clean* which will recreate the DevEnv after
+deleting the existing content.
+
 ##### Supportted Vagrant versions
 
-Currently the Ardana DevEnv only supports the following Vagrant versions
-for all testing scenarios:
+Currently the Ardana DevEnv supports the following Vagrant versions for
+all testing scenarios:
+
+1. 1.8.7 (Probably any 1.8.x really)
+2. 2.1.5 (Any 2.1.x)
+3. 2.2.7 (Any 2.2.x)
+
+These versions may exhibit problems with RHEL/CentOS node deployment
+such as eth1 and eth2 network device MAC's being swapped sometimes,
+though they work fine for SLES only deployments.
+
+1. 1.9.8 (Probably any 1.9.x, definitely 1.9.5+)
+2. 2.0.4 (Any 2.0.x)
+
+While still technically supported, these versions have issues with
+building Vagrant plugins that may require manual intervention and
+should be avoided:
 
 1. 1.7.2 (Uses 1.7.4 to build the plugins)
 2. 1.7.4
-3. 1.8.7 (Probably any 1.8.x really)
-
-Newer versions of Vagrant will work for SLES only deployments, however
-RHEL compute networking is incorrectly configured when the VMs are being
-created leading to deployment errors.
-
-Verified as working for SLES only deployments:
-1. 1.9.8 (Probably any 1.9.x, definitely 1.9.5+)
-2. 2.0.4 (Any 2.0.x)
-3. 2.1.5 (Any 2.1.x)
-4. 2.2.4 (Any 2.2.x)
 
 #### vagrant-libvirt dependency
 
@@ -164,21 +165,24 @@ The primary Vagrant provider supported by Ardana is libvirt, requiring
 the vagrant-libvirt plugin.
 
 The default DevEnv/CI version is based on the 0.0.45 vagrant-libvirt
-release, dynamically patched with some minor changes to support:
+release, as of the time of writing, dynamically patched with some minor
+changes to support:
 
 * Using virtio-scsi as the SCSI controller model, rather than the normal
 LSI default.
-
-NOTE: Since we have stopped using the heavily customised 0.0.35 release
-we no longer support the following functionality:
-
-* Redirecting the console PTY device to a file via the added libvirt.serial
-action.
 
 NOTE: The Vagrant boxes we build for use with the Ardana DevEnv may fail
 to boot if you attempt to use them with a standard, unpatched, version
 of vagrant-libvirt because drivers for the default LSI SCSI may not be
 included in the image to save space.
+
+#### vagrant-libvirt hacks we no longer support
+
+Since we have stopped using the heavily customised 0.0.35 release
+we no longer support the following functionality:
+
+* Redirecting the console PTY device to a file via the added libvirt.serial
+action.
 
 ### Ansible version
 
@@ -213,10 +217,10 @@ then *--pre-destroy* with the *astack.sh* command which will ensure that
 any existing instance of the Vagrant cloud is destroyed before bringing
 up the specified cloud.
 
-_*WARNING*_: The cleanup-slave is quite destructive and if there are
-other, non-Ardana, vagrant libvirt VM's running on the system it will
-likely remove them, or break their network configurations, if they exist
-in the default libvirt namespaces.
+_*WARNING*_: The cleanup-slave can be destructive and if there are other,
+non-Ardana, vagrant libvirt VM's or networks defined/running on the system
+it will likely remove them, or break their network configurations, if they
+exist in the default libvirt namespaces.
 
 
 ## Deploy Ardana using astack.sh
@@ -518,50 +522,77 @@ mechanism, as it is may be disabled.
   * This option can result in slow deployment times if you are talking to the
 respective build service over a slow, e.g. VPN, link.
 
-## Useful tools
+## Useful tools and config files
 
-Once a cloud has been deployed, astack.sh will ensure that these files are
-created under the ardana-vagrant-models/${cloud}-vagrant directory that can
-make it easier to work with an astack managed cloud.
+Once a cloud has been deployed, astack.sh will setup the ardana-dev-tools
+tree to ensure that the following tools work correctly.
 
-#### astack-ssh-config
+NOTE: Many of these tools will leverage the *ardana-dev-tools/cloud-vagrant*
+symlink to determine the Vagrant model directory associated with the "active"
+cloud.  Or they can be run directly out of the Vagrant model directory, e.g
+from *ardana-vagrant-models/${cloud}-vagrant*.
 
-This is the generated ssh config file with entries for each cloud node
-by IP address and node name, as specified in the servers.yml file of the
-cloud's input model; if the deployer node is not called by that name then
-a deployer alias will be added associated with the relevant name.
+### .astack_env conf file
+
+This is a dump of just the relevant environment settings that were active
+when the cloud was being setup, which can be sourced to setup the same
+environment if you wish to run additional commands against the same cloud.
+
+### ardana
+
+This utility can be found in the ardana-dev-tools/bin directory and can
+be run either from under an *ardana-vagrant-models/${cloud}-vagrant*
+directory, in which case it will automatically determine the relevant
+cloud model name, or if the *ardana-dev-tools/cloud_vagrant* symlink
+exist it will use that to determine the active cloud, or via the
+*--cloud ${cloud}* option to specify the cloud model to use.
+
+This command loads the .astack_env file for the determined cloud model
+and then treats the rest of the command line as a command to be run
+under the specified cloud models environment.
+
+### astack-ssh-config file
+
+This is the generated ssh config file, found under the associated cloud's
+*ardana-vagrant-models/*_cloud_*-vagrant* directory, with entries for each
+cloud node by IP address and node name, as specified in the servers.yml
+file of the cloud's input model; if the deployer node has a name other
+than *deployer* then an alias of *deployer* will be configured for the
+appropriate node in the SSH config.
 
 This means you can run ssh or scp commands for your cloud using this file
 as an argument to the -F option, e.g.
 
     % cd ardana-vagrant-models/dac-min-vagrant
     % ssh -F astack-ssh-config controller
+    % scp -F astack-ssh-config script.sh deployer:
+    % rsync -e "ssh -F astack-ssh-config" path/to/some/dir deployer:/tmp
 
-#### .astack_env
+### ardana-nodes
 
-This is a dump of just the relevant environment settings that were active
-when the cloud was being setup, which can be sourced to setup the same
-environment if you wish to run additional commands against the same cloud.
+The *ardana-nodes* helper script prints out the nodes of the cloud as
+defined in the *astack-ssh-config* file.
 
-#### ardana
+### ardana-ssh, ardana-scp, ardana-rsync
 
-This utility can be found in the ardana-dev-tools/bin directory and can
-be run either from under an ardana-vagrant-models/${cloud}-vagrant
-directory, in which case it will automatically determine the relevant
-cloud model name, or with a --cloud ${cloud} option to specify the
-cloud model to use.
+The *ardana-ssh*, *ardana-scp* and *ardana-rsync* helper scripts leverage
+the generated *astack-ssh-config* file to perform ssh or scp commands to
+the cloud nodes, e.g.
 
-This command loads the .astack_env file for the determined cloud model
-and then treats the rest of the command line as a command to be run
-under the specified cloud models environment.
+    % bin/ardana-ssh controller
+    % bin/ardana-scp path/to/some/script.sh deployer:path/for/some/script.sh
+    % bin/ardana-rsync -a path/to/some/dir deployer:target/path
 
-#### ardana-vagrant
+NOTE: If there is a need to provide additional SSH options to a rsync's
+ssh command you can specify them via the ARDANA_RSYNC_SSH_OPTIONS env var.
+
+### ardana-vagrant
 
 This is a simple wrapper script that leverages the .astack_env file to
 setup the environment appropriately and then runs the vagrant command
 against the cloud, e.g.
 
-    % ./ardana-vagrant ssh controller
+    % bin/ardana-vagrant up controller
 
 #### ardana-vagrant-ansible
 
@@ -569,7 +600,7 @@ This is a simple wrapper script that leverages the .astack_env file
 to setup the environment appropriately and then runs ansible-playbook
 command against the cloud, e.g.
 
-    % ./ardana-vagrant-ansible ../../ansible/cloud-setup.yml
+    % bin/ardana-vagrant-ansible ansible/cloud-setup.yml
 
 If no arguments are specified it will run the cloud-setup.yml playbook
 against the cloud; if you don't want to run the ardana-init command
@@ -801,11 +832,19 @@ The development environment provides a set of cloud definitions that can be used
 
 * std-basic: An 8 node single region multi-cluster control plane cloud
 
-    A multi-cluster control plane with a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster and 2 computes, with a standalone deployer node, deploying only basic services, similar to the demo model, e.g. Keystone, Swift, Glance, Cinder, Neutron, Nova, Horizon, Tempest.
+    A multi-cluster control plane with a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster, and 2 computes, with a standalone deployer node, deploying only basic services, similar to the demo model, e.g. Keystone, Swift, Glance, Cinder, Neutron, Nova, Horizon, Tempest.
 
 * std-upgrade: A 15 node single region multi-cluster control plane cloud
 
-    A multi-cluster control plane with a 3 node DB/MQ cluster, a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster, a 3 node MML cluster, and 3 computes, with a standalone deployer node. This model draws upon the mid-size and multi-cp CI models, and the example entry-scale-kvm-mml and mid-scale-kvm models for inspiration to target advanced deployment scenarios to aid in upgrade and update testing.
+    A multi-cluster control plane with a 3 node DB/MQ cluster, a 3 node Swift cluster, a 2 node OpenStack cluster, a 3 node MML cluster, and 3 computes, with a standalone deployer node. This model draws upon the mid-size and multi-cp CI models, and the example entry-scale-kvm-mml and mid-scale-kvm models for inspiration to target advanced deployment scenarios to aid in upgrade and update testing.
+
+* std-upgrade-nomml: A 12 node single region multi-cluster control plane cloud (std-upgrade with MML support removed)
+
+    A multi-cluster control plane with a 3 node DB/MQ cluster, a 3 node Swift cluster, a 2 node OpenStack cluster, and 3 computes, with a standalone deployer node. This model draws upon the mid-size and multi-cp CI models, and the example entry-scale-kvm and mid-scale-kvm models for inspiration to target advanced deployment scenarios to aid in upgrade and update testing, while dropping the MML stack services and nodes to reduce the load and memory footprint of the test environment.
+
+* std-upgrade-min: An 11 node single region multi-cluster control plane cloud (minimised version of std-upgrade)
+
+    A multi-cluster control plane with a 3 node DB/MQ/Swift cluster, a 2 node OpenStack cluster, a 3 node MML cluster, and 2 computes, with a standalone deployer node. This model draws upon the mid-size and multi-cp CI models, and the example entry-scale-kvm-mml and mid-scale-kvm models for inspiration to target advanced deployment scenarios to aid in upgrade and update testing, while keeping the system footprint small enough to run reliably in a 128G memory model host.
 
 * mid-size: A multi-control plane, multi region cloud
 
@@ -821,18 +860,15 @@ After the `astack.sh ...` has completed you will have a number of booted VMs,
 with the appropriate SOC/CLM version installed on the deployer VM, and the
 specified cloud model setup as your ~/openstack/my_cloud/definition.
 
-You can log in to the nodes by cd'ing to ardana-vagrant-models/<cloud>-model
-directory and then run the ardana-vagrant helper script in there to ssh into
-a node, e.g to ssh to a node called deployer run.
+You can see what nodes exist in your cloud by running the *ardana-nodes*
+helper script:
 
-    % ./ardana-vagrant ssh deployer
+    % bin/ardana-nodes
 
-Alternatively you can use the astack-ssh-config file with the ssh command. e.g.
+You can log into any of the nodes reported by *ardana-nodes* using the
+*ardana-ssh* helper script:
 
-    % ssh -F astack-ssh-config deployer
-
-NOTE: For some models, the deployer node may be controller, controller1 or
-something like that, if it located on a controller node.
+    % bin/ardana-ssh deployer
 
 ### Running the Configuration Processor
 

@@ -19,6 +19,10 @@
 # copy the relevant model from the specified cloud in any local clone
 # of the ardana-input-model repo.
 #
+# Must be in an ardana-vagrant-models/<cloud>-vagrant directory or
+# the cloud-vagrant symlink must exist and point to a valid model's
+# vagrant directory.
+#
 # Usage: setup-cloud-inventory <cloud>
 #
 
