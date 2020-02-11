@@ -1,6 +1,6 @@
 #!/bin/bash -eu
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2020 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -14,7 +14,10 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Run vagrant used cached environment settings
+# Run specified tempest tests filter, defaulting to 'ci', against the
+# deployed cloud, using cached environment settings and the configured
+# ${ARDANA_CLOUD_SSH_CONFIG} SSH config file, as defined in libci.sh
+# libci.sh
 #
 # Must be in an ardana-vagrant-models/<cloud>-vagrant directory or
 # the cloud-vagrant symlink must exist and point to a valid model's
@@ -26,6 +29,21 @@ set -o pipefail
 
 _tools_bin_dir="$(dirname "$(readlink -e "${BASH_SOURCE[0]}")")"
 eval "$(${_tools_bin_dir}/ardana-env)"
+
+if (( $# > 0 ))
+then
+    run_tests_filter="${1}"
+    shift
+else
+    run_tests_filter=ci
+fi
+
+if (( $# > 0 ))
+then
+    tests_name="${1}"
+    shift
+fi
+
 source ${_tools_bin_dir}/libci.sh
 
 ensure_in_vagrant_dir "$(basename ${0})"
@@ -34,6 +52,11 @@ ensure_astack_env_exists
 
 source ${ARDANA_ASTACK_ENV}
 
-vagrant_data_on_error vagrant "${@}"
+${_tools_bin_dir}/run-in-deployer.sh \
+    ${_tools_bin_dir}/deployer/run-tests.sh \
+        -- \
+        "${run_tests_filter}" \
+        "${tests_name:-${ARDANA_CLOUD_NAME}}" \
+        "${@}"
 
 # vim:shiftwidth=4:tabstop=4:expandtab

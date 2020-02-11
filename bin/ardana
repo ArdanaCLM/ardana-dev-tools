@@ -16,8 +16,10 @@
 #
 # Run commands using cached astack environment settings
 #
-# Must either be in an ardana-vagrant-models/<cloud>-vagrant directory
-# or specify the relevant cloud via the --cloud option
+# Must be in an ardana-vagrant-models/<cloud>-vagrant directory or
+# the cloud-vagrant symlink must exist and point to a valid model's
+# vagrant directory or specify the relevant cloud via the --cloud
+# option.
 #
 
 set -eu
@@ -69,11 +71,11 @@ ensure_astack_env_exists
 
 source ${ARDANA_ASTACK_ENV}
 
-# Switch back to the original directory
-if [[ -n "${cloud_name}" ]]
-then
-    popd
-fi
+# Switch back to the original directory; if cloud_name was specified
+# then we will have explicitly pushd'd, else if cloud-vagrant symlink
+# exists we will have implicitly pushd'd, or ensure_in_vagrant_dir
+# will have failed before we get here.
+popd
 
 "${@}"
 

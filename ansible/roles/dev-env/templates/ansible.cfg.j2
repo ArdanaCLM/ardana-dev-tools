@@ -16,6 +16,9 @@
 #}
 [defaults]
 
+# default inventory is for the whole cloud
+inventory = {{ playbook_dir }}/hosts/cloud.yml
+
 # only show tasks that haven't been skipped
 stdout_callback = skippy
 
