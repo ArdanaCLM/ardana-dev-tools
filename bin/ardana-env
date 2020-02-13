@@ -79,6 +79,11 @@ is_xenial()
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "xenial" ) ]]
 }
 
+is_bionic()
+{
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "bionic" ) ]]
+}
+
 is_eoan()
 {
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "eoan" ) ]]
@@ -213,15 +218,31 @@ then
         # so we set up to install latest available (x)Ubuntu version
         # available from OBS repos
         osc_list="/etc/apt/sources.list.d/osc.list"
-        osc_repo="http://download.opensuse.org/repositories/openSUSE:/Tools/xUbuntu_$(lsb_release -rs)"
+        osc_repos=( "http://download.opensuse.org/repositories/openSUSE:/Tools/xUbuntu_$(lsb_release -rs)" )
+        if is_xenial || is_bionic
+        then
+            # Workaround broken osc Python3 based packaging changes that
+            # currently only work for Eoan (19.10) and Focal (20.04) that
+            # have a python3-m2crypto package available. Not a problem
+            # for existing installs as the latest official osc package
+            # is not installable, but breaks new deployments. This
+            # repo installs the same basic version of osc as the current
+            # broken package, but reverts to the debian packaging config
+            # just prior to the switchover to being Python3 based.
+            osc_repos+=( "https://download.opensuse.org/repositories/home:/fmccarthy:/branches:/openSUSE:/Tools/xUbuntu_$(lsb_release -rs)/" )
+        fi
         # If the osc.list repo source hasn't been added, then set it up here
         if [[ ! -e ${osc_list} ]]
         then
             echo "Add OBS Tools repo to system APT repos" 1>&2
-            echo "deb [trusted=yes] ${osc_repo}/ ./" | sudo tee ${osc_list} 1>&2
-            wget -q -O - ${osc_repo}/Release.key | sudo apt-key add - 1>&2
+            for osc_repo in "${osc_repos[@]}"
+            do
+                wget -q -O - ${osc_repo}/Release.key | sudo apt-key add - 1>&2
+                echo "deb ${osc_repo}/ ./" | sudo tee -a ${osc_list} 1>&2
+            done
             sudo apt-get --quiet --yes update 1>&2
-            echo "Removing any existing osc related packages" 1>&2
+
+            echo "Removing any existing Ubuntu osc related packages" 1>&2
             sudo apt-get --quiet --yes remove --purge osc obs-build 1>&2
         fi
         req_pkgs+=( obs-build )
