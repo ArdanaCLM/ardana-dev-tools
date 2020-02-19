@@ -67,8 +67,8 @@
   ci_settings:
 
     STD-CONTROLLER-ROLE:
-      memory: 28762
-      cpus: 3
+      memory: 35840
+      cpus: 4
       disks:
         boot:
           size_gib: 200
@@ -79,7 +79,7 @@
 
     STD-COMPUTE-ROLE:
       memory: 6144
-      cpus: 1
+      cpus: 2
       disks:
         boot:
           size_gib: 50

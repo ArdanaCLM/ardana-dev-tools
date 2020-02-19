@@ -87,8 +87,8 @@
       flavor: 'cloud-ardana-job-lvm-minimal'
 
     DBMQ-CONTROLLER-ROLE:
-      memory: 3072
-      cpus: 2
+      memory: 8192
+      cpus: 4
       disks:
         boot:
           size_gib: 50
@@ -98,8 +98,8 @@
       flavor: 'cloud-ardana-job-lvm-dbmq'
 
     OSC-CONTROLLER-ROLE:
-      memory: 13824
-      cpus: 2
+      memory: 16384
+      cpus: 4
       disks:
         boot:
           size_gib: 50
@@ -109,8 +109,8 @@
       flavor: 'cloud-ardana-job-lvm-osc'
 
     MML-CONTROLLER-ROLE:
-      memory: 10240
-      cpus: 2
+      memory: 16384
+      cpus: 4
       disks:
         boot:
           size_gib: 50

@@ -437,6 +437,10 @@ fi
 $SCRIPT_HOME/run-in-deployer.sh \
     "$SCRIPT_HOME/deployer/init-input-model.sh" "${ARDANA_CLOUD_NAME}" || logfail deploy
 
+# Apply RabbitMQ virtualised testing tweaks
+$SCRIPT_HOME/run-in-deployer.sh \
+    "$SCRIPT_HOME/deployer/virtual-testing-rabbitmq-tweaks" || logfail deploy
+
 # If using Provo site, use different ntp server
 if [ "${ARDANA_SITE:-provo}" = "provo" ]; then
     $SCRIPT_HOME/run-in-deployer.sh \

@@ -1,0 +1,43 @@
+#!/bin/bash
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Runs in the deployer.
+#
+# Tweaks Cloud8 or Cloud9 rabbitmq settings appropriately for virtualised
+# testing scenario.
+#
+
+set -eux
+set -o pipefail
+
+rmq_settings="roles/rabbitmq/defaults/main.yml"
+
+pushd "${HOME}/openstack/ardana/ansible"
+
+# Implement the following rabbitmq tweaks:
+# * Remove rabbitmq_io_thread_pool_size entry from rabbitmq_env so that
+#   we don't generate a RABBITMQ_IO_THREAD_POOL_SIZE entry in the
+#   rabbitmq-env.conf file
+# * Change the vm_memory_high_watermark setting from 0.4 to 0.5
+sed -i \
+    -e '/^ *rabbitmq_io_thread_pool_size: .*/s,^,#,' \
+    -e 's,^\( *vm_memory_high_watermark:\) .*$,\1 0.5,' \
+    "${rmq_settings}"
+
+git add -A
+git commit --allow-empty -m "Tweak rabbitmq settings for virtual testing scenario"
+
+# vim:shiftwidth=4:tabstop=4:expandtab
