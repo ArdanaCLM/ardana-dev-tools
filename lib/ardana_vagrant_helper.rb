@@ -219,6 +219,7 @@ module Ardana
           :artifacts => !ENV.fetch("ARDANA_CLOUD_ARTIFACTS", "").empty?
         },
         :debug => !ENV.fetch("ARDANA_DEBUG", "").empty?,
+        :disk_cache => ENV.fetch("ARDANA_DISK_CACHE", "none"),
         :ip => {
           :v4 => _ip_networks_split("ARDANA_IPV4_NETWORKS", [*0..8].map(&:to_s)),
           :v6 => _ip_networks_split("ARDANA_IPV6_NETWORKS", [])
@@ -484,6 +485,14 @@ module Ardana
             }
           end
         end
+        if not hardware_setup['disks']['boot'].key?('cache')
+          hardware_setup['disks']['boot']['cache'] = @ardana[:disk_cache]
+        end
+        if hardware_setup['disks'].key?('extras')
+          if not hardware_setup['disks']['extras'].key?('cache')
+            hardware_setup['disks']['extras']['cache'] = @ardana[:disk_cache]
+          end
+        end
         serverInfo["hardware"] = hardware_setup
 
         if !serverInfo.key?("graphics_port")
@@ -628,9 +637,12 @@ module Ardana
           disks = []
           hw_disks = serverInfo['hardware']['disks']
           if hw_disks.key?('extras')
+            cache_mode = hw_disks['extras']['cache']
+            disk_size = hw_disks['extras']['size_gib'].to_i
             (1..hw_disks['extras']['count']).each do |i|
               disks.push({:bus => "scsi",
-                          :size => hw_disks['extras']['size_gib'].to_i})
+                          :cache => cache_mode,
+                          :size => disk_size})
             end
           end
 
@@ -717,7 +729,7 @@ module Ardana
         domain.memory = hardware['memory']
         domain.cpus = hardware['cpus']
         domain.disk_bus = 'scsi'
-        domain.volume_cache = 'unsafe'
+        domain.volume_cache = hardware['disks']['boot']['cache']
         domain.nested = true
         domain.cpu_mode = 'host-passthrough'
         domain.machine_virtual_size = hardware['disks']['boot']['size_gib'].to_i
