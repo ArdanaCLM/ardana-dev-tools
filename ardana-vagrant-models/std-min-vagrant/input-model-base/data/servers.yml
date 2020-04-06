@@ -69,7 +69,7 @@
   ci_settings:
 
     CLM-ROLE:
-      memory: 1536
+      memory: 2048
       cpus: 2
       disks:
         boot:
