@@ -507,6 +507,7 @@ elif [ -n "${SOC_CLM_8:-}" ]; then
     export ARDANA_CLOUD_VERSION=8
     export ARDANA_SLES_MAJOR=12
     export ARDANA_SLES_SP=3
+    export ARDANA_SLES_REPOS="['pool', 'updates', 'updates-test', 'ltss-updates', 'ltss-updates-test']"
 fi
 
 # Ensure mirroring is enabled

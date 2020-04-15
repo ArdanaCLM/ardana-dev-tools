@@ -63,6 +63,14 @@ sles:
           alias: "SLES12-SP4-Pool"
           enabled: true
       sles12sp3:
+        ltss-updates-test:
+          name: "SLES12-SP3-LTSS-Updates-test"
+          alias: "SLES12-SP3-LTSS-Updates-test"
+          enabled: true
+        ltss-updates:
+          name: "SLES12-SP3-LTSS-Updates"
+          alias: "SLES12-SP3-LTSS-Updates"
+          enabled: true
         updates-test:
           name: "SLES12-SP3-Updates-test"
           alias: "SLES12-SP3-Updates-test"

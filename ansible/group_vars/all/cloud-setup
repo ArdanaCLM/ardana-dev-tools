@@ -80,6 +80,22 @@ _clm_repos:
                  (sles_version == 'sles12sp4') }}"
 
   # SLES12 SP3 Repos
+  - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['ltss-updates-test'].name }}"
+    path: "{{ sles.artifacts.repos.sles12sp3['ltss-updates-test'].name }}"
+    name: "{{ sles.artifacts.repos.sles12sp3['ltss-updates-test'].name }}"
+    alias: "{{ sles.artifacts.repos.sles12sp3['ltss-updates-test'].alias }}"
+    distro: sles
+    enabled: "{{ (sles.artifacts.repos.sles12sp3['ltss-updates-test'].enabled | bool) and
+                 ('ltss-updates-test' in sles.config.enabled_repos) and
+                 (sles_version == 'sles12sp3') }}"
+  - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['ltss-updates'].name }}"
+    path: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].name }}"
+    name: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].name }}"
+    alias: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].alias }}"
+    distro: sles
+    enabled: "{{ (sles.artifacts.repos.sles12sp3['ltss-updates'].enabled | bool) and
+                 ('ltss-updates' in sles.config.enabled_repos) and
+                 (sles_version == 'sles12sp3') }}"
   - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
     path: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
     name: "{{ sles.artifacts.repos.sles12sp3['updates-test'].name }}"
