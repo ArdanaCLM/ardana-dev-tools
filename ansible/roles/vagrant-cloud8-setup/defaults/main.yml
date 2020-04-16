@@ -63,6 +63,13 @@ c8setup:
     #
 
     # SLES12 SP3 Repos
+    - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3['ltss-updates'].name }}"
+      path: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].alias }}"
+      name: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].name }}"
+      alias: "{{ sles.artifacts.repos.sles12sp3['ltss-updates'].alias }}"
+      distro: sles
+      enabled: "{{ (sles.artifacts.repos.sles12sp3['ltss-updates'].enabled | bool) and
+                   ('ltss-updates' in sles.config.enabled_repos) }}"
     - mirror: "{{ clouddata_repo.mirrors_dir }}/{{ sles.artifacts.repos.sles12sp3.updates.name }}"
       path: "{{ sles.artifacts.repos.sles12sp3.updates.alias }}"
       name: "{{ sles.artifacts.repos.sles12sp3.updates.name }}"

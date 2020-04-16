@@ -34,6 +34,10 @@ sles:
         path: "ardana/images/cloud{{ cloud_version }}/sles"
     repos:
       sles12sp3:
+        ltss-updates:
+          name: "SLES12-SP3-LTSS-Updates"
+          alias: "SLE12SP3-LTSS-Updates"
+          enabled: true
         updates:
           name: "SLES12-SP3-Updates"
           alias: "SLE12SP3-Updates"
