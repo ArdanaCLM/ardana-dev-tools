@@ -52,6 +52,7 @@
   with_items:
     - "{{ sles.artifacts.repos[sles_version].pool }}"
     - "{{ sles.artifacts.repos[sles_version].updates }}"
+    - "{{ sles.artifacts.repos[sles_version]['ltss-updates'] }}"
   register: _sles_repo_links_result
   when:
     - image_build_name.startswith('sles')

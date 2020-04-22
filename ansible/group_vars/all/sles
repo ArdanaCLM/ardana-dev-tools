@@ -25,7 +25,7 @@ sles_version: "sles{{ sles_major }}{{
 
 # SLES kernel mitigations param management
 sles_mitigations_params:
-  "sles12sp3": "spectre_v2"
+  "sles12sp3": "mitigations"
   "sles12sp4": "mitigations"
 sles_mitigations_param: "{{ sles_mitigations_params[sles_version] }}"
 
@@ -50,6 +50,14 @@ sles:
         path: "ardana/images/cloud{{ cloud_version }}/sles{{ sles_prebuilt_qcow2_version }}"
     repos:
       sles12sp4:
+        ltss-updates-test:
+          name: "SLES12-SP4-LTSS-Updates-test"
+          alias: "SLES12-SP4-LTSS-Updates-test"
+          enabled: false
+        ltss-updates:
+          name: "SLES12-SP4-LTSS-Updates"
+          alias: "SLES12-SP4-LTSS-Updates"
+          enabled: false
         updates-test:
           name: "SLES12-SP4-Updates-test"
           alias: "SLES12-SP4-Updates-test"

@@ -29,7 +29,7 @@ grub_updated=
 
 # Check for any repos specified as kernel command line parameters
 echo "[Checking for repo URLs in /proc/cmdline]"
-for repo in pool updates updates_test
+for repo in pool updates updates_test ltss_updates ltss_updates_test
 do
 	url_name=sles_${repo}_url
 	url_info=$(grep -o "${url_name}"'=[^ ]*' /proc/cmdline || true)
@@ -47,18 +47,38 @@ done
 [ -z "${sles_pool_url}" ] || zypper addrepo "${sles_pool_url}" Pool
 [ -z "${sles_updates_url}" ] || zypper addrepo "${sles_updates_url}" Updates
 [ -z "${sles_updates_test_url}" ] || zypper addrepo "${sles_updates_test_url}" Updates-test
+[ -z "${sles_ltss_updates_url}" ] || zypper addrepo "${sles_ltss_updates_url}" LTSS-Updates
+[ -z "${sles_ltss_updates_test_url}" ] || zypper addrepo "${sles_ltss_updates_test_url}" LTSS-Updates-test
 
-# Run zypper update if the updates repo has been specified
-if [ -n "${sles_updates_url}" ]; then
-	# Install minimal set of updates for packages that we have
-	echo "[Running zypper update]"
-	zypper update --no-recommends -ly
+echo "[Show configured zypper repos]"
+zypper lr -u
+
+# Use zypper to install any pending patches/updates/dist-upgrades if the updates repos have been specified
+if [ \( -n "${sles_updates_url}" \) -o \( -n "${sles_ltss_updates_url}" \) ]; then
+	echo "[Install zypper update stack patches]"
+	while true
+	do
+		if zypper patch --no-confirm --no-recommends --updatestack-only --auto-agree-with-licenses; then
+			break
+		fi
+	done
+
+	echo "[Install zypper patches]"
+	while true
+	do
+		if zypper patch --no-confirm --no-recommends --with-update --auto-agree-with-licenses; then
+			break
+		fi
+	done
+
+	echo "[Apply pending zypper dist-upgrade changes]"
+	while true
+	do
+		if zypper dist-upgrade --no-confirm --no-recommends --auto-agree-with-licenses; then
+			break
+		fi
+	done
 fi
-
-# We should have sufficient software installed by the autoyast package list.
-# However if there are additional packages we need to install, do so here
-#echo "[Install additional packages]"
-#zypper -f install --no-recommends kernel-devel-`uname -r` dkms nfs-utils
 
 # Make ssh faster by not waiting on DNS
 if ! grep -qs "^[[:space:]]*UseDNS[[:space:]][[:space:]]*no$" /etc/ssh/sshd_config; then

@@ -181,7 +181,8 @@ export ARDANA_SLES_SP=${ARDANA_SLES_SP:-}
 export ARDANA_SLES_COMPUTE=${ARDANA_SLES_COMPUTE:-}
 export ARDANA_SLES_COMPUTE_NODES=${ARDANA_SLES_COMPUTE_NODES:-}
 export ARDANA_SLES_MIRROR=${ARDANA_SLES_MIRROR:-1}  # default to enabled
-export ARDANA_SLES_REPOS=${ARDANA_SLES_REPOS:-"['pool', 'updates', 'updates-test']"}  # default to enabled
+# default to all possible SLE SERVER repos being enabled
+export ARDANA_SLES_REPOS=${ARDANA_SLES_REPOS:-"['pool', 'updates', 'ltss-updates', 'updates-test', 'ltss-updates-test']"}
 export ARDANA_GUEST_IMAGE_ARTIFACTS=${ARDANA_GUEST_IMAGE_ARTIFACTS:-}
 export ARDANA_DISABLE_SERVICES=${ARDANA_DISABLE_SERVICES:-}
 export ARDANA_GIT_UPDATE=${ARDANA_GIT_UPDATE:-}
@@ -291,28 +292,28 @@ while true ; do
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
             export ARDANA_CLOUD_SOURCE="Updates-test"
-            # SLES repos default to Updates-test, Updates & Pool
+            # SLES repos default to LTSS-Updates-test, LTSS-Updates, Updates-test, Updates & Pool
             shift ;;
         --c8-updates)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["updates", "pool"]'
             export ARDANA_CLOUD_SOURCE="Updates"
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             shift ;;
         --c8-pool)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["pool"]'
             export ARDANA_CLOUD_SOURCE="Pool"
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             shift ;;
         --c8-iso)
             SOC_CLM_8=true
             export ARDANA_CLOUD_REPOS='["iso"]'
             export ARDANA_ATTACH_ISOS=true
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             NO_UPDATE_RPMS=1
             shift ;;
         --cloud9-artifacts)
@@ -340,21 +341,21 @@ while true ; do
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["updates-test", "updates", "pool"]'
             export ARDANA_CLOUD_SOURCE="Updates-test"
-            # SLES repos default to Updates-test, Updates & Pool
+            # SLES repos default to LTSS-Updates-test, LTSS-Updates, Updates-test, Updates & Pool
             shift ;;
         --c9-updates)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["updates", "pool"]'
             export ARDANA_CLOUD_SOURCE="Updates"
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             shift ;;
         --c9-pool)
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["pool"]'
             export ARDANA_CLOUD_SOURCE="Pool"
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             shift ;;
         --c9-milestone)  # NOTE: this must immediately preceed --c9-iso
             export ARDANA_CLOUD9_MILESTONE="${2}"
@@ -364,8 +365,8 @@ while true ; do
             SOC_CLM_9=true
             export ARDANA_CLOUD_REPOS='["iso"]'
             export ARDANA_ATTACH_ISOS=true
-            # Limit SLES repos to Updates & Pool only
-            export ARDANA_SLES_REPOS='["updates", "pool"]'
+            # Limit SLES repos to LTSS-Updates, Updates & Pool only
+            export ARDANA_SLES_REPOS='["ltss-updates", "updates", "pool"]'
             NO_UPDATE_RPMS=1
             shift ;;
         --rhel) export ARDANA_RHEL_ARTIFACTS=1 ; shift ;;
@@ -507,7 +508,6 @@ elif [ -n "${SOC_CLM_8:-}" ]; then
     export ARDANA_CLOUD_VERSION=8
     export ARDANA_SLES_MAJOR=12
     export ARDANA_SLES_SP=3
-    export ARDANA_SLES_REPOS="['pool', 'updates', 'updates-test', 'ltss-updates', 'ltss-updates-test']"
 fi
 
 # Ensure mirroring is enabled

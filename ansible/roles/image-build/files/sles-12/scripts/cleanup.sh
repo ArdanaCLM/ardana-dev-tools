@@ -44,3 +44,12 @@ echo "[Remove node specific network settings]"
 #sed -i '/UUID/d' /etc/sysconfig/network-scripts/ifcfg-e*
 #sed -i '/HWADDR/d' /etc/sysconfig/network-scripts/ifcfg-e*
 rm -fv /etc/udev/rules.d/70-persistent-net.rules
+
+# Remove running kernel if it is not the kernel that will be booted
+echo "[Remove installer kernel]"
+if [ "$(readlink /boot/vmlinuz)" != "vmlinuz-$(uname -r)" ]; then
+	running_kver="$(uname -r | sed -e 's,-default$,,')"
+	kpkg_ver="$(zypper se --installed -v kernel-default | grep "${running_kver}" | cut -d '|' -f4 | tr -d '[[:space:]]')"
+	set -vx
+	zypper remove --no-confirm kernel-default-${kpkg_ver}
+fi
