@@ -67,8 +67,8 @@ sites_default:
       path: ibs
       use_proxy: no
     clouddata:
-      #host: clouddata.cloud.suse.de
-      host: clouddata.nue.suse.com
+      host: clouddata.cloud.suse.de
+      #host: clouddata.nue.suse.com
       use_proxy: no
     obs:
       main: download.opensuse.org
