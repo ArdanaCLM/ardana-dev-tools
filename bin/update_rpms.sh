@@ -67,6 +67,10 @@ CURRENT_OSC_PROJ="${CURRENT_OSC_PROJ:-${_osc_proj}}"
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
 
+# Fail on errror
+set -eux
+set -o pipefail
+
 # function get_cloned_ardana_repos
 # input: optional branch name, defaulting to master
 # find all the ardana repos under the workspace that are
