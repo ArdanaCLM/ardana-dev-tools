@@ -247,7 +247,7 @@ function update_ardana_rpms {
             RPM_NAME=python-${BASE_REPO_NAME}
             ;;
         (ardana-ansible|ardana-input-model)
-            RPM_NAME=${REPO}
+            RPM_NAME=${BASE_REPO_NAME}
             ;;
         (ardana)
             echo "Skipping build of RPM for '${REPO}' clone as it is consumed by 'ardana-ansible' RPM"
