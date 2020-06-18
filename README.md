@@ -105,7 +105,7 @@ Which version of SOC/CLM gets deployed depends on whether you use
 
 ### Vagrant version
 
-The Ardana Legacy style CI infrastructure uses Vagrant version 1.8.7.
+The Ardana Legacy style CI infrastructure uses Vagrant version 2.2.9.
 This is handled automatically by the *dev-env-install.yml* playbook,
 which can be run using the helper script *ardana-dev-tools/bin/dev-env-setup*.
 
@@ -144,6 +144,7 @@ all testing scenarios:
 1. 1.8.7 (Probably any 1.8.x really)
 2. 2.1.5 (Any 2.1.x)
 3. 2.2.7 (Any 2.2.x)
+3. 2.2.9 (Any 2.2.x)
 
 These versions may exhibit problems with RHEL/CentOS node deployment
 such as eth1 and eth2 network device MAC's being swapped sometimes,

@@ -16,9 +16,9 @@
 # Settings used to install & manage the vagrant runtime environment
 ---
 
-# The user specified version, defaulting to 1.8.7; newer versions may
+# The user specified version, defaulting to 2.2.9; 2.0.* versions may
 # have issues with network setup for RHEL/CentOS computes.
-vagrant_version: "{{ lookup('env', 'ARDANA_VAGRANT_VERSION') | default('1.8.7', true) }}"
+vagrant_version: "{{ lookup('env', 'ARDANA_VAGRANT_VERSION') | default('2.2.9', true) }}"
 
 # From the version we extract the major and minor version values and use
 # them to construct a "series" version, which is then used to determine
