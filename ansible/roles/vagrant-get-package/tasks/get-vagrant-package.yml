@@ -19,7 +19,7 @@
 
 - name: vagrant-get-package | get-vagrant-package | Set _vagrant_ver fact
   set_fact:
-    _vagrant_ver: "{{ vagrant_download_version | default('1.8.7') }}"
+    _vagrant_ver: "{{ vagrant_download_version | default('2.2.9') }}"
 
 - name: vagrant-get-package | get-vagrant-package | Ensure relevant directories exist
   file:
