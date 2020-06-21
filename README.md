@@ -153,12 +153,9 @@ to the astack.sh command
 
 ### Vagrant version
 
-The Ardana Legacy style CI infrastructure uses Vagrant 1.7.2; however
-in early 2017 HashiCorp shutdown gems.hashicorp.com, used by Vagrant
-1.7.2, and as a result Vagrant 1.7.2 is no longer able to build plugins.
-However we can use Vagrant 1.7.4 to build compatible plugins and then
-downgrade to Vagrant 1.7.2 again. This is handled automatically by the
-dev-env-install.yml playbook.
+The Ardana Legacy style CI infrastructure uses Vagrant version 2.2.9.
+This is handled automatically by the *dev-env-install.yml* playbook,
+which can be run using the helper script *ardana-dev-tools/bin/dev-env-setup*.
 
 The use of such an old version of vagrant is due to the need to share
 some of the CI testing resources with a legacy testing environment that
@@ -167,9 +164,9 @@ expects this version of Vagrant.
 #### Development environments and Vagrant version
 NOTE: If you want to avoid this upgrade/downgrade of vagrant, you can set
 the ARDANA_VAGRANT_VERSION environment variable to the value of a newer
-supported version of Vagrant, e.g. 1.8.7.  For example
+supported version of Vagrant, e.g. 2.2.9.  For example
 
-    export ARDANA_VAGRANT_VERSION=1.8.7
+    export ARDANA_VAGRANT_VERSION=2.2.9
 
 Additionally the *astack.sh* driven DevEnv uses Vagrant version specific
 plugin environments, located in *~/.cache-ardana/vagrant/<version>/home*.
@@ -189,11 +186,27 @@ they get rebuilt the next time you run astack.sh, e.g.
 
 ##### Supportted Vagrant versions
 
-Currently the Ardana DevEnv only supports the following Vagrant versions:
+Currently the Ardana DevEnv supports the following Vagrant versions for
+all testing scenarios:
+
+1. 1.8.7 (Probably any 1.8.x really)
+2. 2.1.5 (Any 2.1.x)
+3. 2.2.7 (Any 2.2.x)
+3. 2.2.9 (Any 2.2.x)
+
+These versions may exhibit problems with RHEL/CentOS node deployment
+such as eth1 and eth2 network device MAC's being swapped sometimes,
+though they work fine for SLES only deployments.
+
+1. 1.9.8 (Probably any 1.9.x, definitely 1.9.5+)
+2. 2.0.4 (Any 2.0.x)
+
+While still technically supported, these versions have issues with
+building Vagrant plugins that may require manual intervention and
+should be avoided:
 
 1. 1.7.2 (Uses 1.7.4 to build the plugins)
 2. 1.7.4
-3. 1.8.7 (Probably any 1.8.x really)
 
 Newer versions of Vagrant will work for SLES only deployments, however
 RHEL compute networking is incorrectly configured when the VMs are being
