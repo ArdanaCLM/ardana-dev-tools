@@ -57,6 +57,16 @@ options:
         - Name of the region
      required: false
      default: None
+   user_domain_name:
+     description:
+        - Name of the domain containing the user
+     required: false
+     default: 'Default'
+   project_domain_name:
+     description:
+        - Name of the domain containing the project
+     required: false
+     default: 'Default'
    state:
      description:
         - Indicate desired state of the resource
@@ -252,6 +262,8 @@ def main():
             login_username=dict(required=False, default='admin'),
             login_password=dict(required=False, default='password'),
             region_name=dict(required=False, default='RegionOne'),
+            user_domain_name=dict(required=False, default='Default'),
+            project_domain_name=dict(required=False, default='Default'),
 
             name                 = dict(required=True),
             availability_zone    = dict(default=None),
@@ -278,6 +290,8 @@ def main():
                                 project_name=module.params['login_tenant_name'],
                                 auth_url=module.params['auth_url'],
                                 region_name=module.params['region_name'],
+                                user_domain_name=module.params['user_domain_name'],
+                                project_domain_name=module.params['project_domain_name'],
                                 service_type='compute',
                                 endpoint_type='internalURL')
     try:
