@@ -107,6 +107,7 @@ vagrant_series_settings:
           libreadline:
             "15.0": 7
             "15.1": 7
+            "15.2": 7
       gems_dirs:
         - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
@@ -120,6 +121,7 @@ vagrant_series_settings:
           libreadline:
             "15.0": 7
             "15.1": 7
+            "15.2": 7
       gems_dirs:
         - "gems/2.4.4"
       plugins: "{{ vagrant_common_plugins }}"
@@ -133,6 +135,7 @@ vagrant_series_settings:
           libreadline:
             "15.0": 7
             "15.1": 7
+            "15.2": 7
       gems_dirs:
         - "gems/2.4.4"
         - "gems/2.4.6"

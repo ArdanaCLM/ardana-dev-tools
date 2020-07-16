@@ -50,7 +50,7 @@ The following are fully supportted and expected to work without significant
 effort:
 
 * Ubuntu 19.10 (Eoan), Ubuntu 18.04 (Bionic), 16.04 (Xenial), 14.04 (Trusty)
-* openSUSE Leap 15.1, 15, 42.3 and 42.2
+* openSUSE Leap 15.2, 15.1, 15, 42.3 and 42.2
 
 You should be able to get things working on these but will need to manually
 add appropriate zypper repos to your system to be sure.
