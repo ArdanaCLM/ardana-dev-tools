@@ -18,12 +18,12 @@
 #
 ---
 
-- name: sync-ansible-sources | main | Deployer has been ardana-init'd?
+- name: main | Deployer has been ardana-init'd?
   stat:
     path: "~/openstack/ardana/ansible/"
   register: _ardana_ansible_stat_result
 
-- name: sync-ansible-sources | main | Fail if deployer not ardana-init'd
+- name: main | Fail if deployer not ardana-init'd
   fail:
     msg: >-
       The ~ardana/openstack/ardana/ansible directory doesn't exist. Please
@@ -31,7 +31,7 @@
   when:
     - not _ardana_ansible_stat_result.stat.exists
 
-- name: sync-ansible-sources | main | Sync any local ansible source to deployer
+- name: main | Sync any local ansible source to deployer
   synchronize:
     src: "{{ item.value | find_local_repo }}/"
     dest: "~/openstack/ardana/ansible/"
@@ -44,20 +44,34 @@
       --exclude=hosts/localhost
       --exclude=LICENSE
       --exclude=roles/deployer-setup/files/ardana-init.bash
+  loop_control:
+    label: "{{ item.key }}"
   with_dict: "{{ ardana_git_repositories | default({}) }}"
   when:
     - item.value | find_local_repo is not search(product_cache_base_directory)
+    - (lookup('pipe', 'cd ' ~ item.value | find_local_repo ~ '&& git config ' ~
+                      '--file $(git rev-parse --show-toplevel)/.gitreview ' ~
+                      '--get gerrit.defaultbranch')) == item.value.branch
     - sync_ansible_repos is not defined or item.value in sync_ansible_repos
   register: _sync_ansible_sources_result
 
+- name: main | Show repos that we sync'd
+  debug:
+    msg: "{{ item.item.value | find_local_repo }}"
+  loop_control:
+    label: "{{ item.item.key }}"
+  with_items: "{{ _sync_ansible_sources_result.results }}"
+  when:
+    - item is not skipped
+
 # TODO(fergal): remove when we move forward to a version of
 # the synchronize module that isn't broken.
-# Workaround for broken synchronize module in ansible 2.4; from
+# Workaround for broken synchronize module in ansible 2.x; from
 # what I can determine the rsync_opts argument can contain only
 # one argument, which must be formatted acceptably for use in
 # an exec() call, i.e. no extraneous characters such as quotes
 # that may be needed for shell invocations.
-- name: sync-ansible-sources | main | Ansible 2.4/5 synchronize exclude issues workaround
+- name: main | Ansible 2.x synchronize exclude issues workaround
   shell: |
     set -vxe
     cd ${HOME}/openstack/ardana/ansible/
@@ -69,7 +83,7 @@
     - ansible_version.major == 2
     - ansible_version.minor in (4, 5, 6, 7)
 
-- name: sync-ansible-sources | main | Save local ansible source changes if any
+- name: main | Save local ansible source changes if any
   shell: |
     set -eu
 

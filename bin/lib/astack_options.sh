@@ -23,6 +23,7 @@
 # Manage list of long options as a sorted array of option names which
 # we then join with commas to form the argument to getopt.
 long_opts=(
+    ansible-sync
     build-images
     c8
     c8-artifacts
@@ -157,7 +158,7 @@ ipv6_ula_file=$DEVTOOLS/bin/default_ipv6_ula
 DEFAULT_IPV6_ULA=`cat ${ipv6_ula_file}`
 
 export ARDANA_DEBUG=${ARDANA_DEBUG:-}
-export ARDANA_SYNC_ANSIBLE_SOURCES=${ARDANA_SYNC_ANSIBLE_SOURCES:-1}
+export ARDANA_SYNC_ANSIBLE_SOURCES=${ARDANA_SYNC_ANSIBLE_SOURCES:-}
 export ARDANA_PREBUILT_IMAGES=${ARDANA_PREBUILT_IMAGES:-1}
 export ARDANA_QCOW2_TIMESTAMP=${ARDANA_QCOW2_TIMESTAMP:-}
 export ARDANA_DISABLE_MITIGATIONS=${ARDANA_DISABLE_MITIGATIONS:-1}
@@ -235,6 +236,7 @@ while true ; do
             # system CPU resources by at most 50%
             export ARDANA_BUILD_CPU=$(( $(nproc) / 2 ))
             shift ;;
+        --ansible-sync) export ARDANA_SYNC_ANSIBLE_SOURCES=1 ; shift ;;
         --no-ansible-sync) export ARDANA_SYNC_ANSIBLE_SOURCES= ; shift ;;
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;

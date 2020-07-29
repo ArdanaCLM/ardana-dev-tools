@@ -99,7 +99,7 @@ eval set -- "$TEMP"
 
 pre_destroy=
 zypper_method=dist-upgrade
-common_args=( --no-ansible-sync )
+common_args=()
 cloud_type=
 cloud8_args=( --c8 )
 cloud9_args=( --c9 )

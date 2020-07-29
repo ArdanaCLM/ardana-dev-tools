@@ -41,8 +41,11 @@ usage() {
     echo
     echo "--debug               -- Generate useful debug output"
     echo "--no-setup            -- Don't run dev-env-install.yml"
-    echo "--no-ansible-sync     -- Don't sync local ansible sources to the"
+    echo "--ansible-sync        -- Enable sync of local ansible sources to the"
     echo "                         deployer openstack/ardana/ansible tree."
+    echo "--no-ansible-sync     -- Disable sync of local ansible sources to the"
+    echo "                         deployer openstack/ardana/ansible tree."
+    echo "                         (default)"
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
     echo "                         guest or OVA images"
     echo "--no-update-rpms      -- Don't run updated_rpms.sh to rebuild RPMs"
