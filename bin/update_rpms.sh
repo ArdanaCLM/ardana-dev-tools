@@ -66,6 +66,7 @@ CURRENT_OSC_PROJ="${CURRENT_OSC_PROJ:-${_osc_proj}}"
 
 sudo mkdir -p ~/.cache/osc_build_root
 export OSC_BUILD_ROOT=$(readlink -e ~/.cache/osc_build_root)
+export OSC_CLEAN="--clean"
 
 # Fail on errror
 set -eux
@@ -179,7 +180,8 @@ function fix_ardana_rpm {
     #
     # rebuild the RPM publishing to the override RPMs area
     #
-    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build --trust-all-projects --download-api -k ${ARDANA_OVERRIDE_RPMS}/)
+    (cd ${ARDANA_OSC_PROJ}/${BUILD_RPM};${IOSC} build ${OSC_CLEAN} --trust-all-projects --download-api -k ${ARDANA_OVERRIDE_RPMS}/)
+    export OSC_CLEAN=
 
     popd
 }
