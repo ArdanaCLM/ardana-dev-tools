@@ -294,6 +294,9 @@ ${cmd_dir}/ardana --cloud ${cloud_name} \
         -i hosts/cloud.yml \
         cloud-deployer-repos.yml
 
+# Add the C9-Overrides repos to other nodes
+deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper addrepo --priority 98 --no-gpgcheck --name C9-Overrides http://192.168.110.254:79/SUSE-12-4/x86_64/repos/C9-Overrides C9-Overrides' || true"
+
 # dist-upgrade deployer from SLE 12 SP3 to SLE 12 SP4
 deployer_ssh sudo zypper dist-upgrade -ly
 

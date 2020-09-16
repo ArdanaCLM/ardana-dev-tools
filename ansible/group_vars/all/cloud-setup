@@ -253,7 +253,7 @@ _clm_repos:
   #
   - override: "{{ dev_env_working_dir | dirname }}/C{{ cloud_version }}_NEW_RPMS"
     path: "C{{ cloud_version }}-Overrides"
-    name: "Locally built overrides packages"
+    name: "C{{ cloud_version }}-Overrides"
     alias: "C{{ cloud_version }}-Overrides"
     no_gpg_check: yes
     priority: 98
