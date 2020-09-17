@@ -177,13 +177,6 @@ fi
 # without triggering package cache refreshes, so we check if the
 # the associated directory under ${pkg_docs_dir} exists.
 _needed_modules=( setuptools )
-if is_trusty || is_eoan
-then
-    # python-sh is not available as a package for Ubuntu Trusty
-    req_pips+=( sh )
-else
-    _needed_modules+=( sh )
-fi
 _pyver=
 if is_opensuse_leap15 || is_opensuse_tumbleweed
 then
