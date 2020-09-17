@@ -101,6 +101,7 @@ pre_destroy=
 zypper_method=dist-upgrade
 common_args=()
 cloud_type=
+hos_mode=
 cloud8_args=( --c8 )
 cloud9_args=( --c9 )
 svc_groups_to_enable=()
@@ -137,7 +138,7 @@ while true ; do
         shift
         ;;
     (--hos)
-        cloud8_args+=( "--c8-hos" )
+        hos_mode=true
         shift
         ;;
     (--devel|--staging|--updates|--updates-test)
@@ -171,7 +172,23 @@ then
 fi
 
 # Set the desired cloudsource for both clouds
-cloud8_args+=( "--c8-${cloud_type}" )
+if [[ -z "${hos_mode:-}" ]]
+then
+    cloud8_args+=( "--c8-${cloud_type}" )
+else
+    # No staging for HOS 8 stream so use devel
+    case "${cloud_type}" in
+    (staging)
+        cloud8_args+=( "--c8-devel" )
+        ;;
+    (*)
+        cloud8_args+=( "--c8-${cloud_type}" )
+        ;;
+    esac
+
+    # Enable HOS8 deployment
+    cloud8_args+=( "--c8-hos" )
+fi
 cloud9_args+=( "--c9-${cloud_type}" )
 
 # Setup default service group enablement/disablement
@@ -278,9 +295,6 @@ ${cmd_dir}/ardana --cloud ${cloud_name} \
         -e zypper_repo_enabled=no \
         -e zypper_repo_state=absent
 
-# remove the C8-Overrides repo from other nodes
-deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper rr C8-Overrides' || true"
-
 # Switch to upgrade cloud settings
 ${cmd_dir}/astack.sh \
     "${common_args[@]}" \
@@ -293,9 +307,6 @@ ${cmd_dir}/ardana --cloud ${cloud_name} \
     ansible-playbook \
         -i hosts/cloud.yml \
         cloud-deployer-repos.yml
-
-# Add the C9-Overrides repos to other nodes
-deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper addrepo --priority 98 --no-gpgcheck --name C9-Overrides http://192.168.110.254:79/SUSE-12-4/x86_64/repos/C9-Overrides C9-Overrides' || true"
 
 # dist-upgrade deployer from SLE 12 SP3 to SLE 12 SP4
 deployer_ssh sudo zypper dist-upgrade -ly
@@ -312,6 +323,12 @@ deployer_run ${cmd_dir}/deployer/cloud9-input-model-upgrade
 
 # run config-cloud.sh to regenerate the scratch area with updated Ardana inputs.
 deployer_run ${cmd_dir}/deployer/config-cloud.sh
+
+# Remove the C8-Overrides repo from other nodes
+deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper removerepo C8-Overrides' || true"
+
+# Add the C9-Overrides repos to other nodes
+deployer_ssh "cd scratch/ansible/next/ardana/ansible && ansible -b 'resources:!OPS-LM--first-member' -m shell -a 'zypper addrepo --priority 98 --no-gpgcheck --name C9-Overrides http://192.168.110.254:79/SUSE-12-4/x86_64/repos/C9-Overrides C9-Overrides' || true"
 
 # run the upgrade playbook for all nodes
 ardana_scratch_run_playbook \
