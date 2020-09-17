@@ -256,9 +256,6 @@ then
     done
 fi
 
-# Need createrepo to initialise the override RPMs repo
-[[ -x /usr/bin/createrepo ]] || req_pkgs+=( createrepo )
-
 # Install required packages if needed
 if (( ${#req_pkgs[@]} > 0 ))
 then

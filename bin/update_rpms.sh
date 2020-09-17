@@ -198,7 +198,6 @@ function update_ardana_rpms {
     # Initialise override RPMs area
     rm -rf  ${ARDANA_OVERRIDE_RPMS}
     mkdir  ${ARDANA_OVERRIDE_RPMS}
-    (cd ${ARDANA_OVERRIDE_RPMS}; createrepo --update . 1>/dev/null 2>&1)
 
     # determine which repos we need to potentially build packages for
     CLONED_REPOS=$(get_cloned_ardana_repos "${ARDANA_CLOUD_BRANCH}") || exit 1
@@ -275,7 +274,6 @@ function update_ardana_rpms {
         fix_ardana_rpm "${REPO}" "${RPM_NAME}"
     done
 
-    (cd ${ARDANA_OVERRIDE_RPMS}; createrepo --update .)
     ls -l ${ARDANA_OVERRIDE_RPMS}
     rm -rf  $UPDATE_RPM_TMP_DIR
 }
