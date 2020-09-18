@@ -39,10 +39,8 @@ vagrant_download:
   url_base: "https://releases.hashicorp.com/vagrant"
   cache_dir: "{{ ardana_cache_vagrant_dir }}"
 
-# Table of vagrant-libvirt plugin versions
-_vlp:
-  legacy: 0.0.35.hp.2
-  latest: 0.0.45
+# vagrant-libvirt plugin version
+vagrant_libvirt_version: 0.1.2
 
 vagrant_requirements:
   pkgs:
@@ -61,31 +59,15 @@ vagrant_common_plugins:
   - name: "vagrant-proxyconf"
     version: "1.5.2"
   - name: "vagrant-libvirt"
-    version: "{{ _vlp.latest }}"
+    version: "{{ vagrant_libvirt_version }}"
     patch:
-      file: "vagrant-libvirt-plugin-{{ _vlp.latest }}/ardana_enhancements.patch"
+      file: "vagrant-libvirt-plugin-{{ vagrant_libvirt_version }}/ardana_enhancements.patch"
 
 vagrant_series_settings:
   series:
-    # For 1.7 series we need to build plugins with 1.7.4 because in
-    # March 2017, Hashicorp retired gems.hashicorp.com, causing any
-    # plugin building with versions earlier than 1.7.4 to fail.
-    "1.7":
-      versions:
-        plugins: "1.7.4"
-        runtime: "{{ vagrant_version }}"
-      gems_dirs:
-        - "gems"
-      plugins: "{{ vagrant_common_plugins }}"
-
-    "1.8":
-      versions:
-        plugins: "{{ vagrant_version }}"
-        runtime: "{{ vagrant_version }}"
-      gems_dirs:
-        - "gems"
-      plugins: "{{ vagrant_common_plugins }}"
-
+    # The 1.7 and 1.8 series upstream Vagrant releases are no longer
+    # viable for build the vagrant-libvirt plugin due to ruby/gem
+    # dependency issues,
     "1.9":
       versions:
         plugins: "{{ vagrant_version }}"
