@@ -1,6 +1,6 @@
---- gems/vagrant-libvirt-0.0.45/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:26:17.066973036 -0400
-+++ gems/vagrant-libvirt-0.0.45/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:30:07.079758144 -0400
-@@ -112,6 +112,9 @@
+--- gems/vagrant-libvirt-0.1.2/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:26:17.066973036 -0400
++++ gems/vagrant-libvirt-0.1.2/lib/vagrant-libvirt/templates/domain.xml.erb	2018-06-26 09:30:07.079758144 -0400
+@@ -140,6 +140,9 @@
        <readonly/>
      </disk>
  <% end %>
