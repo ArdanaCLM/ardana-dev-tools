@@ -248,7 +248,6 @@ fi
 # Ensure the override RPMs repo exists
 if [ ! -d "${ARDANA_OVERRIDE_RPMS}" ]; then
     mkdir -p "${ARDANA_OVERRIDE_RPMS}"
-    (cd "${ARDANA_OVERRIDE_RPMS}"; createrepo .)
 fi
 
 if [ -n "${ARDANA_DISABLE_SERVICES:-}" -a -n "${USE_PROJECT_STACK:-}" ]; then

@@ -47,3 +47,18 @@
   with_items: "{{ _override_repos_stat_result.results }}"
   when:
     - item is not skipped
+  register: sync_override_repos_result
+
+# Only trigger if some synchronisation occurred, but ensure that the
+# metadata in all overrides repos that have been created on the deployer
+# is updated, not just the ones that were sync'd.
+- name: cloud-deployer | sync-override-repos | Update repo metadata
+  become: true
+  shell: |-
+    set -e
+    cd "{{ clmsetup.server[item.item.distro].base }}/{{ clmsetup.distros[item.item.distro].dir }}/{{ item.item.path }}"
+    createrepo --update .
+  with_items: "{{ _override_repos_stat_result.results }}"
+  when:
+    - sync_override_repos_result is not skipped
+    - item is not skipped

@@ -215,9 +215,4 @@ do
     cp -v "${binaries_dir}"/*.rpm "${ARDANA_OVERRIDE_RPMS}"
 done
 
-# create/update the repo metadata in ARDANA_OVERRIDE_RPMS area
-pushd "${ARDANA_OVERRIDE_RPMS}" >/dev/null 2>&1
-createrepo .
-popd >/dev/null 2>&1
-
 # vim:shiftwidth=4:tabstop=4:expandtab
