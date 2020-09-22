@@ -17,20 +17,11 @@
 # Specify defaults for the developer environment
 ---
 dev_env_apt_packages_default:
-    python-dev:
-    python-pip:
-    python-virtualenv:
     vlan:
     kpartx:
     # required for network config debug on job failure
     ethtool:
-    libssl-dev:
-    # required for ansible install into virtualenv
-    libffi-dev:
     jq:
-    devscripts:
-    debhelper:
-    fakeroot:
     sysfsutils:
     acl:
     gawk:

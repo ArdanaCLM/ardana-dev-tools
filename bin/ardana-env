@@ -89,6 +89,11 @@ is_eoan()
     [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "eoan" ) ]]
 }
 
+is_focal()
+{
+    [[ ( -x /usr/bin/lsb_release ) && ( "$(lsb_release -cs)" == "focal" ) ]]
+}
+
 version_at_least()
 {
     local cur="${1}" tgt="${2}"
@@ -106,6 +111,7 @@ req_pkgs=()
 # Additional python modules to be installed in the ansible bootstrap venv
 req_pips=()
 
+# The path to the virtualenv command that we will be using
 venv_cmd=/usr/bin/virtualenv
 
 # Can the user successfully sudo? No, add the user using sudo
@@ -167,6 +173,9 @@ then
     if is_opensuse_leap15 || is_opensuse_tumbleweed
     then
         req_pkgs+=( python2-virtualenv )
+    elif is_focal
+    then
+        req_pkgs+=( python3-virtualenv )
     else
         req_pkgs+=( python-virtualenv )
     fi
