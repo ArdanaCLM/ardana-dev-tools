@@ -40,7 +40,7 @@ vagrant_download:
   cache_dir: "{{ ardana_cache_vagrant_dir }}"
 
 # vagrant-libvirt plugin version
-vagrant_libvirt_version: 0.1.2
+vagrant_libvirt_version: 0.2.1
 
 vagrant_requirements:
   pkgs:
