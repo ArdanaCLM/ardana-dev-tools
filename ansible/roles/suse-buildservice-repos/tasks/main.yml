@@ -39,9 +39,8 @@
   register: bs_repos_result
 
 - name: suse-buildservice-repos | main | Refresh repos if needed
-  become: yes
-  zypper_repository:
-    repo: "*"
-    runrefresh: yes
+  include_role:
+    name: cloud-refresh-repos
+    tasks_from: refresh-repos.yml  # just refresh, skip connectivity check
   when:
     - bs_repos_result is changed
