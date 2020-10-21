@@ -211,7 +211,7 @@ done
 
 # Need osc to be able to build SOC/CLM RPMs
 osc_cmd=/usr/bin/osc
-if [[ ! -x ${osc_cmd} ]] || ! version_at_least $(unset DBUS_SESSION_BUS_ADDRESS; ${osc_cmd} --version) 0.162
+if [[ ! -x ${osc_cmd} ]] || ! version_at_least $(env -i ${osc_cmd} --version) 0.162
 then
     req_pkgs+=( osc )
     if is_ubuntu
