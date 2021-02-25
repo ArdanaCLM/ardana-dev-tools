@@ -16,10 +16,27 @@
 # Tasks performed by the artifacts-get-iso role
 ---
 
+- name: artifacts-get-iso | main | Ensure relevant directories exist
+  file:
+    path: "{{ item.dir }}"
+    state: directory
+  with_items:
+    - dir: "{{ artifacts_iso.isos_dir }}"
+    - dir: "{{ artifacts_iso.images_dir }}"
+
 - include_tasks: get-rhel-iso.yml
   when:
     - (dev_env_use_rhel7_artifacts | bool) or
       (dev_env_download_isos | bool)
   tags:
     - skip-rhel-isos
+    - skip-isos
+
+- include_tasks: get-sles-iso.yml
+  when:
+    - sles_iso_mirrors.ardana | bool
+    - (dev_env_use_sles12_artifacts | bool) or
+      (dev_env_download_isos | bool)
+  tags:
+    - skip-sles-isos
     - skip-isos

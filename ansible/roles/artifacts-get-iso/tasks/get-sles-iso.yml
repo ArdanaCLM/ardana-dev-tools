@@ -13,51 +13,58 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks for retrieving an Ardana artifacts server SLES ISO via the
-# Ardana ISO cache.
+# Tasks for retrieving SLES Server and SDK ISOs from the Ardana artifacts
+# server via the Ardana ISO cache.
 ---
 
-- name: artifacts-get-iso | get-sles-iso | Ensure relevant directories exist
-  file:
-    path: "{{ item.dir }}"
-    state: directory
-  with_items:
-    - dir: "{{ artifacts_iso.isos_dir }}"
-    - dir: "{{ artifacts_iso.images_dir }}"
-
-- name: artifacts-get-iso | get-sles-iso | Determine SLES ISOs to download
+- name: artifacts-get-iso | get-sles-iso | Determine SLES media to download
   set_fact:
-    _sles_os: "{{ sles.artifacts.iso.os }}"
-    _sles_sdk: "{{ sles.artifacts.iso.sdk }}"
+    _afct_sles_media: "{{ sles.artifacts.iso[sles_version].os }}"
 
-- name: artifacts-get-iso | get-sles-iso | Get the SLES OS ISO
+- debug:
+    var: _afct_sles_media
+
+- name: artifacts-get-iso | get-sles-iso | Determine SLESDK media to download
+  set_fact:
+    _afct_slesdk_media: "{{ sles.artifacts.iso[sles_version].sdk }}"
+  when:
+    - sles.artifacts.iso[sles_version].sdk is defined
+
+- debug:
+    var: _afct_slesdk_media
+  when:
+    - sles.artifacts.iso[sles_version].sdk is defined
+
+- name: artifacts-get-iso | get-sles-iso | Get the SLES media
   include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
-      name: "{{ _sles_os.name }}.iso"
-      sha256: "{{ _sles_os.sha256 | default('') }}"
-      url_path: "{{ artifacts_iso.base_url}}/{{ _sles_os.path }}"
-      sha256url: "{{ artifacts_iso.base_url}}/{{ _sles_os.path }}/{{ _sles_os.name }}.iso.sha256"
+      name: "{{ _afct_sles_media.name | default('') }}"
+      pattern: "{{ _afct_sles_media.pattern | default('') }}"
+      sha256: "{{ _afct_sles_media.sha256 | default('') }}"
+      url_path: "{{ artifacts_iso.base_url}}/{{ _afct_sles_media.path }}{{
+                    sles.config.iso_milestone[sles_version] }}"
+      sha256url: ""
       dir: "{{ artifacts_iso.isos_dir }}"
       link:
-        name: "{{ _sles_os.link | default('') }}"
+        name: "{{ _afct_sles_media.link | default('') }}"
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
-  when:
-    - _sles_os.enabled | bool
 
-- name: artifacts-get-iso | get-sles-iso | Get the SLES SDK ISO
+- name: artifacts-get-iso | get-sles-iso | Get the SLESDK media
   include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
   vars:
     _file:
-      name: "{{ _sles_sdk.name }}.iso"
-      sha256: "{{ _sles_sdk.sha256 | default('') }}"
-      url_path: "{{ artifacts_iso.base_url}}/{{ _sles_sdk.path }}"
-      sha256url: "{{ artifacts_iso.base_url}}/{{ _sles_sdk.path }}/{{ _sles_sdk.name }}.iso.sha256"
+      name: "{{ _afct_slesdk_media.name | default('') }}"
+      pattern: "{{ _afct_slesdk_media.pattern | default('') }}"
+      sha256: "{{ _afct_slesdk_media.sha256 | default('') }}"
+      url_path: "{{ artifacts_iso.base_url}}/{{ _afct_slesdk_media.path }}{{
+                    sles.config.iso_milestone[sles_version] }}"
+      sha256url: ""
       dir: "{{ artifacts_iso.isos_dir }}"
       link:
-        name: "{{ _sles_sdk.link | default('') }}"
+        name: "{{ _afct_slesdk_media.link | default('') }}"
         dir: "{{ artifacts_iso.images_dir }}"
       use_proxy: "{{ artifacts_iso.use_proxy }}"
   when:
-    - _sles_sdk.enabled | bool
+    - sles.artifacts.iso[sles_version].sdk is defined

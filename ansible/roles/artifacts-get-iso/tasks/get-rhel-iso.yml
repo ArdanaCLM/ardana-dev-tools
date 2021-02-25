@@ -13,17 +13,9 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 #
-# Tasks for retrieving an Ardana artifacts server RHEL ISOs via the
-# Ardana ISO cache.
+# Tasks for retrieving RHEL/CentOS ISOs form the Ardana artifacts server
+# via the Ardana ISO cache.
 ---
-
-- name: artifacts-get-iso | get-rhel-iso | Ensure relevant directories exist
-  file:
-    path: "{{ item.dir }}"
-    state: directory
-  with_items:
-    - dir: "{{ artifacts_iso.isos_dir }}"
-    - dir: "{{ artifacts_iso.images_dir }}"
 
 - name: artifacts-get-iso | get-rhel-iso | Determine RHEL ISOs to download
   set_fact:

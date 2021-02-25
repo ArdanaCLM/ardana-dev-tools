@@ -22,6 +22,7 @@
 
 - include_tasks: get-sles-iso.yml
   when:
+    - sles_iso_mirrors.ibs | bool
     - (dev_env_use_sles12_artifacts | bool) or
       (dev_env_download_isos | bool)
   tags:

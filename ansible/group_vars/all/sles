@@ -18,7 +18,7 @@
 ---
 
 sles_major: "{{ lookup('env', 'ARDANA_SLES_MAJOR') | default(12, true) }}"
-sles_sp: "{{ lookup('env', 'ARDANA_SLES_SP') | default(3, true) }}"
+sles_sp: "{{ lookup('env', 'ARDANA_SLES_SP') | default(4, true) }}"
 sles_version: "sles{{ sles_major }}{{
                       ((sles_sp | int) > 0) |
                       ternary('sp' ~ sles_sp, '') }}"
@@ -32,6 +32,12 @@ sles_mitigations_param: "{{ sles_mitigations_params[sles_version] }}"
 # SLES pre-built qcow2 version timestamp
 sles_prebuilt_qcow2_version: "{{ ((dev_env_prebuilt_qcow2_version | default('')) != '') |
                                  ternary('-' ~ dev_env_prebuilt_qcow2_version, '') }}"
+
+# SLES ISOs served by both IBS and Ardana artifacts servers but recently
+# the SLE 12 SP3 ISOs disappeared from the IBS Provo mirrors
+sles_iso_mirrors:
+  ibs: false
+  ardana: true
 
 # SLES deployment settings
 sles:
