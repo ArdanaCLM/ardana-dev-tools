@@ -729,7 +729,11 @@ module Ardana
         domain.memory = hardware['memory']
         domain.cpus = hardware['cpus']
         domain.disk_bus = 'scsi'
-        domain.volume_cache = hardware['disks']['boot']['cache']
+        if domain.respond_to?('disk_driver')
+          domain.disk_driver :cache => hardware['disks']['boot']['cache']
+        else
+          domain.volume_cache = hardware['disks']['boot']['cache']
+        end
         domain.nested = true
         domain.cpu_mode = 'host-passthrough'
         domain.machine_virtual_size = hardware['disks']['boot']['size_gib'].to_i

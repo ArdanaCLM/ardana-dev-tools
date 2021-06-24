@@ -42,7 +42,7 @@ vagrant_download:
   cache_dir: "{{ ardana_cache_vagrant_dir }}"
 
 # vagrant-libvirt plugin version
-vagrant_libvirt_version: 0.3.0
+vagrant_libvirt_version: 0.4.1
 
 vagrant_requirements:
   pkgs:
@@ -125,6 +125,7 @@ vagrant_series_settings:
         - "gems/2.4.6"
         - "gems/2.4.9"
         - "gems/2.6.6"
+        - "gems/2.6.7"
       plugins: "{{ vagrant_common_plugins }}"
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"
