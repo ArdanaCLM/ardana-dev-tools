@@ -36,7 +36,9 @@ vagrant_plugins_json: "{{ vagrant_home }}/plugins.json"
 
 # Settings related to downloading Vagrant packages
 vagrant_download:
-  url_base: "https://releases.hashicorp.com/vagrant"
+  #Upstream Hashicorp server access problems for Legacy CI systems
+  #url_base: "https://releases.hashicorp.com/vagrant"
+  url_base: "http://ardana.ci.prv.suse.net/vagrant"
   cache_dir: "{{ ardana_cache_vagrant_dir }}"
 
 # vagrant-libvirt plugin version

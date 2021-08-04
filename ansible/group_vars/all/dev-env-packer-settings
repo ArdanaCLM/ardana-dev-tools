@@ -19,10 +19,13 @@
 packer_version: "{{ lookup('env', 'ARDANA_PACKER_VERSION') | default('1.4.5', true) }}"
 
 # Settings related to downloading Vagrant packages
+_packer_zip: "packer_{{ packer_version }}_linux_amd64.zip"
 packer_download:
-  zip_name: "packer_{{ packer_version }}_linux_amd64.zip"
-  sha256_name: "packer_{{ packer_version }}_SHA256SUMS"
-  url_base: "https://releases.hashicorp.com/packer"
+  zip_name: "{{ _packer_zip }}"
+  sha256_name: "{{ _packer_zip }}.sha256"
+  #Upstream Hashicorp server access problems for Legacy CI systems
+  #url_base: "https://releases.hashicorp.com/packer"
+  url_base: "http://ardana.ci.prv.suse.net/packer"
   cache_dir: "{{ ardana_cache_packer_dir }}"
 
 packer_settings:

@@ -40,7 +40,7 @@
 
 - name: vagrant-get-package | get-vagrant-package | Set sha256 name
   set_fact:
-    _vagrant_sha: "vagrant_{{ _vagrant_ver }}_SHA256SUMS"
+    _vagrant_sha: "{{ _vagrant_pkg }}.sha256"
 
 - name: vagrant-get-package | get-vagrant-package | Get the Vagrant package
   include_tasks: "{{ playbook_dir }}/roles/ardana-cache/tasks/get-cached-file.yml"
@@ -49,6 +49,6 @@
       name: "{{ _vagrant_pkg }}"
       sha256: "{{ _vagrant_pkg.sha256 | default('') }}"
       url_path: "{{ vagrant_package.base_url}}/{{ _vagrant_ver }}"
-      sha256url: "{{ vagrant_package.base_url}}/{{ _vagrant_ver }}/{{ _vagrant_sha }}"
+      sha256url: "{{ vagrant_package.base_url}}/{{ _vagrant_sha }}"
       dir: "{{ vagrant_package.pkg_dir }}"
       use_proxy: "{{ vagrant_package.use_proxy }}"

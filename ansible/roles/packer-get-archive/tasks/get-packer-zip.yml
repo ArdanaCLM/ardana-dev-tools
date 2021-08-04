@@ -30,8 +30,7 @@
     _file:
       name: "{{ packer_download.zip_name }}"
       sha256: "{{ packer_package.sha256 | default('') }}"
-      url_path: "{{ packer_package.base_url}}/{{ packer_version }}"
-      sha256url: "{{ packer_package.base_url}}/{{ packer_version }}/{{
-                     packer_download.sha256_name }}"
+      url_path: "{{ packer_package.base_url}}"
+      sha256url: "{{ packer_package.base_url}}/{{ packer_download.sha256_name }}"
       dir: "{{ packer_package.pkg_dir }}"
       use_proxy: "{{ packer_package.use_proxy }}"
