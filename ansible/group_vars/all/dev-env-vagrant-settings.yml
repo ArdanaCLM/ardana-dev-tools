@@ -126,6 +126,8 @@ vagrant_series_settings:
         - "gems/2.4.9"
         - "gems/2.6.6"
         - "gems/2.6.7"
+        - "gems/2.7.4"  # For Vagrant 2.2.18
+        - "gems/3.0.1"  # Used in Vagrant 2.2.17 which fails for other reasons
       plugins: "{{ vagrant_common_plugins }}"
 
 vagrant_settings: "{{ vagrant_series_settings.series[vagrant_series] }}"

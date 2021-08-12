@@ -48,7 +48,7 @@
     _file:
       name: "{{ _vagrant_pkg }}"
       sha256: "{{ _vagrant_pkg.sha256 | default('') }}"
-      url_path: "{{ vagrant_package.base_url}}/{{ _vagrant_ver }}"
+      url_path: "{{ vagrant_package.base_url}}"
       sha256url: "{{ vagrant_package.base_url}}/{{ _vagrant_sha }}"
       dir: "{{ vagrant_package.pkg_dir }}"
       use_proxy: "{{ vagrant_package.use_proxy }}"
