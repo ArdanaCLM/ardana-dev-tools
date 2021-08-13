@@ -31,12 +31,12 @@
 - name: vagrant-get-package | get-vagrant-package | Set package name (SLES)
   set_fact:
     _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.rpm"
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == 'suse'
+  when: ardana_family == 'suse'
 
 - name: vagrant-get-package | get-vagrant-package | Set package name (Debian)
   set_fact:
     _vagrant_pkg: "vagrant_{{ _vagrant_ver }}_x86_64.deb"
-  when: ansible_os_family | lower == 'debian'
+  when: ardana_family == 'debian'
 
 - name: vagrant-get-package | get-vagrant-package | Set sha256 name
   set_fact:

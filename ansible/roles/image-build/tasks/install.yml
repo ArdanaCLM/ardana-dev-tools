@@ -18,7 +18,7 @@
 
 - include_tasks: _install_apt_packages.yml
   tags: image-build-install-apt-packages
-  when: ansible_os_family | lower == "debian"
+  when: ardana_family == "debian"
 - include_tasks: _install_zypp_packages.yml
   tags: image-build-install-zypp-packages
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+  when: ardana_family == "suse"

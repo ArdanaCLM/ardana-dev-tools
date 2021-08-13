@@ -19,11 +19,11 @@
 - name: dev-env-vagrant | apply-workarounds | Apply Vagrant workarounds (SUSE)
   include_tasks: apply-workarounds-suse.yml
   when:
-    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
+    - ardana_family == "suse"
     - vagrant_settings.workarounds.suse is defined
 
 - name: dev-env-vagrant | apply-workarounds | Apply Vagrant workarounds (Debian)
   include_tasks: apply-workarounds-debian.yml
   when:
-    - ansible_os_family | lower == "debian"
+    - ardana_family == "debian"
     - vagrant_settings.workarounds.debian is defined

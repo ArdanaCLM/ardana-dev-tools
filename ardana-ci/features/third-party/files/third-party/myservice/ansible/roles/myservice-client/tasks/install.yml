@@ -29,14 +29,14 @@
     name: myservice-client
     state: latest
     force: yes
-  when: ansible_os_family == "Debian"
+  when: ardana_family == "debian"
 
 - name: myservice-client | install | Install myservice-client third-party rpm package
   become: yes
   zypper:
     name: myservice-client
     state: latest
-  when: ansible_os_family | lower == "suse"
+  when: ardana_family == "suse"
 
 - name: myservice-client | install | Log install
   become: yes

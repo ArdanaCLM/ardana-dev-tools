@@ -20,9 +20,9 @@
 - name: dev-env-vagrant | install-requirements | Install Vagrant requirements (SUSE)
   include_tasks: install-requirements-suse.yml
   when:
-    - ansible_os_family.split(' ')[0] | lower | replace('open', '') == "suse"
+    - ardana_family == "suse"
 
 - name: dev-env-vagrant | install-requirements | Install Vagrant requirements (Debian)
   include_tasks: install-requirements-debian.yml
   when:
-    - ansible_os_family | lower == "debian"
+    - ardana_family == "debian"

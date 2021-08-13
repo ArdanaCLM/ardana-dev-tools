@@ -52,7 +52,7 @@
         chdir: "{{ playbook_dir }}/files/src/{{ item.dir }}/build"
       with_items:
         - { dir: myservice-client, name: myservice-client, version: 1.0.0 }
-      when: ansible_os_family | lower == 'debian'
+      when: ardana_family == 'debian'
 
 # rpmbuild needs to be installed only for debian host as SLES and RHEL already has
 # this tool installed
@@ -62,7 +62,7 @@
         name: rpm
         state: present
       ignore_errors: true
-      when: ansible_os_family | lower == 'debian'
+      when: ardana_family == 'debian'
 # Built rpm package for all OS hosts (debian or SLES)
     - name: Create the rpm package
       shell: |

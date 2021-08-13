@@ -22,18 +22,18 @@
   apt:
     name: cpu-checker
     state: present
-  when: ansible_os_family | lower == "debian"
+  when: ardana_family == "debian"
 
 - name: libvirt | _validate_kvm | Gather kvm-ok details
   command: /usr/sbin/kvm-ok
   register: kvm_ok
   changed_when: false
-  when: ansible_os_family | lower == "debian"
+  when: ardana_family == "debian"
 
 - name: libvirt | _validate_kvm | Validate kvm installed and working as expected
   fail:
       msg: "VTx needs to be enabled in your BIOS for libvirt to work"
-  when: ansible_os_family | lower == "debian" and (not ( kvm_ok.stdout is
+  when: ardana_family == "debian" and (not ( kvm_ok.stdout is
         match("INFO[:] /dev/kvm exists\nKVM acceleration can be used") ))
 
 - name: libvirt | _validate_kvm | Check if nested enabled

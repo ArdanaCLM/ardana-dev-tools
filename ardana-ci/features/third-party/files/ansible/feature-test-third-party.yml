@@ -44,11 +44,11 @@
       shell: |
           set -e
           dpkg-query -W -f '${version}' myservice-client
-      when: ansible_os_family | lower == 'debian'
+      when: ardana_family == 'debian'
       register: feature_test_third_party_dpkg_results
     - fail:
         msg: Expected my_library.VERSION = 1.0.0, not {{ feature_test_third_party_dpkg_results.stdout }}
-      when: ansible_os_family | lower == 'debian' and
+      when: ardana_family == 'debian' and
             feature_test_third_party_dpkg_results.stdout_lines[0] != "1.0.0"
 
 - hosts: MYS-CLI
@@ -57,11 +57,11 @@
       shell: |
           set -e
           zypper -n info myservice-client | sed -n -e 's/^Version.*:\s*\([^\s]*\)\s*.*/\1/p'
-      when: ansible_os_family | lower == 'suse'
+      when: ardana_family == 'suse'
       register: feature_test_third_party_zypper_results
     - fail:
         msg: Expected my_library.VERSION = 1.0-0 present, not {{ feature_test_third_party_zypper_results.stdout }}
-      when: ansible_os_family | lower == 'suse' and
+      when: ardana_family == 'suse' and
             not ("'1.0-0' in feature_test_third_party_zypper_results.stdout_lines[0]")
 
 - hosts: MYS-SVR

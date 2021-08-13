@@ -16,7 +16,20 @@
 # Basic Ardana cloud settings
 ---
 
-ardana_family: "{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}"
+_os_family: >-
+  {%- set _of = 'UNKNOWN' -%}
+  {%- if ansible_os_family is defined -%}
+  {%-   set _of = ansible_os_family -%}
+  {%- else -%}
+  {%-   if ansible_lsb is defined -%}
+  {%-     if (ansible_lsb.id | lower) in ['debian', 'ubuntu'] -%}
+  {%-       set _of = 'Debian' -%}
+  {%-     endif -%}
+  {%-   endif -%}
+  {%- endif -%}
+  {{- _of -}}
+
+ardana_family: "{{ _os_family.split(' ')[0] | lower | replace('open','') }}"
 ardana_distro: >-
   {%- set _d = 'unknown' -%}
   {%- if ardana_family == 'suse' -%}

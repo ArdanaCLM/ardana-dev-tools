@@ -19,7 +19,7 @@
 - hosts: cloud
   tasks:
     - name: pkg-manifest | Set os-specific variables
-      include_vars: "roles/pkg-manifest/vars/{{ ansible_os_family.split(' ')[0] | lower | replace('open','') }}.yml"
+      include_vars: "roles/pkg-manifest/vars/{{ ardana_family }}.yml"
 
     - name: pkg-manifest | Get package information
       command: "{{ pkg_query }}"

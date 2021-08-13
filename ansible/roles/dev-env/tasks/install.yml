@@ -17,10 +17,10 @@
 - include_tasks: "{{ playbook_dir }}/roles/apt-repos/tasks/_check_apt.yml"
 
 - include_tasks: _install_apt_packages.yml
-  when: ansible_os_family | lower == "debian"
+  when: ardana_family == "debian"
 
 - include_tasks: _install_zypp_packages.yml
-  when: ansible_os_family.split(' ')[0] | lower | replace('open','') == "suse"
+  when: ardana_family == "suse"
 
 - include_tasks: _install_ansible_cfg.yml
 
