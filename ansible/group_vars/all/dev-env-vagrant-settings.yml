@@ -54,6 +54,8 @@ vagrant_requirements:
       - pkg-config
     debian:
       - build-essential
+      - libvirt-clients
+      - libvirt-daemon-system
       - libvirt-dev
       - pkg-config
 
