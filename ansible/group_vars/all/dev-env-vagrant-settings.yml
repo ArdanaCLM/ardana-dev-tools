@@ -53,11 +53,20 @@ vagrant_requirements:
       - patch
       - pkg-config
     debian:
-      - build-essential
-      - libvirt-clients
-      - libvirt-daemon-system
-      - libvirt-dev
-      - pkg-config
+      common:
+        - build-essential
+        - libvirt-dev
+        - pkg-config
+      14:
+        - libvirt-bin
+      16:
+        - libvirt-bin
+      18:
+        - libvirt-clients
+        - libvirt-daemon-system
+      20:
+        - libvirt-clients
+        - libvirt-daemon-system
 
 vagrant_common_plugins:
   - name: "vagrant-proxyconf"
