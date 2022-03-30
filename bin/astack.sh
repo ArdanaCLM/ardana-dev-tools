@@ -29,7 +29,7 @@ SCRIPT_HOME=$(cd $(dirname $0) ; pwd)
 usage() {
     set +x
     echo "Usage:"
-    echo "    $SCRIPT_NAME [--no-setup] [--no-update-rpms] [--no-build] [cloud]"
+    echo "    $SCRIPT_NAME [--no-setup] [--update-rpms] [--no-build] [cloud]"
     echo
     echo "NOTE: cloud defaults to dac-min"
     echo
@@ -48,7 +48,9 @@ usage() {
     echo "                         (default)"
     echo "--no-artifacts        -- Don't download artifacts or build vagrant,"
     echo "                         guest or OVA images"
-    echo "--no-update-rpms      -- Don't run updated_rpms.sh to rebuild RPMs"
+    echo "--update-rpms         -- Run updated_rpms.sh to rebuild RPMs"
+    echo "--no-update-rpms      -- Don't run updated_rpms.sh (default)"
+    echo "                         For backwards compatibility."
     echo "--no-git-update       -- Don't update git cached sources"
     echo "--prebuilt-images     -- Download pre-built qcow2 images for use in"
     echo "                         creating Vagrant boxes (default)"

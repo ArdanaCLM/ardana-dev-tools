@@ -110,6 +110,7 @@ long_opts=(
     squashkit:
     tarball:
     update-only
+    update-rpms
 )
 
 # join long_opts members with ","
@@ -216,6 +217,7 @@ RUN_TESTS=
 RUN_TESTS_FILTER=${RUN_TESTS_FILTER:-ci}
 PRE_DESTROY=
 NO_LOG_DISABLE=
+NO_UPDATE_RPMS=1
 
 # Total system memory rounded up to nearest multiple of 8GB
 TOTMEM_GB=$(awk '/^MemTotal:/ {gb_in_k=(1024*1024);tot_gb=int(($2+(8*gb_in_k)-1)/(8*gb_in_k))*8; print tot_gb}' /proc/meminfo)
@@ -241,6 +243,7 @@ while true ; do
         --no-setup) NO_SETUP=1 ; shift ;;
         --no-artifacts) NO_ARTIFACTS=1 ; shift ;;
         --no-update-rpms) NO_UPDATE_RPMS=1 ; shift ;;
+        --update-rpms) NO_UPDATE_RPMS= ; shift ;;
         --no-git-update) export ARDANA_GIT_UPDATE=no ; shift ;;
         --prebuilt-images) export ARDANA_PREBUILT_IMAGES=1 ; shift ;;
         --prebuilt-version)
