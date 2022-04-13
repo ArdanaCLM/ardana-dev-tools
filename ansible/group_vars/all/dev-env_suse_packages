@@ -20,7 +20,6 @@ dev_env_zypp_packages_default:
     gcc:
     jq:
     kmod:
-    kmod-compat:
     python-devel:
     vlan:
     kpartx:

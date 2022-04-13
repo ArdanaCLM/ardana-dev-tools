@@ -23,6 +23,16 @@
   when:
     - vagrant_missing_plugins | length > 0
 
+# Some vagrant-libvirt releases hardcoded /bin/install as install command
+- name: dev-env-vagrant | install-plugins | Create /bin/install symlink (SUSE)
+  become: yes
+  file:
+    src: ../usr/bin/install
+    dest: /bin/install
+    state: link
+  when:
+    - ardana_family == "suse"
+
 - name: dev-env-vagrant | install-plugins | Install missing plugins if any
   command: >-
     vagrant
